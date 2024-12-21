@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bars3Icon } from '@heroicons/react/24/outline';
 import {Menu} from "@/app/components/navbar/menu/Menu";
 
 export const Navbar = () => {
