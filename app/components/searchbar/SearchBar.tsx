@@ -1,6 +1,10 @@
 "use client";
-import React from 'react'
-import Select from 'react-select'
+import React, {useEffect, useState} from 'react'
+import dynamic from "next/dynamic";
+
+const Select = dynamic(() => import('react-select'), {
+    ssr: false
+});
 
 const SearchBar = () => {
     // Temporary code for testing
@@ -10,6 +14,15 @@ const SearchBar = () => {
         { value: 'vanilla', label: 'Vanilla' }
     ]
 
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <div style={{
