@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { lusitana } from "@/app/components/fonts/fonts";
 import { Navbar } from "@/app/components/navbar/Navbar";
 import "./globals.css";
+import Footer from "@/app/components/footer/Footer";
 
 export const metadata: Metadata = {
   title: "RomanizedMM",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <body className={`${lusitana.className} antialiased`}>
         <Navbar />
         {children}
+        <Footer />
     </body>
     </html>
   );
