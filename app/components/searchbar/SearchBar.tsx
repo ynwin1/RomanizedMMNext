@@ -1,20 +1,61 @@
 "use client";
 import React, {useEffect, useState} from 'react'
 import dynamic from "next/dynamic";
+import AsyncSelect from "react-select/async";
+import {useDebouncedCallback} from "use-debounce";
 
-const Select = dynamic(() => import('react-select'), {
-    ssr: false
-});
+interface OptionType {
+    value: string; // mmid
+    label: string; // songName
+}
+
+const colourStyles = {
+    control: (styles: any) => ({
+        ...styles,
+        backgroundColor: "white",
+        borderColor: "#ffffff",
+        borderWidth: "1px",
+        width: '50vw',
+        '@media (max-width: 768px)': {
+            width: '85vw',
+        }
+    }),
+    option: (styles: any, { isFocused, isSelected }: any) => ({
+        ...styles,
+        backgroundColor: isFocused ? "#1f1f1f" : isSelected ? "#000000" : "#ffffff",
+        color: isFocused || isSelected ? "white" : "black",
+    }),
+    singleValue: (styles: any) => ({
+        ...styles,
+        color: "white",
+    }),
+    placeholder: (styles: any) => ({
+        ...styles,
+        color: "gray",
+    }),
+};
 
 const SearchBar = () => {
-    // Temporary code for testing
-    const options = [
-        { value: 'chocolate', label: 'Chocolate' },
-        { value: 'strawberry', label: 'Strawberry' },
-        { value: 'vanilla', label: 'Vanilla' }
-    ]
-
     const [mounted, setMounted] = useState(false);
+
+    const loadOptions = useDebouncedCallback( async (inputValue: string): Promise<OptionType[]> => {
+        if (!inputValue) {
+            return [];
+        }
+
+        // API call to /api/song/search?query=${inputValue}
+        const resp = await fetch(`/api/song/search?query=${inputValue}`);
+        const data = await resp.json();
+
+        if (data.success) {
+            return data.data.map((song: any) => ({
+                value: song.mmid,
+                label: song.songName,
+            }));
+        }
+
+        return [];
+    }, 300);
 
     useEffect(() => {
         setMounted(true);
@@ -25,29 +66,15 @@ const SearchBar = () => {
     }
 
     return (
-        <div style={{
-            minWidth: "10rem",
-            maxWidth: "40rem",
-            width: "80%",
-        }}>
-            <Select
-                options={options}
+        <div>
+            <AsyncSelect
+                cacheOptions
+                loadOptions={loadOptions}
                 placeholder={"Type a song title..."}
                 isClearable
-                menuPlacement="auto"
-                menuPosition="fixed"
-                styles={{
-                    placeholder: (base) => ({
-                        ...base,
-                        color: "black",
-                    }),
-                    option: (base, state) => ({
-                        ...base,
-                        backgroundColor: state.isSelected ? "#3182ce" : state.isFocused ? "#63b3ed" : "#ebf4ff",
-                        color: state.isSelected ? "white" : "black",
-                    }),
-
-                }}
+                styles={colourStyles}
+                noOptionsMessage={() => "No songs found"}
+                components={{ DropdownIndicator:() => null, IndicatorSeparator:() => null }}
             />
         </div>
     )
