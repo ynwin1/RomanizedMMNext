@@ -46,6 +46,7 @@ const SearchBar = () => {
                         backgroundColor: state.isSelected ? "#3182ce" : state.isFocused ? "#63b3ed" : "#ebf4ff",
                         color: state.isSelected ? "white" : "black",
                     }),
+
                 }}
             />
         </div>
