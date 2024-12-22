@@ -34,7 +34,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             id="romanized"
                             checked={lyrics === romanized}
                             onChange={(e) => setLyrics(romanized)}
-                            className="w-5 h-5 max-md:w-3 max-md:h-3 cursor-pointer"
+                            className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="romanized" className="cursor-pointer hover:text-gray-300">
                             Romanized
@@ -47,7 +47,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             id="burmese"
                             checked={lyrics === burmese}
                             onChange={(e) => setLyrics(burmese)}
-                            className="w-5 h-5 max-md:w-3 max-md:h-3 cursor-pointer"
+                            className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="burmese" className="cursor-pointer hover:text-gray-300">
                             Burmese
@@ -60,7 +60,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             id="meaning"
                             checked={lyrics === meaning}
                             onChange={(e) => setLyrics(meaning)}
-                            className="w-5 h-5 max-md:w-3 max-md:h-3 cursor-pointer"
+                            className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="meaning" className="cursor-pointer hover:text-gray-300">
                             Meaning

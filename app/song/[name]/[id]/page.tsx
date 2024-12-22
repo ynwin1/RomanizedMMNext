@@ -47,12 +47,12 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <p className="text-xl text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-lg max-md:leading-8">{song.about}</p>
 
             {/* About */}
-            <div className="text-lg border-2 border-white p-4 rounded-2xl max-md:w-[80vw] md:w-[40vw] max-md:text-lg">
-                <p className="font-bold mb-6">{song.songName}</p>
+            <div className="text-lg border-2 border-white p-4 rounded-2xl max-md:w-[80vw] md:w-[40vw]">
+                <p className="mb-6">{song.songName}</p>
                 <p className="pb-2"><u>Artist</u>: {song.artistName}</p>
                 <p className="pb-2"><u>Album</u>: {song.albumName}</p>
                 <p className="pb-2"><u>Genre</u>: {song.genre}</p>
-                <p className="pb-2"><u>When to listen</u>: {song.whenToListen}</p>
+                <p className="pb-2 leading-8"><u>When to listen</u>: {song.whenToListen}</p>
             </div>
 
             {/* Medias */}
