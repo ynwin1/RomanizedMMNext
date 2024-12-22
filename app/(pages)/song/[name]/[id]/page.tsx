@@ -4,6 +4,7 @@ import Song from "@/app/model/Song";
 import { notFound } from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import LyricsSection from "@/app/components/music-box/LyricsSection";
+import ExtLinks from "@/app/components/music-box/ExtLinks";
 
 interface SongPageProps {
     params: {
@@ -56,23 +57,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             </div>
 
             {/* Medias */}
-            <div className="flex flex-row gap-20 border-white border-2 rounded-2xl max-md:w-[70vw] pl-3 pr-3 pt-2 pb-2">
-                {song.youtubeLink &&
-                <button>
-                    <img src="/media/youtube.png" alt="youtube" className="w-16" />
-                </button>
-                }
-                {song.spotifyLink &&
-                <button>
-                    <img src="/media/spotify.png" alt="spotify" className="w-16" />
-                </button>
-                }
-                {song.appleMusicLink &&
-                <button>
-                    <img src="/media/appleMusic.png" alt="apple music" className="w-16" />
-                </button>
-                }
-            </div>
+            <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>
 
             {/* Radio Buttons & Lyrics */}
             <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} />
