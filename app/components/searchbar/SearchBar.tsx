@@ -1,8 +1,8 @@
 "use client";
 import React, {useEffect, useState} from 'react'
-import dynamic from "next/dynamic";
 import AsyncSelect from "react-select/async";
 import {useDebouncedCallback} from "use-debounce";
+import { redirect } from "next/navigation";
 
 interface OptionType {
     value: string; // mmid
@@ -55,7 +55,7 @@ const SearchBar = () => {
         }
 
         return [];
-    }, 300);
+    }, 200);
 
     useEffect(() => {
         setMounted(true);
@@ -63,6 +63,20 @@ const SearchBar = () => {
 
     if (!mounted) {
         return null;
+    }
+
+    const handleChange = (selectedOption: OptionType | null) => {
+        if (!selectedOption) {
+            return;
+        }
+
+        const { value, label } = selectedOption;
+        // extract english song name
+        const songName = label.split('(')[0].trim().replace(/\s/g, '');
+        const url = `/song/${songName}/${value}?lang=en&option=romanized`;
+
+        // Navigate to the song page
+        redirect(url);
     }
 
     return (
@@ -75,6 +89,7 @@ const SearchBar = () => {
                 styles={colourStyles}
                 noOptionsMessage={() => "No songs found"}
                 components={{ DropdownIndicator:() => null, IndicatorSeparator:() => null }}
+                onChange={(selectedOption: OptionType | null) => handleChange(selectedOption)}
             />
         </div>
     )
