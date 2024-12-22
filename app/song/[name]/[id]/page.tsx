@@ -2,6 +2,7 @@ import React from 'react'
 import connectDB from "@/app/lib/mongodb";
 import Song from "@/app/model/Song";
 import { notFound } from "next/navigation";
+import SearchBar from "@/app/components/searchbar/SearchBar";
 
 interface SongPageProps {
     params: {
@@ -25,8 +26,64 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         return notFound();
     }
 
+    function formatLyrics(lyrics: string) {
+        return lyrics.split('\n').map((line, index) => (
+            <React.Fragment key={index}>
+                {line}
+                <br/>
+            </React.Fragment>
+        ))
+    }
+
     return (
-        <div>Song Page</div>
+        <div className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
+            <SearchBar />
+
+            {/* Album Cover */}
+            {song.imageLink && <img src={song.imageLink} alt={song.songName} className="w-40 rounded-xl" />}
+
+            {/* Song Description */}
+            <p className="text-xl text-wrap text-center leading-8 max-md:w-[80vw] md:w-[60vw]">{song.about}</p>
+
+            {/* About */}
+            <div className="border-2 border-white p-4 rounded-2xl max-md:w-[80vw] md:w-[40vw]">
+                <p className="text-lg font-bold mb-6">{song.songName}</p>
+                <p className="text-lg pb-2"><u>Artist</u>: {song.artistName}</p>
+                <p className="text-lg pb-2"><u>Album</u>: {song.albumName}</p>
+                <p className="text-lg pb-2"><u>Genre</u>: {song.genre}</p>
+                <p className="text-lg pb-2"><u>When to listen</u>: {song.whenToListen}</p>
+            </div>
+
+            {/* Medias */}
+            <div className="flex flex-row gap-20 border-white border-2 rounded-2xl max-w-[60vw] pl-3 pr-3 pt-1 pb-1">
+                {song.youtubeLink &&
+                <button>
+                    <img src="/media/youtube.png" alt="youtube" className="w-16" />
+                </button>
+                }
+                {song.spotifyLink &&
+                <button>
+                    <img src="/media/spotify.png" alt="spotify" className="w-16" />
+                </button>
+                }
+                {song.appleMusicLink &&
+                <button>
+                    <img src="/media/appleMusic.png" alt="apple music" className="w-16" />
+                </button>
+                }
+            </div>
+
+            {/* Radio Buttons */}
+            <div className="flex flex-row gap-5 pl-3 pr-3 pt-1 pb-1">
+
+            </div>
+
+            {/* Lyrics */}
+            <p className="text-4xl font-bold">Lyrics</p>
+            <div className="text-lg leading-9 border-2 text-center border-white p-4 rounded-2xl max-md:w-[80vw] md:w-[50vw]">
+                {formatLyrics(song.romanized)}
+            </div>
+        </div>
     )
 }
 export default Page

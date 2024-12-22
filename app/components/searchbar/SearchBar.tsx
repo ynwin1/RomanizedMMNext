@@ -73,6 +73,7 @@ const SearchBar = () => {
         const { value, label } = selectedOption;
         // extract english song name
         const songName = label.split('(')[0].trim().replace(/\s/g, '');
+        // TODO: set lang and option based on user's preference
         const url = `/song/${songName}/${value}?lang=en&option=romanized`;
 
         // Navigate to the song page
