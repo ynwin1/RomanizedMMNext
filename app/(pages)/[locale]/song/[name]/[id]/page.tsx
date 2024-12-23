@@ -2,13 +2,13 @@ import React from 'react';
 import {Metadata, ResolvingMetadata} from "next";
 import connectDB from "@/app/lib/mongodb";
 import Song from "@/app/model/Song";
-import { notFound } from "next/navigation";
+import {notFound} from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import LyricsSection from "@/app/components/music-box/LyricsSection";
 import ExtLinks from "@/app/components/music-box/ExtLinks";
 import {setRequestLocale} from "next-intl/server";
-import {useTranslations} from "next-intl";
 import About from "@/app/components/music-box/About";
+import Image from 'next/image';
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -25,7 +25,7 @@ export async function generateMetadata(
             throw new Error("Missing required parameters: id or locale");
         }
 
-        const songQ = await Song.findOne({ mmid: id }).select('songName').lean();
+        const songQ = await Song.findOne({ mmid: id }).lean();
 
         if (!songQ) {
             throw new Error("Song not found when generating metadata");
@@ -33,14 +33,52 @@ export async function generateMetadata(
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
+        const titleToDisplay = locale === "en" ? engName : mmName;
+        const description = locale === "en" ?
+                `${engName} lyrics by ${songQ.artistName} - Sing along with the romanized lyrics and learn the meaning of the song.` :
+                `${mmName} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
+        const mmid: number = songQ.mmid;
+        const artists: string = songQ.artistName;
+
         return {
-            title: locale === "en" ? engName : mmName,
+            title: titleToDisplay,
+            description: description,
+            category: "Music",
+            keywords: ["Burmese", "Myanmar", "Song", "Lyrics", "Romanized", engName, mmName],
+            openGraph: {
+                title: titleToDisplay,
+                description: description,
+                images: songQ.imageLink ? [
+                    {
+                        url: songQ.imageLink,
+                        width: 800,
+                        height: 600,
+                        alt: titleToDisplay,
+                    },
+                ] : [],
+                locale: locale,
+                alternateLocale: ["en", "mm"],
+                url: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
+                siteName: "RomanizedMM",
+                musicians: artists
+            },
         };
     } catch (error) {
         console.error("Error generating metadata:", error);
         return {
             title: "Song",
         };
+    }
+}
+
+interface SongPageProps {
+    params: {
+        locale: string;
+        id: string;
+        name: string;
+    },
+    searchParams: {
+        option: string
     }
 }
 
@@ -57,38 +95,66 @@ function extractSongName(songName: string): { engName: string, mmName: string } 
     };
 }
 
-interface SongPageProps {
-    params: {
-        locale: string;
-        id: string;
-        name: string;
-    },
-    searchParams: {
-        option: string
-    }
-}
+export const revalidate: number = 3600; // 24 hours
+
 
 const Page = async ({ params, searchParams }: SongPageProps) => {
     const { locale, id, name } = params;
     const { option = 'romanized' } = searchParams;
 
-    await connectDB();
-    const song = await Song.findOne({ mmid: id}).lean();
+    let song;
+    try {
+        await connectDB();
+        song = await Song.findOne({ mmid: id}).lean();
 
-    if (!song) {
+        if (!song) {
+            return notFound();
+        }
+    } catch (error) {
+        console.error("Error fetching song:", error);
         return notFound();
     }
 
-    setRequestLocale(locale);
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "MusicRecording",
+        "name": song.songName,
+        "byArtist": {
+            "@type": "MusicGroup",
+            "name": song.artistName,
+        },
+        "inAlbum": song.albumName ? {
+            "@type": "MusicAlbum",
+            "name": song.albumName,
+        } : undefined,
+        "genre": song.genre,
+        "description": song.about || "A Burmese song",
+        "url": `https://romanizedmm.com/${locale}/song/${song.songName}/${song.mmid}?option=${option}`,
+        "sameAs": [
+            song.youtubeLink,
+            song.spotifyLink,
+            song.appleMusicLink,
+        ].filter(Boolean), // Removes undefined/empty links
+    };
 
+    setRequestLocale(locale);
     const { engName, mmName } = extractSongName(song.songName);
 
     return (
-        <div className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
+        <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
 
             {/* Album Cover */}
-            {song.imageLink && <img src={song.imageLink} alt={song.songName} className="w-40 rounded-xl" loading="lazy" />}
+            {song.imageLink &&
+                <Image
+                src={song.imageLink}
+                alt={song.songName}
+                width={160}
+                height={160}
+                className="rounded-xl"
+                loading="lazy"
+                />
+            }
 
             {/* Song Description */}
             <p className="text-xl text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-lg max-md:leading-8">{song.about}</p>
@@ -109,7 +175,11 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             {/* Radio Buttons & Lyrics */}
             <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
-        </div>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+        </main>
     )
 }
 export default Page
