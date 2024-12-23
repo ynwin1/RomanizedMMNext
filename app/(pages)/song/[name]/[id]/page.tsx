@@ -28,15 +28,6 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         return notFound();
     }
 
-    function formatLyrics(lyrics: string) {
-        return lyrics.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-                {line}
-                <br/>
-            </React.Fragment>
-        ))
-    }
-
     return (
         <div className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
@@ -60,7 +51,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>
 
             {/* Radio Buttons & Lyrics */}
-            <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} />
+            <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
         </div>
     )
 }

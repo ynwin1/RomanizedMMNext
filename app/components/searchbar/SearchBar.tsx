@@ -74,8 +74,8 @@ const SearchBar = () => {
         // extract english song name
         const songName = label.split('(')[0].trim().replace(/\s/g, '');
         // TODO: set lang and option based on user's preference
-        const url = `/song/${songName}/${value}?lang=en&option=romanized`;
-
+        const optionType = localStorage.getItem("RomanizedMM_lyricsType") || 'romanized';
+        const url = `/song/${songName}/${value}?lang=en&option=${optionType}`;
         // Navigate to the song page
         redirect(url);
     }

@@ -1,5 +1,6 @@
 "use client";
 import React, {useState, useEffect} from 'react'
+import {useSearchParams, usePathname, useRouter } from "next/navigation";
 
 interface LyricsSectionProps {
     romanized: string,
@@ -9,9 +10,40 @@ interface LyricsSectionProps {
 }
 
 const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized }: LyricsSectionProps) => {
-    const [lyrics, setLyrics] = useState(initialOption);
+    const [lyrics, setLyrics] = useState(optionToLyrics(initialOption));
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const { replace } = useRouter();
+
+    function optionToLyrics(option: string) {
+        switch (option) {
+            case 'burmese':
+                return burmese;
+            case 'meaning':
+                return meaning;
+            default:
+                return romanized;
+        }
+    }
+
+    function lyricsToOption(lyrics: string) {
+        switch (lyrics) {
+            case burmese:
+                return 'burmese';
+            case meaning:
+                return 'meaning';
+            default:
+                return 'romanized';
+        }
+    }
 
     useEffect(() => {
+        const params: URLSearchParams = new URLSearchParams(searchParams);
+        const lyricsType: string = lyricsToOption(lyrics);
+        params.set("option", lyricsType);
+        replace(`${pathname}?${params.toString()}`, { scroll: false });
+        // set local storage choice
+        localStorage.setItem("RomanizedMM_lyricsType", lyricsType);
     }, [lyrics]);
 
     function formatLyrics(lyrics: string) {
@@ -33,7 +65,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             type="radio"
                             id="romanized"
                             checked={lyrics === romanized}
-                            onChange={(e) => setLyrics(romanized)}
+                            onChange={() => setLyrics(romanized)}
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="romanized" className="cursor-pointer hover:text-gray-300">
@@ -46,7 +78,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             type="radio"
                             id="burmese"
                             checked={lyrics === burmese}
-                            onChange={(e) => setLyrics(burmese)}
+                            onChange={() => setLyrics(burmese)}
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="burmese" className="cursor-pointer hover:text-gray-300">
@@ -59,7 +91,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             type="radio"
                             id="meaning"
                             checked={lyrics === meaning}
-                            onChange={(e) => setLyrics(meaning)}
+                            onChange={() => setLyrics(meaning)}
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="meaning" className="cursor-pointer hover:text-gray-300">
