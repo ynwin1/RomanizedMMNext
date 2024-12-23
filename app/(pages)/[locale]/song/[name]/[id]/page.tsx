@@ -40,6 +40,8 @@ export async function generateMetadata(
         const mmid: number = songQ.mmid;
         const artists: string = songQ.artistName;
 
+        const songNameURL = engName.replace(/\s/g, "");
+
         const jsonLd = {
             "@context": "https://schema.org",
             "@type": "MusicRecording",
@@ -54,7 +56,7 @@ export async function generateMetadata(
             } : undefined,
             "genre": songQ.genre,
             "description": songQ.about || "A Burmese song",
-            "url": `https://romanizedmm.com/${locale}/song/${songQ.songName}/${songQ.mmid}`,
+            "url": `https://romanizedmm.com/${locale}/song/${songNameURL}/${songQ.mmid}`,
             "sameAs": [
                 songQ.youtubeLink,
                 songQ.spotifyLink,
@@ -70,8 +72,8 @@ export async function generateMetadata(
             alternates: {
                 canonical: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
                 languages: {
-                    'en': `https://romanizedmm.com/en/song/${engName}/${mmid}`,
-                    'my': `https://romanizedmm.com/mm/song/${mmName}/${mmid}`,
+                    'en': `https://romanizedmm.com/en/song/${songNameURL}/${mmid}`,
+                    'my': `https://romanizedmm.com/mm/song/${songNameURL}/${mmid}`,
                 }
             },
             other: {
@@ -91,7 +93,7 @@ export async function generateMetadata(
                 ] : [],
                 locale: locale,
                 alternateLocale: ["en", "mm"],
-                url: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
+                url: `https://romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
                 siteName: "RomanizedMM",
                 musicians: artists,
             },
