@@ -7,7 +7,10 @@ import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 
 export const metadata: Metadata = {
-    title: "RomanizedMM",
+    title: {
+        template: "%s | RomanizedMM",
+        default: "RomanizedMM",
+    },
     description: "Spreading Burmese music to the World",
 };
 

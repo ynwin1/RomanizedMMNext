@@ -1,4 +1,5 @@
-import React from 'react'
+import React from 'react';
+import {Metadata, ResolvingMetadata} from "next";
 import connectDB from "@/app/lib/mongodb";
 import Song from "@/app/model/Song";
 import { notFound } from "next/navigation";
@@ -6,6 +7,55 @@ import SearchBar from "@/app/components/searchbar/SearchBar";
 import LyricsSection from "@/app/components/music-box/LyricsSection";
 import ExtLinks from "@/app/components/music-box/ExtLinks";
 import {setRequestLocale} from "next-intl/server";
+import {useTranslations} from "next-intl";
+import About from "@/app/components/music-box/About";
+
+type Props = {
+    params: Promise<{ locale: string, id: string, name: string }>
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+export async function generateMetadata(
+    { params, searchParams }: Props,
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    try {
+        const { id, locale } = await params;
+
+        if (!id || !locale) {
+            throw new Error("Missing required parameters: id or locale");
+        }
+
+        const songQ = await Song.findOne({ mmid: id }).select('songName').lean();
+
+        if (!songQ) {
+            throw new Error("Song not found when generating metadata");
+        }
+
+        const { engName, mmName } = extractSongName(songQ.songName);
+
+        return {
+            title: locale === "en" ? engName : mmName,
+        };
+    } catch (error) {
+        console.error("Error generating metadata:", error);
+        return {
+            title: "Song",
+        };
+    }
+}
+
+function extractSongName(songName: string): { engName: string, mmName: string } {
+    const names = songName.split("(");
+
+    if (names.length < 2) {
+        throw new Error("Song name is not in the correct format");
+    }
+
+    return {
+        engName: names[0].trim(),
+        mmName: names[1].replace(/[()]/g, "").trim(),
+    };
+}
 
 interface SongPageProps {
     params: {
@@ -31,6 +81,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
     setRequestLocale(locale);
 
+    const { engName, mmName } = extractSongName(song.songName);
+
     return (
         <div className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
@@ -42,13 +94,15 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <p className="text-xl text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-lg max-md:leading-8">{song.about}</p>
 
             {/* About */}
-            <div className="text-lg border-2 border-white p-4 rounded-2xl max-md:w-[80vw] md:w-[40vw]">
-                <p className="mb-6">{song.songName}</p>
-                <p className="pb-2"><u>Artist</u>: {song.artistName}</p>
-                <p className="pb-2"><u>Album</u>: {song.albumName}</p>
-                <p className="pb-2"><u>Genre</u>: {song.genre}</p>
-                <p className="pb-2 leading-8"><u>When to listen</u>: {song.whenToListen}</p>
-            </div>
+            <About
+                engSongName={engName}
+                mmSongName={mmName}
+                locale={locale}
+                artistName={song.artistName}
+                albumName={song.albumName? song.albumName : "N/A"}
+                genre={song.genre}
+                whenToListen={song.whenToListen}
+            />
 
             {/* Medias */}
             <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>

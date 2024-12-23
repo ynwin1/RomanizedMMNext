@@ -2,5 +2,15 @@
   "HomePage": {
     "title": "Sing Myanmar, Globally!",
     "subtitle": "Discover romanized lyrics of your favorite Myanmar songs"
+  },
+  "MusicPage": {
+    "artist": "တေးဆို",
+    "album": "အယ်ဘမ်",
+    "genre": "အမျိုးအစား",
+    "whenToListen": "ဘယ်အချိန်နားထောင်",
+    "romanized": "ရိုမန်",
+    "burmese": "မြန်မာ",
+    "meaning": "အဓိပ္ပာယ်",
+    "lyrics": "သီချင်းစာသား"
   }
 }

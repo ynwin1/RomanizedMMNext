@@ -2,5 +2,15 @@
   "HomePage": {
     "title": "Sing Myanmar, Globally!",
     "subtitle": "Discover romanized lyrics of your favorite Myanmar songs"
+  },
+  "MusicPage": {
+    "artist": "Artist",
+    "album": "Album",
+    "genre": "Genre",
+    "whenToListen": "When to listen",
+    "romanized": "Romanized",
+    "burmese": "Burmese",
+    "meaning": "Meaning",
+    "lyrics": "Lyrics"
   }
 }

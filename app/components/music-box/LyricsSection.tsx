@@ -1,6 +1,7 @@
 "use client";
 import React, {useState, useEffect} from 'react'
 import {useSearchParams, usePathname, useRouter } from "next/navigation";
+import {useTranslations} from "next-intl";
 
 interface LyricsSectionProps {
     romanized: string,
@@ -14,6 +15,8 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
+
+    const translator = useTranslations("MusicPage");
 
     function optionToLyrics(option: string) {
         switch (option) {
@@ -69,7 +72,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="romanized" className="cursor-pointer hover:text-gray-300">
-                            Romanized
+                            {translator("romanized")}
                         </label>
                     </div>
 
@@ -82,7 +85,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="burmese" className="cursor-pointer hover:text-gray-300">
-                            Burmese
+                            {translator("burmese")}
                         </label>
                     </div>
 
@@ -95,14 +98,14 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="meaning" className="cursor-pointer hover:text-gray-300">
-                            Meaning
+                            ${translator("meaning")}
                         </label>
                     </div>
                 </div>
             </div>
 
             {/* Lyrics */}
-            <p className="text-4xl font-bold">Lyrics</p>
+            <p className="text-3xl font-bold">{translator("lyrics")}</p>
             <div className="text-lg leading-9 border-2 text-center border-white p-4 rounded-2xl md:w-[50vw]
             max-md:w-[85vw] max-md:text-base max-md:leading-8
             ">
