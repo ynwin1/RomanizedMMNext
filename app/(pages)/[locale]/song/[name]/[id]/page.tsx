@@ -12,14 +12,13 @@ interface SongPageProps {
         name: string;
     },
     searchParams: {
-        lang: string,
         option: string
     }
 }
 
 const Page = async ({ params, searchParams }: SongPageProps) => {
     const { id, name } = params;
-    const { lang = 'en', option = 'romanized' } = searchParams;
+    const { option = 'romanized' } = searchParams;
 
     await connectDB();
     const song = await Song.findOne({ mmid: id}).lean();

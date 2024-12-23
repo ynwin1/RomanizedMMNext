@@ -2,7 +2,7 @@
 import React, {useEffect, useState} from 'react'
 import AsyncSelect from "react-select/async";
 import {useDebouncedCallback} from "use-debounce";
-import { redirect } from "next/navigation";
+import {redirect, useParams} from "next/navigation";
 
 interface OptionType {
     value: string; // mmid
@@ -37,6 +37,8 @@ const colourStyles = {
 
 const SearchBar = () => {
     const [mounted, setMounted] = useState(false);
+    const params = useParams();
+    const locale = params.locale;
 
     const loadOptions = useDebouncedCallback( async (inputValue: string): Promise<OptionType[]> => {
         if (!inputValue) {
@@ -73,9 +75,8 @@ const SearchBar = () => {
         const { value, label } = selectedOption;
         // extract english song name
         const songName = label.split('(')[0].trim().replace(/\s/g, '');
-        // TODO: set lang and option based on user's preference
         const optionType = localStorage.getItem("RomanizedMM_lyricsType") || 'romanized';
-        const url = `/song/${songName}/${value}?lang=en&option=${optionType}`;
+        const url = `/${locale}/song/${songName}/${value}?option=${optionType}`;
         // Navigate to the song page
         redirect(url);
     }

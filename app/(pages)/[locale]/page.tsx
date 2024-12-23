@@ -3,8 +3,11 @@ import Player from "@/app/components/video-player/Player";
 import {Navbar} from "@/app/components/navbar/Navbar";
 import Footer from "@/app/components/footer/Footer";
 import {lusitana} from "@/app/components/fonts/fonts";
+import {useTranslations} from "next-intl";
 
 export default function Home() {
+    const translator = useTranslations("HomePage");
+
     return (
         <div className={`min-h-screen flex flex-col ${lusitana.className} antialiased`}>
             <Navbar />
@@ -18,10 +21,10 @@ export default function Home() {
             <main className="flex-1 flex flex-col">
                 <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-6 text-center px-4">
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-                        Sing Myanmar, Globally!
+                        {translator("title")}
                     </h2>
                     <h4 className="text-lg md:text-2xl lg:text-3xl font-medium">
-                        Discover romanized lyrics of your favorite Myanmar songs
+                        {translator("subtitle")}
                     </h4>
                     <SearchBar />
                 </div>
