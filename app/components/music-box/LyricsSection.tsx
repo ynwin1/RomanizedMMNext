@@ -98,7 +98,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                             className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                         />
                         <label htmlFor="meaning" className="cursor-pointer hover:text-gray-300">
-                            ${translator("meaning")}
+                            {translator("meaning")}
                         </label>
                     </div>
                 </div>
