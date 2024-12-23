@@ -4,6 +4,7 @@ import {createSongRequest, State} from "@/app/lib/action";
 import {MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon} from "@heroicons/react/16/solid";
 import { Button } from '@/app/components/buttons/FormSubmitButton';
 import {usePathname} from "next/navigation";
+import {useLocale} from "next-intl";
 
 type ActionState = {
     message: string | null;
@@ -12,8 +13,7 @@ type ActionState = {
 
 const SongRequestForm = () => {
     const initialState: State = {message: null, errors: {}};
-    const pathname = usePathname();
-    const locale = pathname.split('/')[1];
+    const locale = useLocale();
 
     const actionWithLocale = createSongRequest.bind(null, locale);
     const [state, formAction] = useActionState(actionWithLocale, initialState);

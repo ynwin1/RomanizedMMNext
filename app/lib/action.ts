@@ -58,10 +58,12 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         };
     }
 
+    let redirectPath: string | null = null;
+
     // Create a new song request
     try {
         await connectDB();
-         await SongRequest.create({
+        await SongRequest.create({
             songName,
             artist,
             youtubeLink,
@@ -73,10 +75,14 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         };
         await sendToDiscord(discordWebhook, discordMessage);
 
-        redirect(`/${locale}/song-requests/success`);
+        redirectPath = `/${locale}/song-request/success`;
     } catch (error) {
-        console.error(error);
-        redirect(`/${locale}/song-requests/error`);
+        console.error(`Error is = ${error}`);
+        redirectPath = `/${locale}/song-request/error`;
+    } finally {
+        if (redirectPath) {
+            redirect(redirectPath);
+        }
     }
 }
 
