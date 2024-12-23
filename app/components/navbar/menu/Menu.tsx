@@ -1,11 +1,21 @@
 "use client";
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {XMarkIcon, HomeIcon, Bars3Icon} from "@heroicons/react/24/outline"; // Heroicons for icons
 import Link from "next/link";
 import LanguageSwitcher from "@/app/components/language-switch/LanguageSwitcher";
 
 export const Menu = () => {
     const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        // Prevent scrolling when the menu is open
+        // https://www.reddit.com/r/nextjs/comments/1312tna/next_13_how_to_disable_scrolling_on_body_when/
+        if (isOpen) {
+            document.body.classList.add("overflow-y-hidden")
+        } else {
+            document.body.classList.remove("overflow-y-hidden")
+        }
+    })
 
     return (
         <div>
