@@ -5,8 +5,8 @@ import SongRequest from "@/app/model/SongRequest";
 import connectDB from "@/app/lib/mongodb";
 
 const SongRequestForm = z.object({
-    songName: z.string(),
-    artist: z.string(),
+    songName: z.string().min(1, { message: "Song Name is required." }),
+    artist: z.string().min(1, { message: "Artist is required." }),
     youtubeLink: z.string().optional(),
     details: z.string().optional()
 });
