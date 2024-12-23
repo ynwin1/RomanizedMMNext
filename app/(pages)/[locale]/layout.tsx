@@ -5,6 +5,8 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
+import {Navbar} from "@/app/components/navbar/Navbar";
+import Footer from "@/app/components/footer/Footer";
 
 export const metadata: Metadata = {
     title: {
@@ -20,11 +22,13 @@ export function generateStaticParams() {
 
 export default async function RootLayout({
                                        children,
-                                       params: {locale}
+                                       params
                                    }: {
     children: React.ReactNode;
     params: {locale: string};
 }) {
+    const locale = await params.locale;
+
     // Ensure that the incoming `locale` is valid
     if (!routing.locales.includes(locale as any)) {
         notFound();

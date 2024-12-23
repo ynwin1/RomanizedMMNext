@@ -1,3 +1,4 @@
+import React from 'react';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
@@ -12,11 +13,13 @@ export function generateStaticParams() {
 
 export default async function LocaleLayout({
                                                children,
-                                               params: {locale}
+                                               params
                                            }: {
     children: React.ReactNode;
     params: {locale: string};
 }) {
+    const locale = await params.locale;
+
     // Ensure that the incoming `locale` is valid
     if (!routing.locales.includes(locale as any)) {
         notFound();
