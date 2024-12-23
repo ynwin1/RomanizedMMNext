@@ -2,6 +2,7 @@
 import React, {useState} from 'react'
 import {XMarkIcon, HomeIcon, Bars3Icon} from "@heroicons/react/24/outline"; // Heroicons for icons
 import Link from "next/link";
+import LanguageSwitcher from "@/app/components/language-switch/LanguageSwitcher";
 
 export const Menu = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -30,10 +31,7 @@ const MenuOverlay = ({ close }: { close: React.Dispatch<React.SetStateAction<boo
                 <Link href={"/"}>
                     <HomeIcon className={"w-8"} />
                 </Link>
-                    {/* TODO - Language Selector */}
-                <Link href={"/"}>
-                    <HomeIcon className={"w-8"} />
-                </Link>
+                <LanguageSwitcher/>
                     {/* TODO - Request Song */}
                 <Link href={"/"}>
                     <HomeIcon className={"w-8"} />
