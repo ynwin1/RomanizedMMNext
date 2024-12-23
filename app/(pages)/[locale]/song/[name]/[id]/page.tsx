@@ -88,7 +88,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <SearchBar />
 
             {/* Album Cover */}
-            {song.imageLink && <img src={song.imageLink} alt={song.songName} className="w-40 rounded-xl" />}
+            {song.imageLink && <img src={song.imageLink} alt={song.songName} className="w-40 rounded-xl" loading="lazy" />}
 
             {/* Song Description */}
             <p className="text-xl text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-lg max-md:leading-8">{song.about}</p>
