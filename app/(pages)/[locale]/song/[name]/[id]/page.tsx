@@ -40,14 +40,47 @@ export async function generateMetadata(
         const mmid: number = songQ.mmid;
         const artists: string = songQ.artistName;
 
+        const jsonLd = {
+            "@context": "https://schema.org",
+            "@type": "MusicRecording",
+            "name": songQ.songName,
+            "byArtist": {
+                "@type": "MusicGroup",
+                "name": songQ.artistName,
+            },
+            "inAlbum": songQ.albumName ? {
+                "@type": "MusicAlbum",
+                "name": songQ.albumName,
+            } : undefined,
+            "genre": songQ.genre,
+            "description": songQ.about || "A Burmese song",
+            "url": `https://romanizedmm.com/${locale}/song/${songQ.songName}/${songQ.mmid}`,
+            "sameAs": [
+                songQ.youtubeLink,
+                songQ.spotifyLink,
+                songQ.appleMusicLink,
+            ].filter(Boolean), // Removes undefined/empty links
+        };
+
         return {
             title: titleToDisplay,
             description: description,
             category: "Music",
             keywords: ["Burmese", "Myanmar", "Song", "Lyrics", "Romanized", engName, mmName],
+            alternates: {
+                canonical: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
+                languages: {
+                    'en': `https://romanizedmm.com/en/song/${engName}/${mmid}`,
+                    'my': `https://romanizedmm.com/mm/song/${mmName}/${mmid}`,
+                }
+            },
+            other: {
+                'application/ld+json': JSON.stringify(jsonLd)
+            },
             openGraph: {
                 title: titleToDisplay,
                 description: description,
+                type: "music.song",
                 images: songQ.imageLink ? [
                     {
                         url: songQ.imageLink,
@@ -60,7 +93,7 @@ export async function generateMetadata(
                 alternateLocale: ["en", "mm"],
                 url: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
                 siteName: "RomanizedMM",
-                musicians: artists
+                musicians: artists,
             },
         };
     } catch (error) {
@@ -97,7 +130,6 @@ function extractSongName(songName: string): { engName: string, mmName: string } 
 
 export const revalidate: number = 3600; // 24 hours
 
-
 const Page = async ({ params, searchParams }: SongPageProps) => {
     const { locale, id, name } = params;
     const { option = 'romanized' } = searchParams;
@@ -115,28 +147,6 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         return notFound();
     }
 
-    const jsonLd = {
-        "@context": "https://schema.org",
-        "@type": "MusicRecording",
-        "name": song.songName,
-        "byArtist": {
-            "@type": "MusicGroup",
-            "name": song.artistName,
-        },
-        "inAlbum": song.albumName ? {
-            "@type": "MusicAlbum",
-            "name": song.albumName,
-        } : undefined,
-        "genre": song.genre,
-        "description": song.about || "A Burmese song",
-        "url": `https://romanizedmm.com/${locale}/song/${song.songName}/${song.mmid}?option=${option}`,
-        "sameAs": [
-            song.youtubeLink,
-            song.spotifyLink,
-            song.appleMusicLink,
-        ].filter(Boolean), // Removes undefined/empty links
-    };
-
     setRequestLocale(locale);
     const { engName, mmName } = extractSongName(song.songName);
 
@@ -152,7 +162,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 width={160}
                 height={160}
                 className="rounded-xl"
-                loading="lazy"
+                quality={85}
+                priority={true}
                 />
             }
 
@@ -175,10 +186,6 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             {/* Radio Buttons & Lyrics */}
             <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
         </main>
     )
 }
