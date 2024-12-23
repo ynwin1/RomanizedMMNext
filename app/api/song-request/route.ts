@@ -16,6 +16,7 @@ async function sendToDiscord(webhookUrl: string, message: any) {
 }
 
 export async function POST(req: Request) {
+    console.log("POST /api/song-request");
     const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
 
     if (!discordWebhook) {

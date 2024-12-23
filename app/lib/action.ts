@@ -21,7 +21,21 @@ export type State = {
     message?: string | null;
 }
 
-export async function createSongRequest(prevState: State, formData: FormData) {
+async function sendToDiscord(webhookUrl: string, message: any) {
+    const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(message)
+    });
+
+    if (!resp.ok) {
+        throw new Error('Failed to send song request to Discord!');
+    }
+}
+
+export async function createSongRequest(locale: string, prevState: State, formData: FormData) {
     const validatedFields = SongRequestForm.safeParse({
         songName: formData.get("songName") as string,
         artist: formData.get("artist") as string,
@@ -37,23 +51,32 @@ export async function createSongRequest(prevState: State, formData: FormData) {
 
     const { songName, artist, youtubeLink, details } = validatedFields.data;
 
+    const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
+    if (!discordWebhook) {
+        return {
+            message: "Discord webhook URL is not set"
+        };
+    }
+
     // Create a new song request
     try {
-        const response = await fetch("/api/song-request", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ songName: songName, artist: artist, youtubeLink: youtubeLink, details: details })
+        await connectDB();
+         await SongRequest.create({
+            songName,
+            artist,
+            youtubeLink,
+            details
         });
 
-        if (!response.ok) {
-            throw new Error("Failed to create song request. Try again later.");
-        }
+        const discordMessage = {
+            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${youtubeLink}\nDetails: ${details}`
+        };
+        await sendToDiscord(discordWebhook, discordMessage);
 
-        redirect("/song-requests/success");
+        redirect(`/${locale}/song-requests/success`);
     } catch (error) {
-        redirect("/song-requests/error");
+        console.error(error);
+        redirect(`/${locale}/song-requests/error`);
     }
 }
 

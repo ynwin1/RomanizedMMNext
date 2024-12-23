@@ -3,10 +3,20 @@ import React, {useActionState} from 'react';
 import {createSongRequest, State} from "@/app/lib/action";
 import {MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon} from "@heroicons/react/16/solid";
 import { Button } from '@/app/components/buttons/FormSubmitButton';
+import {usePathname} from "next/navigation";
+
+type ActionState = {
+    message: string | null;
+    errors: Record<string, string[]>;
+};
 
 const SongRequestForm = () => {
     const initialState: State = {message: null, errors: {}};
-    const [state, formAction] = useActionState(createSongRequest, initialState);
+    const pathname = usePathname();
+    const locale = pathname.split('/')[1];
+
+    const actionWithLocale = createSongRequest.bind(null, locale);
+    const [state, formAction] = useActionState(actionWithLocale, initialState);
 
     return (
         <form action={formAction}>
