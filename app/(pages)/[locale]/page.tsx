@@ -4,10 +4,20 @@ import {Navbar} from "@/app/components/navbar/Navbar";
 import Footer from "@/app/components/footer/Footer";
 import {lusitana} from "@/app/components/fonts/fonts";
 import {useTranslations} from "next-intl";
+import {setRequestLocale} from "next-intl/server";
 
-export default function Home() {
+interface HomeProps {
+    params: {
+        locale: string;
+    };
+}
+
+export default function Home({params}: HomeProps) {
+    const {locale} = params;
+    // Enable static rendering
+    setRequestLocale(locale);
+
     const translator = useTranslations("HomePage");
-
     return (
         <div className={`min-h-screen flex flex-col ${lusitana.className} antialiased`}>
             <Navbar />

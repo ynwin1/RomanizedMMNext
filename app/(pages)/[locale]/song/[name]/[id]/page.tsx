@@ -5,9 +5,11 @@ import { notFound } from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import LyricsSection from "@/app/components/music-box/LyricsSection";
 import ExtLinks from "@/app/components/music-box/ExtLinks";
+import {setRequestLocale} from "next-intl/server";
 
 interface SongPageProps {
     params: {
+        locale: string;
         id: string;
         name: string;
     },
@@ -17,7 +19,7 @@ interface SongPageProps {
 }
 
 const Page = async ({ params, searchParams }: SongPageProps) => {
-    const { id, name } = params;
+    const { locale, id, name } = params;
     const { option = 'romanized' } = searchParams;
 
     await connectDB();
@@ -26,6 +28,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     if (!song) {
         return notFound();
     }
+
+    setRequestLocale(locale);
 
     return (
         <div className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
