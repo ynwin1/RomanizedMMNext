@@ -40,7 +40,7 @@ const MenuOverlay = ({ close, locale }: { close: React.Dispatch<React.SetStateAc
                 <Link href={"/"} onClick={() => close(false)}>
                     <HomeIcon className={"w-8 hover:scale-90 hover:opacity-80 ease-in"} />
                 </Link>
-                <Link href={`/${locale}/song-catalogue`} onClick={() => close(false)}>
+                <Link href={`/${locale}/about`} onClick={() => close(false)}>
                     <p className="text-xl font-bold hover:opacity-60">About</p>
                 </Link>
                 <Link href={`/${locale}/song-catalogue`} onClick={() => close(false)}>
