@@ -6,16 +6,10 @@ import { Button } from '@/app/components/buttons/FormSubmitButton';
 import {usePathname} from "next/navigation";
 import {useLocale} from "next-intl";
 
-type ActionState = {
-    message: string | null;
-    errors: Record<string, string[]>;
-};
-
 const SongRequestForm = () => {
     const initialState: State = {message: null, errors: {}};
-    const locale = useLocale();
 
-    const actionWithLocale = createSongRequest.bind(null, locale);
+    const actionWithLocale = createSongRequest.bind(null, useLocale());
     const [state, formAction] = useActionState(actionWithLocale, initialState);
 
     return (

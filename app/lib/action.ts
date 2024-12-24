@@ -21,6 +21,21 @@ export type State = {
     message?: string | null;
 }
 
+export type ReportState = {
+    errors? : {
+        songName?: string[];
+        artist?: string[];
+        details?: string[];
+    };
+    message?: string | null;
+}
+
+const SongReportForm = z.object({
+    songName: z.string().min(1, { message: "Song Name is required." }),
+    artist: z.string().min(1, { message: "Artist is required." }),
+    details: z.string().min(1, { message: "Details required." })
+});
+
 async function sendToDiscord(webhookUrl: string, message: any) {
     const resp = await fetch(webhookUrl, {
         method: 'POST',
@@ -31,7 +46,7 @@ async function sendToDiscord(webhookUrl: string, message: any) {
     });
 
     if (!resp.ok) {
-        throw new Error('Failed to send song request to Discord!');
+        throw new Error('Failed to send song request/report to Discord!');
     }
 }
 
@@ -83,6 +98,42 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         if (redirectPath) {
             redirect(redirectPath);
         }
+    }
+}
+
+export async function createSongReport(locale: string, prevState: ReportState, formData: FormData) {
+    const validatedFields = SongReportForm.safeParse({
+        songName: formData.get("songName"),
+        artist: formData.get("artist"),
+        details: formData.get("details")
+    })
+
+    if (!validatedFields.success) {
+        return { errors: validatedFields.error.flatten().fieldErrors,
+            message: "Please fill out all the required fields. Try Again!"
+        };
+    }
+
+    const { songName, artist, details } = validatedFields.data;
+
+    const discordWebhook = process.env.DISCORD_SONG_REPORT_WEBHOOK;
+    if (!discordWebhook) {
+        return {
+            message: "Discord webhook URL is not set"
+        };
+    }
+
+    try {
+        const discordMessage = {
+            content: `Song Name: ${songName}\nArtist: ${artist}\nDetails: ${details}`
+        };
+        await sendToDiscord(discordWebhook, discordMessage);
+
+        // return success message no redirect
+        return { message: "Report submitted successfully" };
+    } catch (error) {
+        console.log(`Error when submitting report - ${(error as Error).message}`);
+        return { message: "Failed to submit report. Please try again!" };
     }
 }
 

@@ -9,6 +9,7 @@ import ExtLinks from "@/app/components/music-box/ExtLinks";
 import {setRequestLocale} from "next-intl/server";
 import About from "@/app/components/music-box/About";
 import Image from 'next/image';
+import SongReportButton from "@/app/components/buttons/SongReportButton";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -155,6 +156,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     return (
         <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
+
+            <SongReportButton songName={song.songName} artist={song.artistName} />
 
             {/* Album Cover */}
             {song.imageLink &&
