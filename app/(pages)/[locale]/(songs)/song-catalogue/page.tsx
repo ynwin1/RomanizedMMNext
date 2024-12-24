@@ -38,12 +38,12 @@ const Page = async ({ params }: SongCataloguePageProps) => {
                 </button>
             </Link>
             <div className="flex justify-center items-center mt-8 border-2 border-gray-400">
-                <table className="border-2 rounded-2xl w-[60vw] max-md:w-[85vw]">
+                <table className="border-2 rounded-2xl w-[75vw] max-md:w-[85vw]">
                     <thead className="bg-gray-600 text-white">
                     <tr>
-                        <th className="border border-gray-400 p-2 text-left">Song</th>
-                        <th className="border border-gray-400 p-2 text-left">Artist(s)</th>
-                        <th className="border border-gray-400 p-2 text-left">Link</th>
+                        <th className="border border-gray-400 p-2 text-left w-[30%]">Song</th>
+                        <th className="border border-gray-400 p-2 text-left w-[60%]">Artist(s)</th>
+                        <th className="border border-gray-400 p-2 text-left w-[10%]">Link</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -58,7 +58,7 @@ const Page = async ({ params }: SongCataloguePageProps) => {
                                     <p className="text-white">{nameToDisplay}</p>
                                 </td>
                                 <td className="border border-gray-400 p-2">{song.artistName}</td>
-                                <td className="border border-gray-400 p-2 text-center hover:bg-gray-600">
+                                <td className="border border-gray-400 p-2 hover:bg-gray-600">
                                     <Link href={`/${locale}/song/${urlSongName}/${song.mmid}`}>
                                         <u>View</u>
                                     </Link>
