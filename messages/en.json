@@ -12,5 +12,10 @@
     "burmese": "Burmese",
     "meaning": "Meaning",
     "lyrics": "Lyrics"
+  },
+  "Menu" : {
+    "about": "About",
+    "catalogue": "Catalogue",
+    "songRequest": "Song Request"
   }
 }

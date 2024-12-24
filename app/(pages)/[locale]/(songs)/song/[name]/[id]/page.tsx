@@ -34,10 +34,10 @@ export async function generateMetadata(
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
-        const titleToDisplay = locale === "en" ? engName : mmName || engName;
+        const titleToDisplay = songQ.songName;
         const description = locale === "en" ?
-                `${engName} lyrics by ${songQ.artistName} - Sing along with the romanized lyrics and learn the meaning of the song.` :
-                `${mmName} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
+                `${titleToDisplay} lyrics by ${songQ.artistName} - Sing along with the romanized lyrics and learn the meaning of the song.` :
+                `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
         const mmid: number = songQ.mmid;
         const artists: string = songQ.artistName;
 
@@ -175,8 +175,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             {/* About */}
             <About
-                engSongName={engName}
-                mmSongName={mmName}
+                songName={song.songName}
                 locale={locale}
                 artistName={song.artistName}
                 albumName={song.albumName? song.albumName : "N/A"}

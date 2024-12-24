@@ -3,8 +3,7 @@ import React, {useEffect, useState} from 'react'
 import {XMarkIcon, HomeIcon, Bars3Icon} from "@heroicons/react/24/outline"; // Heroicons for icons
 import Link from "next/link";
 import LanguageSwitcher from "@/app/components/language-switch/LanguageSwitcher";
-import {useParams} from "next/navigation";
-import {useLocale} from "next-intl";
+import {useLocale, useTranslations} from "next-intl";
 
 export const Menu = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +30,7 @@ export const Menu = () => {
 }
 
 const MenuOverlay = ({ close, locale }: { close: React.Dispatch<React.SetStateAction<boolean>>, locale: string | undefined }) => {
+    const translator = useTranslations("Menu");
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-100 flex flex-col justify-evenly items-center">
             <div className="flex flex-col justify-around items-center h-3/4">
@@ -41,13 +41,13 @@ const MenuOverlay = ({ close, locale }: { close: React.Dispatch<React.SetStateAc
                     <HomeIcon className={"w-8 hover:scale-90 hover:opacity-80 ease-in"} />
                 </Link>
                 <Link href={`/${locale}/about`} onClick={() => close(false)}>
-                    <p className="text-xl font-bold hover:opacity-60">About</p>
+                    <p className="text-xl font-bold hover:opacity-60">{translator("about")}</p>
                 </Link>
                 <Link href={`/${locale}/song-catalogue?page=1`} onClick={() => close(false)}>
-                    <p className="text-xl font-bold hover:opacity-60">Catalogue</p>
+                    <p className="text-xl font-bold hover:opacity-60">{translator("catalogue")}</p>
                 </Link>
                 <Link href={`/${locale}/song-request`} onClick={() => close(false)}>
-                    <p className="text-xl font-bold hover:opacity-60">Request A Song</p>
+                    <p className="text-xl font-bold hover:opacity-60">{translator("songRequest")}</p>
                 </Link>
                 <LanguageSwitcher/>
                 {/* https://flowbite.com/docs/components/buttons/ */}
