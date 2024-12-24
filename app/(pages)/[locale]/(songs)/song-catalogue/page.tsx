@@ -4,6 +4,7 @@ import Link from "next/link";
 import {Metadata} from "next";
 import Pagination from "@/app/components/catalogue/Pagination";
 import Table from "@/app/components/catalogue/Table";
+import connectDB from "@/app/lib/mongodb";
 
 export const metadata: Metadata = {
     title: 'Song Catalogue',
@@ -23,6 +24,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
     const { locale } = params;
     const currentPage: number = Number(searchParams.page) || 1;
 
+    await connectDB();
     const allSongs = await Song.find({}).select("songName artistName mmid").lean();
 
     // sort songs by songName
@@ -49,7 +51,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
             <div className="flex justify-center items-center mt-8 border-2 border-gray-400">
                 <Table locale={locale} sortedSongs={sortedSongs} currentPage={currentPage} />
             </div>
-            <div className="flex w-full mt-8 mb-6 justify-center">
+            <div className="flex w-full mt-8 mb-8 justify-center">
                 <Pagination totalPages={totalPages} />
             </div>
         </main>

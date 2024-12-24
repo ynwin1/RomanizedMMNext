@@ -34,7 +34,7 @@ export async function generateMetadata(
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
-        const titleToDisplay = locale === "en" ? engName : mmName;
+        const titleToDisplay = locale === "en" ? engName : mmName || engName;
         const description = locale === "en" ?
                 `${engName} lyrics by ${songQ.artistName} - Sing along with the romanized lyrics and learn the meaning of the song.` :
                 `${mmName} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
@@ -120,14 +120,12 @@ interface SongPageProps {
 
 function extractSongName(songName: string): { engName: string, mmName: string } {
     const names = songName.split("(");
-
-    if (names.length < 2) {
-        throw new Error("Song name is not in the correct format");
-    }
+    const engName = names[0].trim();
+    const mmName = names.length > 1 ? names[1].replace(/[()]/g, "").trim() : engName;
 
     return {
-        engName: names[0].trim(),
-        mmName: names[1].replace(/[()]/g, "").trim(),
+        engName: engName,
+        mmName: mmName,
     };
 }
 

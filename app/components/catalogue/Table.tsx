@@ -18,8 +18,8 @@ const Table = ({locale, sortedSongs, currentPage}: TableProps) => {
         <table className="border-2 rounded-2xl w-[75vw] max-md:w-[85vw] max-md:text-sm">
             <thead className="bg-gray-600 text-white">
             <tr>
-                <th className="border border-gray-400 p-2 text-left w-[30%]">Song</th>
-                <th className="border border-gray-400 p-2 text-left w-[60%]">Artist(s)</th>
+                <th className="border border-gray-400 p-2 text-left w-[35%]">Song</th>
+                <th className="border border-gray-400 p-2 text-left w-[55%]">Artist(s)</th>
                 <th className="border border-gray-400 p-2 text-left w-[10%]">Link</th>
             </tr>
             </thead>

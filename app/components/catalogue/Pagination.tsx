@@ -23,7 +23,7 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
             <div className="inline-flex">
                 <PaginationArrow
                     direction="left"
-                    href={createPageURL(1)}
+                    href={createPageURL(currentPage-1)}
                     isDisabled={currentPage <= 1}
                 />
 
@@ -50,7 +50,7 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
 
                 <PaginationArrow
                     direction="right"
-                    href={createPageURL(totalPages)}
+                    href={createPageURL(currentPage + 1)}
                     isDisabled={currentPage >= totalPages}
                 />
             </div>
