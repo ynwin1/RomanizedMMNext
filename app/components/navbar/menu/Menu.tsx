@@ -33,27 +33,29 @@ export const Menu = () => {
 const MenuOverlay = ({ close, locale }: { close: React.Dispatch<React.SetStateAction<boolean>>, locale: string | undefined }) => {
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-100 flex flex-col justify-evenly items-center">
-            <button className="absolute top-4 right-4" onClick={() => close(false)}>
-                <XMarkIcon className="w-8" />
-            </button>
             <div className="flex flex-col justify-evenly items-center h-3/4">
-                <Link href={"/"}>
-                    <HomeIcon className={"w-8"} />
+                <button className="hover:scale-90 hover:opacity-80 ease-in" onClick={() => close(false)}>
+                    <XMarkIcon className="w-8" />
+                </button>
+                <Link href={"/"} onClick={() => close(false)}>
+                    <HomeIcon className={"w-8 hover:scale-90 hover:opacity-80 ease-in"} />
                 </Link>
-                    {/* TODO - Light/Dark Mode Toggler */}
-                <Link href={"/"}>
-                    <HomeIcon className={"w-8"} />
+                <Link href={`/${locale}/song-catalogue`} onClick={() => close(false)}>
+                    <p className="text-xl font-bold hover:opacity-60">Catalogue</p>
                 </Link>
                 <LanguageSwitcher/>
+                <Link href={`/${locale}/song-request`} onClick={() => close(false)}>
+                    <p className="text-xl font-bold hover:opacity-60">Request A Song</p>
+                </Link>
                 {/* https://flowbite.com/docs/components/buttons/ */}
-                <button
-                    className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
-                    <span className="relative px-5 py-2 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                        <Link href={`/${locale}/song-request`}>
-                            <p className="text-xl font-bold hover:opacity-60">Request A Song</p>
-                        </Link>
-                    </span>
-                </button>
+                {/*<button*/}
+                {/*    className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">*/}
+                {/*    <span className="relative px-5 py-2 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">*/}
+                {/*        <Link href={`/${locale}/song-request`}>*/}
+                {/*            <p className="text-xl font-bold hover:opacity-60">Request A Song</p>*/}
+                {/*        </Link>*/}
+                {/*    </span>*/}
+                {/*</button>*/}
 
             </div>
         </div>

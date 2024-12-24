@@ -1,24 +1,22 @@
+"use client"
 import React from 'react'
 import Link from 'next/link'
+import {useLocale} from "next-intl";
 
 const Footer = () => {
+    const locale = useLocale();
     return (
         <footer className="relative bg-transparent text-white p-4 flex flex-row gap-6 justify-center items-center bottom-0">
-            {/*<div className="flex flex-row justify-evenly w-full">*/}
-            {/*    <Link href="/">*/}
-            {/*        <p className="text-2xl font-bold hover:opacity-60">Home</p>*/}
-            {/*    </Link>*/}
-            {/*    <Link href="/"> /!* TODO - About Page *!/*/}
-            {/*        <p className="text-2xl font-bold hover:opacity-60">About</p>*/}
-            {/*    </Link>*/}
-            {/*    <Link href="/"> /!* TODO - Request Song Page *!/*/}
-            {/*        <p className="text-2xl font-bold hover:opacity-60">Request A Song</p>*/}
-            {/*    </Link>*/}
-            {/*</div>*/}
             <Link href="/">
-                <p className="text-lg font-bold hover:opacity-60">About</p>
+                <p className="text-lg font-bold hover:opacity-60 max-md:text-sm">About</p>
             </Link>
-            <p>© 2024 RomanizedMM</p>
+            <Link href={`/${locale}/song-catalogue`}>
+                <p className="text-lg font-bold hover:opacity-60 max-md:text-sm">Catalogue</p>
+            </Link>
+            <Link href={`/${locale}/song-request`}>
+                <p className="text-lg font-bold hover:opacity-60 max-md:text-sm">Song Request</p>
+            </Link>
+            <p className="text-lg font-bold max-md:text-sm">© 2024 RomanizedMM</p>
         </footer>
     )
 }
