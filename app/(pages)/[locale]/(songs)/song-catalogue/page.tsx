@@ -38,7 +38,7 @@ const Page = async ({ params }: SongCataloguePageProps) => {
                 </button>
             </Link>
             <div className="flex justify-center items-center mt-8 border-2 border-gray-400">
-                <table className="border-2 rounded-2xl w-[75vw] max-md:w-[85vw]">
+                <table className="border-2 rounded-2xl w-[75vw] max-md:w-[85vw] max-md:text-sm">
                     <thead className="bg-gray-600 text-white">
                     <tr>
                         <th className="border border-gray-400 p-2 text-left w-[30%]">Song</th>
