@@ -102,9 +102,17 @@ function TriviaCard({key, lyricsChoice, songs, score, setScore, setTriviaState}:
     // Display
     return (
         <div className="flex flex-col justify-center items-center">
-            <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-xl">
-                {`Score : ${score}`}
-            </h2>
+            <div className="flex flex-row justify-between gap-x-6 items-center">
+                <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[12rem] max-md:text-xl">
+                    {`Score : ${score}`}
+                </h2>
+                <button
+                    className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[8rem] max-md:text-xl hover:bg-red-600"
+                    onClick={() => setTriviaState(TriviaState.Start)}
+                >
+                    Quit
+                </button>
+            </div>
             <h3 className="text-lg p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
                 {lyricToAskNeighborsIndexes.length === 1 ?
                 lyricIndex < lyricToAskNeighborsIndexes[0] ?
