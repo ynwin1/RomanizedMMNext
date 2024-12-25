@@ -13,9 +13,15 @@
     "meaning": "အဓိပ္ပာယ်",
     "lyrics": "သီချင်းစာသား"
   },
-    "Menu" : {
-        "about": "အကြောင်း",
-        "catalogue": "သီချင်းစာအုပ်",
-        "songRequest": "သီချင်းတောင်းမယ်"
-    }
+  "Menu" : {
+    "about": "အကြောင်း",
+    "catalogue": "သီချင်းစာအုပ်",
+    "songRequest": "သီချင်းတောင်းမယ်",
+    "guessTheLyrics": "Guess The Lyrics"
+  },
+  "GuessTheLyrics" : {
+    "romanized": "ရိုမန်",
+    "burmese": "မြန်မာ",
+    "start": "စမယ်"
+  }
 }

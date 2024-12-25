@@ -16,6 +16,12 @@
   "Menu" : {
     "about": "About",
     "catalogue": "Catalogue",
-    "songRequest": "Song Request"
+    "songRequest": "Song Request",
+    "guessTheLyrics": "Guess The Lyrics"
+  },
+  "GuessTheLyrics" : {
+    "romanized": "Romanized",
+    "burmese": "Burmese",
+    "start": "Start"
   }
 }

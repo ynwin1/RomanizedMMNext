@@ -29,14 +29,17 @@ const Table = ({locale, sortedSongs, currentPage}: TableProps) => {
                 const burmeseName = song.songName.split("(")[1]?.replace(/[()]/g, "").trim();
                 const urlSongName = engName.replace(/\s/g, "");
                 const nameToDisplay = locale === "en" ? engName : burmeseName || engName;
+                const songURL = `/${locale}/song/${urlSongName}/${song.mmid}`;
                 return (
                     <tr key={song.mmid}>
                         <td className="border border-gray-400 p-2">
+                            <Link href={songURL}>
                             <p className="text-white">{nameToDisplay}</p>
+                            </Link>
                         </td>
                         <td className="border border-gray-400 p-2">{song.artistName}</td>
                         <td className="border border-gray-400 p-2 hover:bg-gray-600">
-                            <Link href={`/${locale}/song/${urlSongName}/${song.mmid}`}>
+                            <Link href={songURL}>
                                 <u>View</u>
                             </Link>
                         </td>
