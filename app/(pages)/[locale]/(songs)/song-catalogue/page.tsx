@@ -25,7 +25,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
     const currentPage: number = Number(searchParams.page) || 1;
 
     await connectDB();
-    const allSongs = await Song.find({}).select("songName artistName mmid").lean();
+    const allSongs = await Song.find({}).select("songName artistName mmid -_id").lean();
 
     // sort songs by songName
     const sortedSongs = allSongs

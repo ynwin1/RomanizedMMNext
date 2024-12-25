@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         const songs = await Song.find({
             songName: { $regex: query, $options: "i" }
         })
-            .select("songName mmid")
+            .select("songName mmid -_id")
             .lean();
 
         return Response.json({ success: true, data: songs });

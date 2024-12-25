@@ -48,7 +48,7 @@ function LyricsSelector({lyricsChoice, setLyricsChoice}:
                             {lyricsChoice: LyricsChoice, setLyricsChoice: (lyricsChoice: LyricsChoice) => void}) {
     const translator = useTranslations("GuessTheLyrics");
     return (
-        <div className="pl-4 pr-4 pt-2 pb-2 max-md:w-[70vw] md:w-[30vw] bg-black opacity-80 rounded-2xl">
+        <div className="pl-4 pr-4 pt-2 pb-2 max-md:w-[70vw] md:w-[30vw] bg-black bg-opacity-70 rounded-2xl">
             <div className="flex justify-evenly items-center gap-4">
                 <div className="flex items-center gap-2">
                     <input

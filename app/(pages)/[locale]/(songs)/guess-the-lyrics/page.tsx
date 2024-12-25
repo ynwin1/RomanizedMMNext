@@ -10,7 +10,7 @@ interface GuessTheLyricsPageProps {
 }
 
 const Page = async ({params}: GuessTheLyricsPageProps) => {
-    const allSongs = await Song.find({}).select("songName romanized burmese").lean();
+    const allSongs = await Song.find({}).select("songName romanized burmese -_id").lean();
 
     return (
         <main className="flex flex-col justify-center items-center h-[80vh] gap-6">

@@ -140,7 +140,7 @@ export async function createSongReport(locale: string, prevState: ReportState, f
 export async function fetchSongRequests() {
     try {
         await connectDB();
-        const resp = await SongRequest.find().select("songName artist").lean();
+        const resp = await SongRequest.find().select("songName artist -_id").lean();
         return resp;
     } catch (error) {
         console.error(error);
