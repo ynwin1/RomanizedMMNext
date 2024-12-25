@@ -17,9 +17,6 @@ const Page = async ({params}: GuessTheLyricsPageProps) => {
             <div className="fixed inset-0 w-full h-full">
                 <Player src="/RMBG.mp4" />
             </div>
-            <h1 className="border-2 border-orange-200 z-10 text-5xl p-4 text-center mb-10 text-white max-md:text-4xl rounded-2xl">
-                Guess The Lyrics
-            </h1>
             <Trivia songs={allSongs} />
         </main>
     )
