@@ -3,6 +3,7 @@ import { z } from "zod";
 import {redirect} from "next/navigation";
 import SongRequest from "@/app/model/SongRequest";
 import connectDB from "@/app/lib/mongodb";
+import TriviaScore from "@/app/model/TriviaScore";
 
 const SongRequestForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
@@ -34,6 +35,21 @@ const SongReportForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
     artist: z.string().min(1, { message: "Artist is required." }),
     details: z.string().min(1, { message: "Details required." })
+});
+
+export type TriviaScoreState = {
+    errors? : {
+        userName?: string[];
+        country?: string[];
+        score?: string[];
+    };
+    message?: string | null;
+}
+
+const TriviaScoreForm = z.object({
+    userName: z.string().min(1, { message: "Name is required." }),
+    country: z.string().min(1, { message: "Country is required." }),
+    score: z.number().min(1, { message: "Score is required." })
 });
 
 async function sendToDiscord(webhookUrl: string, message: any) {
@@ -137,14 +153,87 @@ export async function createSongReport(locale: string, prevState: ReportState, f
     }
 }
 
+export async function createTriviaScore(prevState: TriviaScoreState, formData: FormData) {
+    const validatedFields = TriviaScoreForm.safeParse({
+        userName: formData.get("userName"),
+        country: formData.get("country"),
+        score: parseInt(formData.get("score") as string)
+    });
+
+    if (!validatedFields.success) {
+        return { errors: validatedFields.error.flatten().fieldErrors,
+            message: "Please fill out all the required fields. Try Again!"
+        };
+    }
+
+    const { userName, country, score } = validatedFields.data;
+    console.log(`userName: ${userName}, country: ${country}, score: ${score}`);
+
+    try {
+        await saveScoreAction(userName, country, score);
+        return { message: "Score saved successfully" };
+    } catch (error) {
+        console.error(`Error when saving score - ${(error as Error).message}`);
+        return { message: "Failed to save score. Please try again!" };
+    }
+}
+
 export async function fetchSongRequests() {
     try {
         await connectDB();
-        const resp = await SongRequest.find().select("songName artist -_id").lean();
-        return resp;
+        return await SongRequest.find().select("songName artist -_id").lean();
     } catch (error) {
         console.error(error);
         return [];
+    }
+}
+
+export async function findMinimumTriviaScore() {
+    try {
+        await connectDB();
+        console.log("Finding min trivia score");
+        const result = await TriviaScore.find().sort({ score: 1 }).limit(1).lean();
+        if (result.length === 0) {
+            return 0;
+        }
+        return result[0].score;
+    } catch (error) {
+        console.error(error);
+        return 0;
+    }
+}
+
+export async function fetchAllTriviaScores() {
+    try {
+        await connectDB();
+        console.log("Fetching all trivia scores");
+        return await TriviaScore.find().sort({ score: -1 }).lean(); // sort by score in descending order
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export async function saveScoreAction(userName: string, country: string, score: number) {
+    try {
+        await connectDB();
+        console.log("Saving score action");
+        await TriviaScore.create({
+            userName,
+            country,
+            score
+        });
+
+        // remove the lowest score if there are more than 10 scores
+        const allScores = await fetchAllTriviaScores();
+        if (allScores.length > 10) {
+            await TriviaScore.deleteOne({ _id: allScores[allScores.length - 1]._id });
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to save score:', error);
+        return { success: false };
     }
 }
 

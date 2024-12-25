@@ -2,15 +2,17 @@ import React from 'react';
 import Song from "@/app/model/Song";
 import Trivia from "@/app/components/guess-the-lyrics/Trivia";
 import Player from "@/app/components/video-player/Player";
+import connectDB from "@/app/lib/mongodb";
 
-interface GuessTheLyricsPageProps {
-    params: {
-        locale: string;
+const Page = async () => {
+    let allSongs = [];
+    try {
+        await connectDB();
+        allSongs = await Song.find({}).select("songName romanized burmese -_id").lean();
+    } catch (e) {
+        console.error(e);
+        throw new Error("Failed to fetch songs in GuessTheLyrics. Please try again later.");
     }
-}
-
-const Page = async ({params}: GuessTheLyricsPageProps) => {
-    const allSongs = await Song.find({}).select("songName romanized burmese -_id").lean();
 
     return (
         <main className="flex flex-col justify-center items-center h-[80vh] gap-6">

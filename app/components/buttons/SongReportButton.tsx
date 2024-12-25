@@ -33,7 +33,7 @@ const SongReportButton = ({songName, artist} : SongReportProps) => {
                 <div className="flex flex-col justify-center items-center gap-6">
                     <p className="text-center text-lg">{response}</p>
                     <button
-                        className="bg-blue-600 text-white rounded-xl px-4 py-1 w-[8rem] text-lg font-bold hover:bg-blue-400"
+                        className="bg-blue-500 text-white rounded-xl px-4 py-1 w-[8rem] text-lg font-bold hover:bg-blue-400"
                         onClick={() => {
                             renderMessage(false);
                             setResponse("");

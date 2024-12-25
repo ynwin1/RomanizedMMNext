@@ -64,7 +64,7 @@ function PaginationNumber({href, page, position, isCurrentPage}: {href: string, 
         {
             'rounded-l-md': position === 'first' || position === 'single',
             'rounded-r-md': position === 'last' || position === 'single',
-            'z-10 bg-blue-600 border-2 border-gray-100 text-white': isCurrentPage,
+            'z-10 bg-blue-500 border-2 border-gray-100 text-white': isCurrentPage,
             'hover:bg-gray-500': !isCurrentPage && position !== 'middle',
             'text-gray-300': position === 'middle',
         }

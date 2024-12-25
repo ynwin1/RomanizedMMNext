@@ -1,6 +1,8 @@
 "use client"
-import React, {useState, useEffect} from 'react'
+import React, {useState} from 'react'
 import {useTranslations} from "next-intl";
+import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
+import {fetchAllTriviaScores} from "@/app/lib/action";
 
 enum TriviaState {
     Start = 'start',
@@ -17,6 +19,7 @@ const Trivia = ({songs} : {songs: any[]}) => {
     const [triviaState, setTriviaState] = useState<TriviaState>(TriviaState.Start);
     const [lyricsChoice, setLyricsChoice] = useState<LyricsChoice>(LyricsChoice.Burmese);
     const [score, setScore] = useState<number>(0);
+    const [showSaveCard, setShowSaveCard] = useState<boolean>(true);
 
     const translator = useTranslations("GuessTheLyrics");
 
@@ -29,7 +32,7 @@ const Trivia = ({songs} : {songs: any[]}) => {
                     </h1>
                     <div className="flex flex-col justify-center items-center">
                         <LyricsSelector lyricsChoice={lyricsChoice} setLyricsChoice={setLyricsChoice} />
-                        <button className="text-lg bg-blue-600 text-white p-2 rounded-2xl mt-8 hover:bg-blue-800 w-[6rem]"
+                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-800 w-[6rem]"
                                 onClick={() => setTriviaState(TriviaState.Playing)}>
                             {translator("start")}
                         </button>
@@ -37,20 +40,65 @@ const Trivia = ({songs} : {songs: any[]}) => {
                 </>
                 :
                 triviaState === TriviaState.Playing ?
-                    <div>
+                    <>
                         <TriviaCard key={score} lyricsChoice={lyricsChoice} songs={songs} score={score} setScore={setScore} setTriviaState={setTriviaState}/>
-                    </div>
+                    </>
                     :
-                    <div>
-                        <h1>Game Over</h1>
+                    <div className="flex flex-col justify-center items-center">
+                        {/* Save Card */}
+                        {showSaveCard && <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>}
+                        {/* Restart */}
+                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[15rem]"
+                                onClick={() => {
+                                    setScore(0);
+                                    setTriviaState(TriviaState.Start);
+                                    setShowSaveCard(true);
+                                }}>
+                            Restart
+                        </button>
+                        {/* Leaderboard */}
+                        <Leaderboard />
                     </div>
             }
         </div>
     )
 }
 
-function TriviaCard({key, lyricsChoice, songs, score, setScore, setTriviaState}:
-                        {key: number, lyricsChoice: LyricsChoice,
+async function Leaderboard() {
+    let allScores = await fetchAllTriviaScores();
+    return (
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+            <table className="min-w-full bg-white bg-opacity-10 backdrop-blur-sm">
+                <thead>
+                <tr className="bg-blue-600 text-white">
+                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Rank</th>
+                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Name</th>
+                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Country</th>
+                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Score</th>
+                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
+                </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                {allScores.map((score, index) => (
+                    <tr
+                        key={index}
+                        className="hover:bg-white hover:bg-opacity-10 transition-colors"
+                    >
+                        <td className="py-4 px-6 text-white">{index + 1}</td>
+                        <td className="py-4 px-6 text-white">{score.userName}</td>
+                        <td className="py-4 px-6 text-white">{score.country}</td>
+                        <td className="py-4 px-6 text-white">{score.score}</td>
+                        <td className="py-4 px-6 text-white">{new Date(score.date).toLocaleDateString()}</td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
+                        {lyricsChoice: LyricsChoice,
                             songs: any[],
                             score: number
                             setScore: React.Dispatch<React.SetStateAction<number>>
@@ -103,12 +151,12 @@ function TriviaCard({key, lyricsChoice, songs, score, setScore, setTriviaState}:
     return (
         <div className="flex flex-col justify-center items-center">
             <div className="flex flex-row justify-between gap-x-6 items-center">
-                <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[12rem] max-md:text-xl">
+                <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
                     {`Score : ${score}`}
                 </h2>
                 <button
-                    className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[8rem] max-md:text-xl hover:bg-red-600"
-                    onClick={() => setTriviaState(TriviaState.Start)}
+                    className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl hover:bg-red-600"
+                    onClick={() => {setScore(0); setTriviaState(TriviaState.Start);}}
                 >
                     Quit
                 </button>
@@ -135,7 +183,7 @@ function TriviaCard({key, lyricsChoice, songs, score, setScore, setTriviaState}:
             </h3>
             <div className="flex flex-col gap-6">
                 {randomLyrics.map((lyric, index) => (
-                    <button key={index} className="text-lg bg-blue-600 text-white p-2 rounded-2xl hover:bg-green-600 w-[40vw] max-md:w-[80vw] max-md:text-sm"
+                    <button key={index} className="text-lg bg-blue-500 text-white p-2 rounded-2xl hover:bg-green-600 w-[40vw] max-md:w-[80vw] max-md:text-sm"
                             onClick={() => checkLyric(lyric)}
                     >
                         {lyric}
