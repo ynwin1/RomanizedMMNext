@@ -22,9 +22,10 @@ export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) 
 
     return (
         <form action={formAction}>
-            <div className="rounded-xl bg-black bg-opacity-70 p-4 md:p-6">
+            <div className="rounded-xl bg-black bg-opacity-70 md-[40vw] p-4 md:p-6 max-md:w-[80vw]">
                 <h1 className="text-lg font-semibold mb-4">
-                    {`You scored ${score} points. Save your score!`}
+                    <p>{`You scored ${score} points`}</p>
+                    <p>Save your score!</p>
                 </h1>
                 {/* Name */}
                 <div className="mb-4">
@@ -55,7 +56,7 @@ export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) 
                     </label>
                     <select
                         name="country"
-                        className="text-lg p-2 text-black rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm"
+                        className="block text-black w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
                         defaultValue={countryFlags[0]}
                         aria-describedby="country-error"
                         required

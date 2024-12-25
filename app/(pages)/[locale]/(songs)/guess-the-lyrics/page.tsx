@@ -15,7 +15,7 @@ const Page = async () => {
     }
 
     return (
-        <main className="flex flex-col justify-center items-center h-[80vh] gap-6">
+        <main className="flex flex-col justify-center items-center min-h-screen gap-6">
             <div className="fixed inset-0 w-full h-full">
                 <Player src="/RMBG.mp4" />
             </div>

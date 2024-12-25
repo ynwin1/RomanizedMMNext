@@ -3,6 +3,7 @@ import React, {useState} from 'react'
 import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
 import {fetchAllTriviaScores} from "@/app/lib/action";
+import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
 
 enum TriviaState {
     Start = 'start',
@@ -44,55 +45,26 @@ const Trivia = ({songs} : {songs: any[]}) => {
                         <TriviaCard key={score} lyricsChoice={lyricsChoice} songs={songs} score={score} setScore={setScore} setTriviaState={setTriviaState}/>
                     </>
                     :
-                    <div className="flex flex-col justify-center items-center">
-                        {/* Save Card */}
-                        {showSaveCard && <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>}
-                        {/* Restart */}
-                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[15rem]"
-                                onClick={() => {
-                                    setScore(0);
-                                    setTriviaState(TriviaState.Start);
-                                    setShowSaveCard(true);
-                                }}>
-                            Restart
-                        </button>
+                    <div className="flex flex-row max-md:flex-col justify-center md:justify-evenly items-center">
+                        <div className="flex flex-col gap-10 justify-center items-center md:w-[40%]">
+                            {/* Save Card */}
+                            {showSaveCard && <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>}
+                            {/* Restart */}
+                            <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[15rem]"
+                                    onClick={() => {
+                                        setScore(0);
+                                        setTriviaState(TriviaState.Start);
+                                        setShowSaveCard(true);
+                                    }}>
+                                Restart
+                            </button>
+                        </div>
                         {/* Leaderboard */}
-                        <Leaderboard />
+                        <div className="md:w-[50%]">
+                            <Leaderboard />
+                        </div>
                     </div>
             }
-        </div>
-    )
-}
-
-async function Leaderboard() {
-    let allScores = await fetchAllTriviaScores();
-    return (
-        <div className="overflow-x-auto shadow-lg rounded-lg">
-            <table className="min-w-full bg-white bg-opacity-10 backdrop-blur-sm">
-                <thead>
-                <tr className="bg-blue-600 text-white">
-                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Rank</th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Name</th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Country</th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Score</th>
-                    <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
-                </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                {allScores.map((score, index) => (
-                    <tr
-                        key={index}
-                        className="hover:bg-white hover:bg-opacity-10 transition-colors"
-                    >
-                        <td className="py-4 px-6 text-white">{index + 1}</td>
-                        <td className="py-4 px-6 text-white">{score.userName}</td>
-                        <td className="py-4 px-6 text-white">{score.country}</td>
-                        <td className="py-4 px-6 text-white">{score.score}</td>
-                        <td className="py-4 px-6 text-white">{new Date(score.date).toLocaleDateString()}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
         </div>
     )
 }
