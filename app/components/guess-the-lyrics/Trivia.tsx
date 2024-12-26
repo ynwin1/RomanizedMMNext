@@ -123,7 +123,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
         }
     }
 
-    const timer = 10000; // 10 seconds
+    const timer = 15000; // 15 seconds
     const [expiryTime, setExpiryTime] = useState(new Date().getTime() + timer);
     const Timer = ({expiryTimestamp, onExpire}: {expiryTimestamp: Date, onExpire: () => void}) => {
         const {
