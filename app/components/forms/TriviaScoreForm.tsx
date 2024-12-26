@@ -1,10 +1,9 @@
 "use client";
 
 import React, {useActionState, useEffect} from "react";
-import {createTriviaScore, ReportState, TriviaScoreState} from "@/app/lib/action";
+import {createTriviaScore, TriviaScoreState} from "@/app/lib/action";
 import {countryFlags} from "@/app/lib/utils";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
-import {useFormState} from "react-dom";
 
 interface TriviaScoreFormProps {
     score: number;
@@ -13,7 +12,7 @@ interface TriviaScoreFormProps {
 
 export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) => {
     const initialState: TriviaScoreState = {message: "", errors: {}};
-    const [state, formAction] = useFormState(createTriviaScore, initialState);
+    const [state, formAction] = useActionState(createTriviaScore, initialState);
 
     useEffect(() => {
         if (!state.errors) {

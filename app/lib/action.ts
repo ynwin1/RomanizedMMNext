@@ -152,10 +152,10 @@ export async function createSongReport(prevState: ReportState, formData: FormDat
         await sendToDiscord(discordWebhook, discordMessage);
 
         // return success message no redirect
-        return { message: "Report submitted successfully" };
+        return { message: "Report submitted successfully ✅" };
     } catch (error) {
         console.log(`Error when submitting report - ${(error as Error).message}`);
-        return { message: "Failed to submit report. Please try again!" };
+        return { message: "Failed to submit report ❌. Please try again later!" };
     }
 }
 
