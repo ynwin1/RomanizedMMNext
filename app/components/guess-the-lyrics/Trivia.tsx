@@ -39,7 +39,7 @@ const Trivia = ({songs} : {songs: any[]}) => {
                             {translator("start")}
                         </button>
                     </div>
-                    <Leaderboard refresh={showSaveCard} />
+                    {/*<Leaderboard refresh={showSaveCard} />*/}
                 </div>
                 :
                 triviaState === TriviaState.Playing ?
