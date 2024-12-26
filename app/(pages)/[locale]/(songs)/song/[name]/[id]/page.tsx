@@ -20,7 +20,7 @@ export async function generateMetadata(
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     try {
-        const { id, locale } = await params;
+        const { id, locale } = params;
 
         if (!id || !locale) {
             throw new Error("Missing required parameters: id or locale");
