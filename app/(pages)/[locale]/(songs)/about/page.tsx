@@ -3,9 +3,7 @@ import {Metadata} from "next";
 import Image from 'next/image';
 
 interface AboutPageProps {
-    params: {
-        locale: string
-    }
+    params: Promise<{ locale: string }>;
 }
 
 export const metadata : Metadata = {
@@ -13,8 +11,8 @@ export const metadata : Metadata = {
     description: 'Learn about RomanizedMM and their mission to elevate Myanmar music to the world stage.',
 }
 
-const Page = ({params} : AboutPageProps) => {
-    const {locale} = params;
+const Page = async ({params} : AboutPageProps) => {
+    const {locale} = await params;
 
     return (
         <div className="flex flex-col justify-center items-center">

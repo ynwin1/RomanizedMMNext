@@ -12,17 +12,14 @@ export const metadata: Metadata = {
 }
 
 export type SongCataloguePageProps = {
-    params: {
-        locale: string;
-    },
-    searchParams: {
-        page?: string;
-    }
+    params: Promise<{locale: string}>;
+    searchParams: Promise<{page?: string}>;
 };
 
 const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
-    const { locale } = params;
-    const currentPage: number = Number(searchParams.page) || 1;
+    const { locale } = await params;
+    const { page } = await searchParams;
+    const currentPage: number = Number(page) || 1;
 
     await connectDB();
     const allSongs = await Song.find({}).select("songName artistName mmid -_id").lean();

@@ -109,14 +109,8 @@ export async function generateMetadata(
 }
 
 interface SongPageProps {
-    params: {
-        locale: string;
-        id: string;
-        name: string;
-    },
-    searchParams: {
-        option: string
-    }
+    params: Promise<{locale: string, id: string, name: string}>,
+    searchParams: Promise<{ option: string }>;
 }
 
 function extractSongName(songName: string): { engName: string, mmName: string } {
@@ -133,8 +127,8 @@ function extractSongName(songName: string): { engName: string, mmName: string } 
 export const revalidate: number = 3600; // 24 hours
 
 const Page = async ({ params, searchParams }: SongPageProps) => {
-    const { locale, id, name } = params;
-    const { option = 'burmese' } = searchParams;
+    const { locale, id, name } = await params;
+    const { option = 'burmese' } = await searchParams;
 
     let song;
     try {
