@@ -34,22 +34,21 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
                 <table className="w-full bg-black bg-opacity-30 backdrop-blur-sm">
                     <thead>
                     <tr className="bg-blue-600">
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase break-all tracking-wider hidden md:table-cell">
+                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
                             Rank
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase break-all">
-                            <span className="hidden sm:block">Name</span>
-                            <span className="block sm:hidden">🧑</span>
+                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase">
+                            Name
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider break-all">
+                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
                             <span className="hidden sm:block">Country</span>
-                            <span className="block sm:hidden">🌍</span>
+                            <span className="block sm:hidden">📍</span>
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider break-all">
+                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
                             <span className="hidden sm:block">Score</span>
                             <span className="block sm:hidden">Pts</span>
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell break-all">
+                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
                             Date
                         </th>
                     </tr>
