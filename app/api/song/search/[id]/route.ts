@@ -1,8 +1,12 @@
 import connectDB from "@/app/lib/mongodb";
 import Song from "@/app/model/Song";
+import {NextRequest} from "next/server";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function GET(
+    request: NextRequest,
+    context: { params: { id: string } }
+) {
+    const { id } = context.params;
     await connectDB();
 
     try {
