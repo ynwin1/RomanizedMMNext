@@ -7,13 +7,11 @@ import {useTranslations} from "next-intl";
 import {setRequestLocale} from "next-intl/server";
 
 interface HomeProps {
-    params: {
-        locale: string;
-    };
+    params: Promise<{locale: string}>;
 }
 
-export default function Home({params}: HomeProps) {
-    const {locale} = params;
+export default async function Home({params}: HomeProps) {
+    const {locale} = await params;
     // Enable static rendering
     setRequestLocale(locale);
 
