@@ -1,5 +1,5 @@
 "use client"
-import React, {Suspense, useState} from 'react'
+import React, {useState} from 'react'
 import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
 import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
