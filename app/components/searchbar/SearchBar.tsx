@@ -13,11 +13,12 @@ const colourStyles = {
     control: (styles: any) => ({
         ...styles,
         backgroundColor: "white",
-        borderColor: "#ffffff",
-        borderWidth: "1px",
+        borderColor: "#000000",
+        borderWidth: "2px",
         width: '50vw',
+        borderRadius: '2rem',
         '@media (max-width: 768px)': {
-            width: '65vw',
+            width: '85vw',
         }
     }),
     option: (styles: any, { isFocused, isSelected }: any) => ({
