@@ -5,12 +5,13 @@ import {MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon} from "@heroicons/react/
 import { Button } from '@/app/components/buttons/FormSubmitButton';
 import {usePathname} from "next/navigation";
 import {useLocale} from "next-intl";
+import {useFormState} from "react-dom";
 
 const SongRequestForm = () => {
-    const initialState: State = {message: null, errors: {}};
+    const initialState: State = {message: "", errors: {}};
 
     const actionWithLocale = createSongRequest.bind(null, useLocale());
-    const [state, formAction] = useActionState(actionWithLocale, initialState);
+    const [state, formAction] = useFormState(actionWithLocale, initialState);
 
     return (
         <form action={formAction}>

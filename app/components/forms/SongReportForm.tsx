@@ -4,6 +4,7 @@ import {useLocale} from "next-intl";
 import {MusicalNoteIcon, UserIcon, PencilIcon} from "@heroicons/react/16/solid";
 import {createSongReport, ReportState} from "@/app/lib/action";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
+import {useFormState} from "react-dom";
 
 const SongReportForm = ({songName, artist, renderReport, renderMessage, setResponse}:
                             {   songName: string,
@@ -12,10 +13,8 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                                 renderMessage: React.Dispatch<React.SetStateAction<boolean>>,
                                 setResponse: React.Dispatch<React.SetStateAction<string>>
                             }) => {
-    const initialState: ReportState = {message: null, errors: {}};
-
-    const actionWithLocale = createSongReport.bind(null, useLocale());
-    const [state, formAction] = useActionState(actionWithLocale, initialState);
+    const initialState: ReportState = {message: "", errors: {}};
+    const [state, formAction] = useFormState(createSongReport, initialState);
 
     useEffect(() => {
         if (state.message && !state.errors?.details) {

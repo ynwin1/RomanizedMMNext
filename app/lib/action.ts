@@ -19,7 +19,7 @@ export type State = {
         youtubeLink?: string[];
         details?: string[];
     };
-    message?: string | null;
+    message?: string;
 }
 
 export type ReportState = {
@@ -28,7 +28,7 @@ export type ReportState = {
         artist?: string[];
         details?: string[];
     };
-    message?: string | null;
+    message?: string;
 }
 
 const SongReportForm = z.object({
@@ -43,7 +43,7 @@ export type TriviaScoreState = {
         country?: string[];
         score?: string[];
     };
-    message?: string | null;
+    message?: string;
 }
 
 const TriviaScoreForm = z.object({
@@ -91,6 +91,8 @@ export async function createSongRequest(locale: string, prevState: State, formDa
 
     let redirectPath: string | null = null;
 
+    let message = "";
+
     // Create a new song request
     try {
         await connectDB();
@@ -105,19 +107,23 @@ export async function createSongRequest(locale: string, prevState: State, formDa
             content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${youtubeLink}\nDetails: ${details}`
         };
         await sendToDiscord(discordWebhook, discordMessage);
-
+        message = "Song request submitted successfully";
         redirectPath = `/${locale}/song-request/success`;
     } catch (error) {
         console.error(`Error is = ${error}`);
+        message = "Failed to submit song request. Please try again!";
         redirectPath = `/${locale}/song-request/error`;
     } finally {
         if (redirectPath) {
             redirect(redirectPath);
         }
     }
+
+    const resp: State = { message, errors: {} };
+    return resp;
 }
 
-export async function createSongReport(locale: string, prevState: ReportState, formData: FormData) {
+export async function createSongReport(prevState: ReportState, formData: FormData) {
     const validatedFields = SongReportForm.safeParse({
         songName: formData.get("songName"),
         artist: formData.get("artist"),
@@ -171,10 +177,12 @@ export async function createTriviaScore(prevState: TriviaScoreState, formData: F
 
     try {
         await saveScoreAction(userName, country, score);
-        return { message: "Score saved successfully" };
+        const resp: TriviaScoreState = { message: "Score saved successfully" };
+        return resp;
     } catch (error) {
         console.error(`Error when saving score - ${(error as Error).message}`);
-        return { message: "Failed to save score. Please try again!" };
+        const resp: TriviaScoreState = { message: "Failed to save score. Please try again!", errors: {} };
+        return resp;
     }
 }
 

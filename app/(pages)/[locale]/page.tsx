@@ -5,6 +5,8 @@ import Footer from "@/app/components/footer/Footer";
 import {lusitana} from "@/app/components/fonts/fonts";
 import {useTranslations} from "next-intl";
 import {setRequestLocale} from "next-intl/server";
+import AboutContent from "@/app/components/about/AboutContent";
+import {Suspense} from "react";
 
 interface HomeProps {
     params: Promise<{locale: string}>;
@@ -15,7 +17,7 @@ export default async function Home({params}: HomeProps) {
     // Enable static rendering
     setRequestLocale(locale);
 
-    const translator = useTranslations("HomePage");
+
     return (
         <div className={`min-h-screen flex flex-col ${lusitana.className} antialiased`}>
             <Navbar />
@@ -28,12 +30,7 @@ export default async function Home({params}: HomeProps) {
             {/* Main content */}
             <main className="flex-1 flex flex-col">
                 <div className="relative z-10 flex flex-col items-center justify-center flex-1 gap-6 text-center px-4">
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-                        {translator("title")}
-                    </h2>
-                    <h4 className="text-lg md:text-2xl lg:text-3xl font-medium">
-                        {translator("subtitle")}
-                    </h4>
+                    <AboutContent />
                     <SearchBar />
                 </div>
             </main>
