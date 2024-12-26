@@ -21,13 +21,16 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
     return (
         <>
             <div className="inline-flex">
-                <PaginationArrow
-                    direction="left"
-                    href={createPageURL(currentPage-1)}
-                    isDisabled={currentPage <= 1}
-                />
+                <div className="hidden md:block">
+                    <PaginationArrow
+                        direction="left"
+                        href={createPageURL(currentPage-1)}
+                        isDisabled={currentPage <= 1}
+                    />
+                </div>
 
-                <div className="flex -space-x-px">
+
+                <div className="flex">
                     {allPages.map((page, index) => {
                         let position: 'first' | 'last' | 'single' | 'middle' | undefined;
 
@@ -48,11 +51,13 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
                     })}
                 </div>
 
-                <PaginationArrow
-                    direction="right"
-                    href={createPageURL(currentPage + 1)}
-                    isDisabled={currentPage >= totalPages}
-                />
+                <div className="hidden md:block">
+                    <PaginationArrow
+                        direction="right"
+                        href={createPageURL(currentPage + 1)}
+                        isDisabled={currentPage >= totalPages}
+                    />
+                </div>
             </div>
         </>
     )
@@ -60,7 +65,7 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
 
 function PaginationNumber({href, page, position, isCurrentPage}: {href: string, page: number | string, position: 'first' | 'last' | 'single' | 'middle' | undefined, isCurrentPage: boolean}) {
     const className = clsx(
-        'flex h-10 w-10 items-center justify-center rounded-md border',
+        'flex h-10 w-10 items-center justify-center rounded-md border max-md:w-[30px]',
         {
             'rounded-l-md': position === 'first' || position === 'single',
             'rounded-r-md': position === 'last' || position === 'single',

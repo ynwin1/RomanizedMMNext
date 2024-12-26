@@ -207,7 +207,12 @@ export async function fetchAllTriviaScores() {
     try {
         await connectDB();
         console.log("Fetching all trivia scores");
-        return await TriviaScore.find().sort({ score: -1 }).lean(); // sort by score in descending order
+        const scores = await TriviaScore.find().sort({ score: -1 }).lean(); // sort by score in descending order
+        const plainScores = scores.map(score => ({
+            ...score,
+            _id: score._id.toString(),
+        }));
+        return plainScores;
     } catch (error) {
         console.error(error);
         return [];

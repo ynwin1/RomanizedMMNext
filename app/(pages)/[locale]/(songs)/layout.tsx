@@ -33,8 +33,6 @@ export default async function LocaleLayout({
     const messages = await getMessages();
 
     return (
-        <html lang={locale}>
-        <body className={`${lusitana.className} antialiased min-h-screen flex flex-col`}>
         <NextIntlClientProvider messages={messages}>
             <Navbar/>
             <main className="flex-grow">
@@ -42,7 +40,5 @@ export default async function LocaleLayout({
             </main>
             <Footer/>
         </NextIntlClientProvider>
-        </body>
-        </html>
     );
 }
