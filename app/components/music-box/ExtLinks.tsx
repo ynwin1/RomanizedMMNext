@@ -20,7 +20,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
 
     return (
         <>
-            <div className="flex flex-row justify-between w-[30dvw] border-white max-md:w-[70dvw] border-2 rounded-2xl pl-2 pr-2 px-2 py-2 ">
+            <div className="flex flex-row gap-10 justify-evenly border-white border-2 rounded-2xl pl-2 pr-2 px-2 py-2 ">
                 {youtube &&
                     <button onClick={togglePlayer}>
                         <img src="/media/youtube.png" alt="youtube" className="w-16 max-md:w-12 hover:scale-90 ease-in" loading="lazy"/>

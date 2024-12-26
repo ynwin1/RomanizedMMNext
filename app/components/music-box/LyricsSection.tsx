@@ -38,40 +38,40 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
     return (
         <>
             {/* Radio Buttons */}
-            <div className="flex flex-row border-2 border-white rounded-2xl pt-2 pb-2 justify-evenly items-center gap-3 w-[30vw] max-md:w-[70vw]">
-                <div className="flex items-center gap-2 max-md:gap-1">
+            <div className="flex flex-row border-2 border-white rounded-2xl gap-6 pl-6 pr-6 pt-3 pb-3 max-md:p-2">
+                <div className="gap-2 flex items-center">
                     <input
                         type="radio"
                         id="romanized"
                         checked={selectedOption === "romanized"}
                         onChange={() => setSelectedOption("romanized")}
-                        className="w-5 h-5 cursor-pointer max-sm:w-3 max-sm:h-3"
+                        className="w-4 h-4"
                     />
-                    <label htmlFor="romanized" className="max-md:text-sm cursor-pointer hover:text-gray-300">
+                    <label htmlFor="romanized" className="hover:text-gray-300">
                         {translator("romanized")}
                     </label>
                 </div>
-                <div className="flex items-center gap-2 max-md:gap-1">
+                <div className="gap-2 flex items-center">
                     <input
                         type="radio"
                         id="burmese"
                         checked={selectedOption === "burmese"}
                         onChange={() => setSelectedOption("burmese")}
-                        className="w-5 h-5 cursor-pointer max-md:w-3 max-md:h-3"
+                        className="w-4 h-4"
                     />
-                    <label htmlFor="burmese" className="max-md:text-sm cursor-pointer hover:text-gray-300">
+                    <label htmlFor="burmese" className="hover:text-gray-300">
                         {translator("burmese")}
                     </label>
                 </div>
-                <div className="flex items-center gap-2 max-md:gap-1">
+                <div className="gap-2 flex items-center">
                     <input
                         type="radio"
                         id="meaning"
                         checked={selectedOption === "meaning"}
                         onChange={() => setSelectedOption("meaning")}
-                        className="w-5 h-5 cursor-pointer max-md:w-3 max-md:h-3"
+                        className="w-4 h-4"
                     />
-                    <label htmlFor="meaning" className="max-md:text-sm cursor-pointer hover:text-gray-300">
+                    <label htmlFor="meaning" className="hover:text-gray-300">
                         {translator("meaning")}
                     </label>
                 </div>

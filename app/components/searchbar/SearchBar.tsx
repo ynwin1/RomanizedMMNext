@@ -17,7 +17,7 @@ const colourStyles = {
         borderWidth: "1px",
         width: '50vw',
         '@media (max-width: 768px)': {
-            width: '85vw',
+            width: '65vw',
         }
     }),
     option: (styles: any, { isFocused, isSelected }: any) => ({
