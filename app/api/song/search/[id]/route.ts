@@ -2,11 +2,15 @@ import connectDB from "@/app/lib/mongodb";
 import Song from "@/app/model/Song";
 import {NextRequest} from "next/server";
 
+type Props = {
+    params: Promise<{ id: string }>
+}
+
 export async function GET(
     request: NextRequest,
-    context: { params: { id: string } }
+    props: Props
 ) {
-    const { id } = context.params;
+    const { id } = await props.params;
     await connectDB();
 
     try {
