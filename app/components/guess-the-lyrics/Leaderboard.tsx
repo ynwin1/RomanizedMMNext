@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {fetchAllTriviaScores} from "@/app/lib/action";
 
-const Leaderboard = () => {
+const Leaderboard = ({refresh}: {refresh: boolean}) => {
     const [allScores, setScores] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -18,18 +18,18 @@ const Leaderboard = () => {
         };
 
         loadScores();
-    }, []);
+    }, [refresh]);
 
     if (loading) {
         return null;
     }
 
     return (
-        <div className="rounded-lg mt-8">
-            <h1 className="text-3xl text-white text-center p-4"><u>Top 10 Leaderboard</u></h1>
-            <table className="bg-white bg-opacity-10 backdrop-blur-sm">
+        <div className="flex flex-col justify-center items-center rounded-lg mt-8">
+            <h1 className="text-3xl text-white text-center p-4"><u>Leaderboard</u></h1>
+            <table className="bg-black bg-opacity-30 backdrop-blur-sm">
                 <thead>
-                <tr className="bg-blue-600 text-white">
+                <tr className="bg-blue-600">
                     <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:inline-block">Rank</th>
                     <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Name</th>
                     <th className="py-3 px-6 text-left text-sm font-semibold uppercase tracking-wider">Country</th>

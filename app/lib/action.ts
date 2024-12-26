@@ -47,7 +47,7 @@ export type TriviaScoreState = {
 }
 
 const TriviaScoreForm = z.object({
-    userName: z.string().min(1, { message: "Name is required." }),
+    userName: z.string().min(1, { message: "Name is required." }).max(15, { message: "Max 15 characters."}),
     country: z.string().min(1, { message: "Country is required." }),
     score: z.number().min(1, { message: "Score is required." })
 });

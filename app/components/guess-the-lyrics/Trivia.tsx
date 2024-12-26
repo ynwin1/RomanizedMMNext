@@ -27,42 +27,46 @@ const Trivia = ({songs} : {songs: any[]}) => {
     return (
         <div className="z-10">
             {triviaState === TriviaState.Start ?
-                <>
-                    <h1 className="border-2 border-orange-200 z-10 text-5xl p-4 text-center mb-10 text-white max-md:text-4xl rounded-2xl">
+                <div className="flex flex-col justify-center items-center mt-6">
+                    <h1 className="border-2 border-orange-200 z-10 text-5xl p-4
+                    text-center mb-10 text-white max-sm:text-2xl max-sm: p-2 rounded-2xl max-md:w-[60vw] bg-black bg-opacity-70 ">
                         Guess The Lyrics
                     </h1>
                     <div className="flex flex-col justify-center items-center">
                         <LyricsSelector lyricsChoice={lyricsChoice} setLyricsChoice={setLyricsChoice} />
-                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-800 w-[6rem]"
+                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-800 w-[6rem] border-2 border-black"
                                 onClick={() => setTriviaState(TriviaState.Playing)}>
                             {translator("start")}
                         </button>
                     </div>
-                </>
+                    <Leaderboard refresh={showSaveCard} />
+                </div>
                 :
                 triviaState === TriviaState.Playing ?
                     <>
                         <TriviaCard key={score} lyricsChoice={lyricsChoice} songs={songs} score={score} setScore={setScore} setTriviaState={setTriviaState}/>
                     </>
                     :
-                    <div className="flex flex-row max-md:flex-col justify-center md:justify-evenly items-center">
-                        <div className="flex flex-col gap-10 justify-center items-center md:w-[40%]">
-                            {/* Save Card */}
-                            {showSaveCard && <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>}
-                            {/* Restart */}
-                            <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[15rem]"
-                                    onClick={() => {
-                                        setScore(0);
-                                        setTriviaState(TriviaState.Start);
-                                        setShowSaveCard(true);
-                                    }}>
-                                Restart
-                            </button>
-                        </div>
+                    <div className="flex flex-col justify-center items-center">
+                        {/* Save Card */} {/* TODO - Score greater than lowest */}
+                        {showSaveCard && score > 0 ?
+                            <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>
+                            :
+                            <h1 className="text-2xl text-white text-center max-md:text-base bg-black bg-opacity-80 p-4 rounded-xl">
+                                Beat the lowest score to get featured on the leaderboard 🎉
+                            </h1>
+                        }
+                        {/* Restart */}
+                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[15rem]"
+                                onClick={() => {
+                                    setScore(0);
+                                    setTriviaState(TriviaState.Start);
+                                    setShowSaveCard(true);
+                                }}>
+                            Restart
+                        </button>
                         {/* Leaderboard */}
-                        <div className="md:w-[50%]">
-                            <Leaderboard />
-                        </div>
+                        <Leaderboard refresh={showSaveCard}/>
                     </div>
             }
         </div>
@@ -170,8 +174,8 @@ function LyricsSelector({lyricsChoice, setLyricsChoice}:
                             {lyricsChoice: LyricsChoice, setLyricsChoice: (lyricsChoice: LyricsChoice) => void}) {
     const translator = useTranslations("GuessTheLyrics");
     return (
-        <div className="pl-4 pr-4 pt-2 pb-2 max-md:w-[70vw] md:w-[30vw] bg-black bg-opacity-70 rounded-2xl">
-            <div className="flex justify-evenly items-center gap-4">
+        <div className="pl-4 pr-4 pt-2 pb-2 bg-black bg-opacity-70 rounded-2xl border-2 border-orange-200">
+            <div className="flex flex-row max-sm:flex-col justify-evenly items-center gap-4 ">
                 <div className="flex items-center gap-2">
                     <input
                         type="radio"
