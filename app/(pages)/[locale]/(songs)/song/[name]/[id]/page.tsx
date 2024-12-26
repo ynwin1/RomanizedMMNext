@@ -15,12 +15,13 @@ type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
+
 export async function generateMetadata(
     { params, searchParams }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
     try {
-        const { id, locale } = params;
+        const { id, locale } = await params;
 
         if (!id || !locale) {
             throw new Error("Missing required parameters: id or locale");
