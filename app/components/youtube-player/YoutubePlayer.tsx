@@ -20,7 +20,7 @@ const YoutubePlayer = ({link} : {link: string}) => {
                     width="100%"
                     height="100%"
                     controls={true}
-                    style={{ display: 'block' }}
+                    style={{ marginTop: '1rem' }}
                 />
             </div>
         </div>
