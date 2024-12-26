@@ -3,6 +3,12 @@ import Song from "@/app/model/Song";
 import Trivia from "@/app/components/guess-the-lyrics/Trivia";
 import Player from "@/app/components/video-player/Player";
 import connectDB from "@/app/lib/mongodb";
+import {Metadata} from "next";
+
+export const metadata: Metadata = {
+    title: 'Guess The Lyrics',
+    description: 'Test your knowledge of Myanmar songs by guessing the lyrics of the songs!',
+};
 
 const Page = async () => {
     let allSongs = [];

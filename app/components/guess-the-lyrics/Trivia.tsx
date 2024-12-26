@@ -3,6 +3,7 @@ import React, {Suspense, useState} from 'react'
 import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
 import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
+import {useTimer} from "react-timer-hook";
 
 enum TriviaState {
     Start = 'start',
@@ -122,6 +123,22 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
         }
     }
 
+    const [expiryTime, setExpiryTime] = useState(new Date().getTime() + 10000);
+    const Timer = ({expiryTimestamp, onExpire}: {expiryTimestamp: Date, onExpire: () => void}) => {
+        const {
+            seconds
+        } = useTimer({
+            expiryTimestamp,
+            onExpire: onExpire
+        });
+
+        return (
+            <div className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
+                <h1>{seconds}s</h1>
+            </div>
+        )
+    }
+
     // Display
     return (
         <div className="flex flex-col min-h-screen">
@@ -130,6 +147,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                     <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
                         {`Score : ${score}`}
                     </h2>
+                    <Timer expiryTimestamp={new Date(expiryTime)} onExpire={() => setTriviaState(TriviaState.End)} />
                     <button
                         className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl hover:bg-red-600"
                         onClick={() => {

@@ -1,6 +1,12 @@
 import React from 'react'
 import SongRequestForm from "@/app/components/forms/SongRequestForm";
 import {fetchSongRequests} from "@/app/lib/action";
+import {Metadata} from "next";
+
+export const metadata: Metadata = {
+    title: 'Song Request',
+    description: 'Request a song to be added to the RomanizedMM website!'
+};
 
 const Page = async () => {
     const songRequests = await fetchSongRequests();
