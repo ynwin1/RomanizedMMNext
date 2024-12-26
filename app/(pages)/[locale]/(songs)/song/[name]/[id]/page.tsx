@@ -133,7 +133,7 @@ export const revalidate: number = 3600; // 24 hours
 
 const Page = async ({ params, searchParams }: SongPageProps) => {
     const { locale, id, name } = params;
-    const { option = 'romanized' } = searchParams;
+    const { option = 'burmese' } = searchParams;
 
     let song;
     try {
@@ -171,7 +171,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             }
 
             {/* Song Description */}
-            <p className="text-xl text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-lg max-md:leading-8">{song.about}</p>
+            <p className="text-xl text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-[1rem] max-md:leading-8">{song.about}</p>
 
             {/* About */}
             <About

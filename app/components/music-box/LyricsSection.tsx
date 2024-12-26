@@ -11,43 +11,20 @@ interface LyricsSectionProps {
 }
 
 const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized }: LyricsSectionProps) => {
-    const [lyrics, setLyrics] = useState(optionToLyrics(initialOption));
+    const[selectedOption, setSelectedOption] = useState(initialOption);
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
 
     const translator = useTranslations("MusicPage");
 
-    function optionToLyrics(option: string) {
-        switch (option) {
-            case 'burmese':
-                return burmese;
-            case 'meaning':
-                return meaning;
-            default:
-                return romanized;
-        }
-    }
-
-    function lyricsToOption(lyrics: string) {
-        switch (lyrics) {
-            case burmese:
-                return 'burmese';
-            case meaning:
-                return 'meaning';
-            default:
-                return 'romanized';
-        }
-    }
-
     useEffect(() => {
         const params: URLSearchParams = new URLSearchParams(searchParams);
-        const lyricsType: string = lyricsToOption(lyrics);
-        params.set("option", lyricsType);
+        params.set("option", selectedOption);
         replace(`${pathname}?${params.toString()}`, { scroll: false });
         // set local storage choice
-        localStorage.setItem("RomanizedMM_lyricsType", lyricsType);
-    }, [lyrics]);
+        localStorage.setItem("RomanizedMM_lyricsType", selectedOption);
+    }, [selectedOption]);
 
     function formatLyrics(lyrics: string) {
         return lyrics.split('\n').map((line, index) => (
@@ -61,55 +38,56 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
     return (
         <>
             {/* Radio Buttons */}
-            <div className="border-2 border-white rounded-2xl pl-4 pr-4 pt-2 pb-2 max-md:w-[70vw] md:w-[30vw]">
-                <div className="flex justify-evenly items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="radio"
-                            id="romanized"
-                            checked={lyrics === romanized}
-                            onChange={() => setLyrics(romanized)}
-                            className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
-                        />
-                        <label htmlFor="romanized" className="cursor-pointer hover:text-gray-300">
-                            {translator("romanized")}
-                        </label>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="radio"
-                            id="burmese"
-                            checked={lyrics === burmese}
-                            onChange={() => setLyrics(burmese)}
-                            className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
-                        />
-                        <label htmlFor="burmese" className="cursor-pointer hover:text-gray-300">
-                            {translator("burmese")}
-                        </label>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="radio"
-                            id="meaning"
-                            checked={lyrics === meaning}
-                            onChange={() => setLyrics(meaning)}
-                            className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
-                        />
-                        <label htmlFor="meaning" className="cursor-pointer hover:text-gray-300">
-                            {translator("meaning")}
-                        </label>
-                    </div>
+            <div className="flex flex-row border-2 border-white rounded-2xl pt-2 pb-2 justify-evenly items-center gap-3 w-[30vw] max-md:w-[70vw]">
+                <div className="flex items-center gap-2 max-md:gap-1">
+                    <input
+                        type="radio"
+                        id="romanized"
+                        checked={selectedOption === "romanized"}
+                        onChange={() => setSelectedOption("romanized")}
+                        className="w-5 h-5 cursor-pointer max-sm:w-3 max-sm:h-3"
+                    />
+                    <label htmlFor="romanized" className="max-md:text-sm cursor-pointer hover:text-gray-300">
+                        {translator("romanized")}
+                    </label>
+                </div>
+                <div className="flex items-center gap-2 max-md:gap-1">
+                    <input
+                        type="radio"
+                        id="burmese"
+                        checked={selectedOption === "burmese"}
+                        onChange={() => setSelectedOption("burmese")}
+                        className="w-5 h-5 cursor-pointer max-md:w-3 max-md:h-3"
+                    />
+                    <label htmlFor="burmese" className="max-md:text-sm cursor-pointer hover:text-gray-300">
+                        {translator("burmese")}
+                    </label>
+                </div>
+                <div className="flex items-center gap-2 max-md:gap-1">
+                    <input
+                        type="radio"
+                        id="meaning"
+                        checked={selectedOption === "meaning"}
+                        onChange={() => setSelectedOption("meaning")}
+                        className="w-5 h-5 cursor-pointer max-md:w-3 max-md:h-3"
+                    />
+                    <label htmlFor="meaning" className="max-md:text-sm cursor-pointer hover:text-gray-300">
+                        {translator("meaning")}
+                    </label>
                 </div>
             </div>
 
             {/* Lyrics */}
             <p className="text-3xl font-bold">{translator("lyrics")}</p>
-            <div className="text-lg leading-9 border-2 text-center border-white p-4 rounded-2xl md:w-[50vw]
-            max-md:w-[85vw] max-md:text-base max-md:leading-8
+            <div className="text-lg leading-[2.5rem] border-2 text-center max-md:text-left border-white p-4 rounded-2xl md:w-[50vw]
+            max-md:w-[85vw] max-md:text-[1rem] max-md:leading-8
             ">
-                {formatLyrics(lyrics)}
+                {selectedOption === "romanized" ?
+                    formatLyrics(romanized) :
+                    selectedOption === "burmese" ?
+                        formatLyrics(burmese) :
+                        formatLyrics(meaning)
+                }
             </div>
         </>
     )

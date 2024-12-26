@@ -8,7 +8,7 @@ const YoutubePlayer = ({link} : {link: string}) => {
     });
 
     return (
-        <div ref={ref} className={`transition-[min-height] duration-300 ${inView ? 'min-h-fit' : 'min-h-[226px]'}`}>
+        <div ref={ref} className={`transition-[min-height] duration-300 ${inView ? 'h-auto' : 'min-h-[226px]'}`}>
             <div className={inView ?
                 "flex flex-col items-center justify-center w-[40vw] h-[25vw] mx-auto" :
                 "fixed bottom-8 right-8 w-[400px] h-[226px] z-20"}>

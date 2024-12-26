@@ -15,7 +15,7 @@ interface AboutProps {
 const About = ({songName, locale, artistName, albumName, genre, whenToListen}: AboutProps) => {
     const translator = useTranslations("MusicPage");
     return (
-        <div className="text-lg border-2 border-white p-4 rounded-2xl max-md:w-[80vw] md:w-[40vw]">
+        <div className="text-lg border-2 border-white p-4 rounded-2xl max-md:w-[85vw] max-md:text-[1rem] md:w-[40vw]">
             <h1 className="mb-6">{songName}</h1>
             <h2 className="pb-2"><u>{translator("artist")}</u>: {artistName}</h2>
             <h2 className="pb-2"><u>{translator("album")}</u>: {albumName}</h2>
