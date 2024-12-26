@@ -57,7 +57,7 @@ const Trivia = ({songs} : {songs: any[]}) => {
                             </h1>
                         }
                         {/* Restart */}
-                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[15rem]"
+                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[30vw] max-md:w-[70vw]"
                                 onClick={() => {
                                     setScore(0);
                                     setTriviaState(TriviaState.Start);
@@ -137,7 +137,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                     Quit
                 </button>
             </div>
-            <h3 className="text-lg p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
+            <h3 className="text-lg p-4 text-center bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
                 {lyricToAskNeighborsIndexes.length === 1 ?
                 lyricIndex < lyricToAskNeighborsIndexes[0] ?
                     <div className="flex flex-col gap-4">
@@ -157,7 +157,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                     </div>
                 }
             </h3>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col mt-6 mb-6 gap-6">
                 {randomLyrics.map((lyric, index) => (
                     <button key={index} className="text-lg bg-blue-500 text-white p-2 rounded-2xl hover:bg-green-600 w-[40vw] max-md:w-[80vw] max-md:text-sm"
                             onClick={() => checkLyric(lyric)}

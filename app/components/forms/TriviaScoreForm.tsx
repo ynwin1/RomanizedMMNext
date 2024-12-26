@@ -22,7 +22,7 @@ export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) 
 
     return (
         <form action={formAction}>
-            <div className="rounded-xl bg-black bg-opacity-70 p-4 w-[30vw] max-md:w-[70vw]">
+            <div className="rounded-xl bg-black bg-opacity-70 p-4 w-[40vw] max-md:w-[80vw]">
                 <h1 className="text-lg font-semibold mb-4">
                     <p>{`You scored ${score} points.`}</p>
                     <p>Save your score!</p>

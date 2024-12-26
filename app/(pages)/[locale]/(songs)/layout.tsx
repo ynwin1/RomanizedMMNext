@@ -34,10 +34,12 @@ export default async function LocaleLayout({
 
     return (
         <html lang={locale}>
-        <body className={`${lusitana.className} antialiased`}>
+        <body className={`${lusitana.className} antialiased min-h-screen flex flex-col`}>
         <NextIntlClientProvider messages={messages}>
             <Navbar/>
+            <main className="flex-grow">
                 {children}
+            </main>
             <Footer/>
         </NextIntlClientProvider>
         </body>
