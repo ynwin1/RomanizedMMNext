@@ -10,33 +10,16 @@ export const metadata: Metadata = {
     description: 'Test your knowledge of Myanmar songs by guessing the lyrics of the songs!',
 };
 
-export async function generateStaticParams() {
-    try {
-        await connectDB();
-        const songs = await Song.find({})
-            .select("songName romanized burmese -_id")
-            .lean();
-
-        return {
-            songs: songs
-        };
-    } catch (e) {
-        console.error("Error generating static params:", e);
-        return {
-            songs: [] // Provide fallback data
-        };
-    }
-}
-
-const Page = async ({ params }: { params: { songs: any[] } }) => {
-    const { songs } = params;
+const Page = async () => {
+    await connectDB();
+    const allSongs = await Song.find({}).select("songName romanized burmese -_id").lean();
 
     return (
         <main className="flex flex-col justify-center items-center gap-6 min-h-screen">
             <div className="fixed inset-0 w-full h-full">
                 <Player src="/RMBG.mp4" />
             </div>
-            <Trivia songs={songs} />
+            <Trivia songs={allSongs} />
         </main>
     )
 }
