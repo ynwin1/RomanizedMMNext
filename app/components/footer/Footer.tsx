@@ -7,7 +7,7 @@ const Footer = () => {
     return (
         <footer className="relative bg-transparent text-white p-4 flex flex-row gap-4 justify-center items-center">
             <Link href={`https://www.facebook.com/p/Romanized-MM-61567473470671/`} target="_blank">
-                <Image src="/facebook-icon.png" alt="facebook-icon" width={27} height={27} className="max-md:hidden" />
+                <Image src="/facebook-icon.png" alt="facebook-icon" width={27} height={27} />
             </Link>
             <Link href={`https://github.com/ynwin1/RomanizedMMNext`} target="_blank">
                 <Image src="/github-icon.png" alt="github-icon" width={30} height={30} />

@@ -26,10 +26,9 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
 
     return (
         <div className="flex flex-col justify-center items-center px-4 mb-6 mt-8 ">
-            <h1 className="text-3xl text-white text-center p-4 max-md:[text-xl]">
+            <h1 className="text-3xl text-white text-center p-4 max-md:text-xl">
                 <u>Leaderboard</u>
             </h1>
-
             <div className="w-[80vw] md:w-[60vw]">
                 <table className="w-full bg-black bg-opacity-30 backdrop-blur-sm">
                     <thead>
@@ -76,6 +75,16 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
                     </tbody>
                 </table>
             </div>
+            <p className="text-lg w-[50vw] max-md:w-[80vw] mt-4 bg-black bg-opacity-70 rounded-2xl p-4">
+                Emojis do not appear on Windows. Installing this Chrome extension &nbsp;
+                <a href="https://chromewebstore.google.com/detail/country-flag-fixer/jhcpefjbhmbkgjgipkhndplfbhdecijh"
+                   target="_blank"
+                   className="text-amber-400"
+                >
+                    <u>Flag Fixer</u>
+                </a>
+                &nbsp; fixes the issue.
+            </p>
         </div>
     );
 }
