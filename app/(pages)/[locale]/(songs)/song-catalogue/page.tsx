@@ -44,7 +44,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
             <h1 className="text-3xl font-bold mt-8">Song Catalogue</h1>
             <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg ">A catalogue of all the songs on RomanizedMM</h3>
             <Link href={`/${locale}/song-request`}>
-                <button className="bg-blue-500 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-blue-400 mt-8">
+                <button className="bg-blue-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-blue-400 mt-8">
                     Request A Song
                 </button>
             </Link>

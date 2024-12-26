@@ -2,7 +2,6 @@
 import React, {Suspense, useState} from 'react'
 import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
-import {fetchAllTriviaScores} from "@/app/lib/action";
 import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
 
 enum TriviaState {
@@ -52,7 +51,7 @@ const Trivia = ({songs} : {songs: any[]}) => {
                         {showSaveCard && score > 0 ?
                             <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>
                             :
-                            <h1 className="text-2xl text-white text-center max-md:text-base bg-black bg-opacity-80 p-4 rounded-xl">
+                            <h1 className="text-2xl text-white text-center max-md:text-base bg-black bg-opacity-80 p-4 rounded-xl max-md:w-[80vw]">
                                 Beat the lowest score to get featured on the leaderboard 🎉
                             </h1>
                         }
@@ -125,46 +124,56 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
 
     // Display
     return (
-        <div className="flex flex-col justify-center items-center">
-            <div className="flex flex-row justify-between gap-x-6 items-center">
-                <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
-                    {`Score : ${score}`}
-                </h2>
-                <button
-                    className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl hover:bg-red-600"
-                    onClick={() => {setScore(0); setTriviaState(TriviaState.Start);}}
-                >
-                    Quit
-                </button>
-            </div>
-            <h3 className="text-lg p-4 text-center bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
-                {lyricToAskNeighborsIndexes.length === 1 ?
-                lyricIndex < lyricToAskNeighborsIndexes[0] ?
-                    <div className="flex flex-col gap-4">
-                        <p>_______________________</p>
-                        <p>{lyricToAskNeighbors[0]}</p>
-                    </div>
-                    :
-                    <div className="flex flex-col gap-4">
-                        <p>{lyricToAskNeighbors[0]}</p>
-                        <p>_______________________</p>
-                    </div>
-                    :
-                    <div className="flex flex-col gap-4">
-                        <p>{lyricToAskNeighbors[0]}</p>
-                        <p>_______________________</p>
-                        <p>{lyricToAskNeighbors[1]}</p>
-                    </div>
-                }
-            </h3>
-            <div className="flex flex-col mt-6 mb-6 gap-6">
-                {randomLyrics.map((lyric, index) => (
-                    <button key={index} className="text-lg bg-blue-500 text-white p-2 rounded-2xl hover:bg-green-600 w-[40vw] max-md:w-[80vw] max-md:text-sm"
-                            onClick={() => checkLyric(lyric)}
+        <div className="flex flex-col min-h-screen">
+            <div className="flex-grow flex flex-col items-center justify-center py-8">
+                <div className="flex flex-row justify-between gap-x-6 items-center">
+                    <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
+                        {`Score : ${score}`}
+                    </h2>
+                    <button
+                        className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl hover:bg-red-600"
+                        onClick={() => {
+                            setScore(0);
+                            setTriviaState(TriviaState.Start);
+                        }}
                     >
-                        {lyric}
+                        Quit
                     </button>
-                ))}
+                </div>
+
+                <h3 className="text-lg p-4 text-center bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
+                    {lyricToAskNeighborsIndexes.length === 1 ? (
+                        lyricIndex < lyricToAskNeighborsIndexes[0] ? (
+                            <div className="flex flex-col gap-4">
+                                <p>_______________________</p>
+                                <p>{lyricToAskNeighbors[0]}</p>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                <p>{lyricToAskNeighbors[0]}</p>
+                                <p>_______________________</p>
+                            </div>
+                        )
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            <p>{lyricToAskNeighbors[0]}</p>
+                            <p>_______________________</p>
+                            <p>{lyricToAskNeighbors[1]}</p>
+                        </div>
+                    )}
+                </h3>
+
+                <div className="flex flex-col mt-6 mb-6 gap-6">
+                    {randomLyrics.map((lyric, index) => (
+                        <button
+                            key={index}
+                            className="text-lg bg-blue-500 text-white p-2 rounded-2xl hover:bg-green-600 w-[40vw] max-md:w-[80vw] max-md:text-sm"
+                            onClick={() => checkLyric(lyric)}
+                        >
+                            {lyric}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );

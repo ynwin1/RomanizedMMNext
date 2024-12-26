@@ -25,12 +25,12 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
     }
 
     return (
-        <div className="flex flex-col justify-center items-center px-4 mb-6 mt-8 ">
+        <div className="flex flex-col justify-center items-center px-4 mt-8 ">
             <h1 className="text-3xl text-white text-center p-4 max-md:text-xl">
                 <u>Leaderboard</u>
             </h1>
-            <div className="w-[80vw] md:w-[60vw]">
-                <table className="w-full bg-black bg-opacity-30 backdrop-blur-sm">
+            <div>
+                <table className="w-[50vw] max-md:w-[80vw] bg-black bg-opacity-30 backdrop-blur-sm">
                     <thead>
                     <tr className="bg-blue-600">
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
