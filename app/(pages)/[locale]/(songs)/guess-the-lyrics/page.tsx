@@ -13,7 +13,7 @@ export const metadata: Metadata = {
         description: 'Test your knowledge of Myanmar songs by guessing the lyrics of the songs!',
         images: [
             {
-                url: 'https://imgur.com/a/FBCRp6n',
+                url: 'https://i.imgur.com/epALhvr.png',
                 width: 800,
                 height: 600,
                 alt: 'Guess The Lyrics',
