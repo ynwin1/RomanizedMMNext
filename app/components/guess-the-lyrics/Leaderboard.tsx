@@ -47,7 +47,7 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
                         </th>
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
                             <span className="hidden sm:block">{translator("score")}</span>
-                            <span className="block sm:hidden">Pts</span>
+                            <span className="block sm:hidden">{translator("score")}</span>
                         </th>
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
                             {translator("date")}

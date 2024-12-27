@@ -8,6 +8,20 @@ import {Metadata} from "next";
 export const metadata: Metadata = {
     title: 'Guess The Lyrics',
     description: 'Test your knowledge of Myanmar songs by guessing the lyrics of the songs!',
+    openGraph: {
+        title: 'Guess The Lyrics',
+        description: 'Test your knowledge of Myanmar songs by guessing the lyrics of the songs!',
+        images: [
+            {
+                url: '/GTL.png',
+                width: 800,
+                height: 600,
+                alt: 'Guess The Lyrics',
+            }
+        ],
+        type: 'website',
+        siteName: 'RomanizedMM',
+    }
 };
 
 const Page = async () => {
