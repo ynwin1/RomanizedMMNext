@@ -80,7 +80,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
             {/* Lyrics */}
             <p className="text-3xl font-bold">{translator("lyrics")}</p>
             <div className="text-base leading-[2.2rem] border-2 text-center max-md:text-left border-white p-4 rounded-2xl md:w-[50vw]
-            max-md:w-[85vw] max-md:text-[1rem]
+            max-md:w-[90vw] max-md:text-[1rem]
             ">
                 {selectedOption === "romanized" ?
                     formatLyrics(romanized) :
