@@ -21,11 +21,11 @@ const YoutubePlayer = ({link}: {link: string}) => {
     return (
         <div
             ref={ref}
-            className="min-h-[226px]"
+            className="flex flex-col justify-center items-center min-h-[226px]"
         >
             <div
                 className={`
-          transition-all duration-300 ease-in-out flex flex-col items-center
+          transition-all duration-300 ease-in-out
           ${isFixed ?
                     'fixed bottom-8 right-8 w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]' :
                     'w-[30vw] h-[20vw] mx-auto max-md:w-[80vw] max-md:h-[25vh] mt-4'
