@@ -1,31 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useInView } from "react-intersection-observer";
 import ReactPlayer from "react-player";
 
-const YoutubePlayer = ({link} : {link: string}) => {
+const YoutubePlayer = ({link}: {link: string}) => {
+    const [isFixed, setIsFixed] = useState(false);
     const { ref, inView } = useInView({
         threshold: 0,
+        rootMargin: "-100px 0px"
     });
 
+    useEffect(() => {
+        // Add a small delay to prevent immediate position changes
+        const timer = setTimeout(() => {
+            setIsFixed(!inView);
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, [inView]);
+
     return (
-        <div ref={ref} style={{ minHeight: inView ? 'auto' : '226px', transition: 'min-height 0.3s' }}>
-            <div className={
-                inView ?
-                    "flex flex-col justify-center items-center w-[40vw] h-[25vw] mx-auto max-md:w-[80vw] max-md:h-[25vh]"
-                    :
-                    "fixed bottom-[2rem] right-[2rem] w-[400px] h-[226px] z-50 max-md:w-[200px] max-md:h-[113px]"
-            }>
+        <div
+            ref={ref}
+            className="min-h-[226px] relative"
+        >
+            <div
+                className={`
+          transition-all duration-300 ease-in-out
+          ${isFixed ?
+                    'fixed bottom-8 right-8 w-[400px] h-[226px] z-50 max-md:w-[200px] max-md:h-[113px]' :
+                    'w-[40vw] h-[25vw] mx-auto max-md:w-[80vw] max-md:h-[25vh] mt-4'
+                }
+        `}
+            >
                 <ReactPlayer
                     url={link}
                     width="100%"
                     height="100%"
                     controls={true}
-                    style={{ marginTop: '1rem' }}
                 />
             </div>
         </div>
+    );
+};
 
-
-    )
-}
 export default YoutubePlayer;
