@@ -1,6 +1,7 @@
 import React from 'react';
 import {Metadata} from "next";
 import Image from 'next/image';
+import {getTranslations} from "next-intl/server";
 
 interface AboutPageProps {
     params: Promise<{ locale: string }>;
@@ -13,10 +14,11 @@ export const metadata : Metadata = {
 
 const Page = async ({params} : AboutPageProps) => {
     const {locale} = await params;
+    const translator = await getTranslations("AboutPage");
 
     return (
-        <div className="flex flex-col justify-center items-center">
-            <h1 className="text-5xl font-bold mt-6">About</h1>
+        <div className="flex flex-col justify-center items-center mt-4">
+            <h1 className="text-3xl font-bold mt-6 ">{translator("title")}</h1>
             <Image src="/weblogo.png" alt="RomanizedMM" width={150} height={150} className="mt-6 mb-4"/>
             <div className="border-2 border-orange-200 p-4 rounded-2xl space-y-4 mt-6 leading-8 w-[80vw] text-left text-[1rem] max-md:text-base max-md:w-[90vw]">
                 {locale === "en" ?

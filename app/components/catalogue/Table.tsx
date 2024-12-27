@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from "next/link";
+import {useTranslations} from "next-intl";
 
 interface TableProps {
     locale: string;
@@ -14,13 +15,15 @@ const Table = ({locale, sortedSongs, currentPage}: TableProps) => {
 
     const songs = sortedSongs.slice(startIndex, endIndex);
 
+    const translator = useTranslations("SongCatalogue");
+
     return (
         <table className="border-2 rounded-2xl w-[75vw] max-md:w-[85vw] max-md:text-sm">
             <thead className="bg-blue-600 text-white">
             <tr>
-                <th className="border border-gray-400 p-2 text-left w-[35%]">Song</th>
-                <th className="border border-gray-400 p-2 text-left w-[55%]">Artist(s)</th>
-                <th className="border border-gray-400 p-2 text-left w-[10%]">Link</th>
+                <th className="border border-gray-400 p-2 text-left w-[35%]">{translator("song")}</th>
+                <th className="border border-gray-400 p-2 text-left w-[55%]">{translator("artist")}</th>
+                <th className="border border-gray-400 p-2 text-left w-[10%]">{translator("link")}</th>
             </tr>
             </thead>
             <tbody>

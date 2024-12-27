@@ -1,6 +1,7 @@
 "use client";
 import React, {useState} from 'react'
 import SongReportForm from "@/app/components/forms/SongReportForm";
+import {useTranslations} from "next-intl";
 
 interface SongReportProps {
     songName: string;
@@ -12,13 +13,15 @@ const SongReportButton = ({songName, artist} : SongReportProps) => {
     const [showMessage, renderMessage] = useState(false);
     const [response, setResponse] = useState("");
 
+    const translator = useTranslations("MusicPage");
+
     return (
         <div className="flex flex-col gap-8 justify-center items-center">
             <button type="button"
                     className="bg-red-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-red-800"
                     onClick={() => setReport(!showReport)}
             >
-                Report/Suggestion
+                {translator("report")}
             </button>
             {showReport && (
                 <SongReportForm

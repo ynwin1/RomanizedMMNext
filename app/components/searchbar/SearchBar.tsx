@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react'
 import AsyncSelect from "react-select/async";
 import {useDebouncedCallback} from "use-debounce";
 import {redirect, useParams} from "next/navigation";
+import {useTranslations} from "next-intl";
 
 interface OptionType {
     value: string; // mmid
@@ -40,6 +41,8 @@ const SearchBar = () => {
     const [mounted, setMounted] = useState(false);
     const params = useParams();
     const locale = params.locale;
+
+    const translator = useTranslations("SearchBar");
 
     const loadOptions = useDebouncedCallback( async (inputValue: string): Promise<OptionType[]> => {
         if (!inputValue) {
@@ -87,7 +90,7 @@ const SearchBar = () => {
             <AsyncSelect
                 cacheOptions
                 loadOptions={loadOptions}
-                placeholder={"Type a song title..."}
+                placeholder={translator("search")}
                 isClearable
                 styles={colourStyles}
                 noOptionsMessage={() => "No songs found"}

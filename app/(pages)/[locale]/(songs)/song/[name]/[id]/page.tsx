@@ -6,7 +6,7 @@ import {notFound} from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import LyricsSection from "@/app/components/music-box/LyricsSection";
 import ExtLinks from "@/app/components/music-box/ExtLinks";
-import {setRequestLocale} from "next-intl/server";
+import {getTranslations, setRequestLocale} from "next-intl/server";
 import About from "@/app/components/music-box/About";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
@@ -144,7 +144,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     }
 
     setRequestLocale(locale);
-    const { engName, mmName } = extractSongName(song.songName);
+    const translator = await getTranslations("MusicPage");
 
     return (
         <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
@@ -169,14 +169,13 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <p className="text-lg text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-[1rem] max-md:leading-8">{song.about}</p>
 
             {/* About */}
-            <About
-                songName={song.songName}
-                locale={locale}
-                artistName={song.artistName}
-                albumName={song.albumName? song.albumName : "N/A"}
-                genre={song.genre}
-                whenToListen={song.whenToListen}
-            />
+            <div className="text-[1rem] border-2 border-white p-4 rounded-2xl max-md:w-[85vw] md:w-[40vw]">
+                <h1 className="mb-6">{song.songName}</h1>
+                <h2 className="pb-2"><u>{translator("artist")}</u>: {song.artistName}</h2>
+                <h2 className="pb-2"><u>{translator("album")}</u>: {song.albumName}</h2>
+                <h2 className="pb-2"><u>{translator("genre")}</u>: {song.genre}</h2>
+                <h2 className="pb-2 leading-8"><u>{translator("whenToListen")}</u>: {song.whenToListen}</h2>
+            </div>
 
             {/* Medias */}
             <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>

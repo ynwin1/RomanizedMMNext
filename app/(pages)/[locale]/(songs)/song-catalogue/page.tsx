@@ -5,6 +5,7 @@ import {Metadata} from "next";
 import Pagination from "@/app/components/catalogue/Pagination";
 import Table from "@/app/components/catalogue/Table";
 import connectDB from "@/app/lib/mongodb";
+import {getTranslations} from 'next-intl/server';
 
 export const metadata: Metadata = {
     title: 'Song Catalogue',
@@ -36,13 +37,15 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
 
     const totalPages: number = Math.ceil(sortedSongs.length / 10);
 
+    const translator = await getTranslations("SongCatalogue");
+
     return (
         <main className="flex flex-col items-center justify-center">
-            <h1 className="text-3xl font-bold mt-8">Song Catalogue</h1>
-            <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg ">A catalogue of all the songs on RomanizedMM</h3>
+            <h1 className="text-3xl font-bold mt-8">{translator("title")}</h1>
+            <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg ">{translator("description")}</h3>
             <Link href={`/${locale}/song-request`}>
                 <button className="bg-blue-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-blue-400 mt-8">
-                    Request A Song
+                    {translator("requestSong")}
                 </button>
             </Link>
             <div className="flex justify-center items-center mt-8 border-2 border-gray-400">

@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react'
 import {fetchAllTriviaScores} from "@/app/lib/action";
+import {useTranslations} from "next-intl";
 
 const Leaderboard = ({refresh}: {refresh: boolean}) => {
     const [allScores, setScores] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const translator = useTranslations("GuessTheLyrics");
 
     useEffect(() => {
         const loadScores = async () => {
@@ -27,28 +29,28 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
     return (
         <div className="flex flex-col justify-center items-center px-4 mt-8 ">
             <h1 className="text-3xl text-white text-center p-4 max-md:text-xl">
-                <u>Leaderboard</u>
+                <u>{translator("leaderboard")}</u>
             </h1>
             <div>
                 <table className="w-[50vw] max-md:w-[80vw] bg-black bg-opacity-30 backdrop-blur-sm">
                     <thead>
                     <tr className="bg-blue-600">
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
-                            Rank
+                            {translator("rank")}
                         </th>
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase">
-                            Name
+                            {translator("name")}
                         </th>
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
-                            <span className="hidden sm:block">Country</span>
+                            <span className="hidden sm:block">{translator("country")}</span>
                             <span className="block sm:hidden">📍</span>
                         </th>
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
-                            <span className="hidden sm:block">Score</span>
+                            <span className="hidden sm:block">{translator("score")}</span>
                             <span className="block sm:hidden">Pts</span>
                         </th>
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
-                            Date
+                            {translator("date")}
                         </th>
                     </tr>
                     </thead>

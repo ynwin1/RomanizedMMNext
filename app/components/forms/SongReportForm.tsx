@@ -3,6 +3,7 @@ import React, {useActionState, useEffect} from 'react'
 import {MusicalNoteIcon, UserIcon, PencilIcon} from "@heroicons/react/16/solid";
 import {createSongReport, ReportState} from "@/app/lib/action";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
+import {useTranslations} from "next-intl";
 
 const SongReportForm = ({songName, artist, renderReport, renderMessage, setResponse}:
                             {   songName: string,
@@ -13,6 +14,7 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                             }) => {
     const initialState: ReportState = {message: "", errors: {}};
     const [state, formAction] = useActionState(createSongReport, initialState);
+    const translator = useTranslations("MusicPage");
 
     useEffect(() => {
         if (state.message && !state.errors?.details) {
@@ -74,7 +76,7 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                             id="details"
                             name="details"
                             type="string"
-                            placeholder="Report/Suggestion"
+                            placeholder={translator("report")}
                             className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                             aria-describedby="details-error"
                         />
@@ -91,7 +93,7 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                 </div>
             </div>
             <div className="mt-6 flex justify-end gap-4">
-                <Button type="submit">Submit</Button>
+                <Button type="submit">{translator("submit")}</Button>
           </div>
         </form>
     )

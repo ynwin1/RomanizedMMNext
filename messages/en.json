@@ -11,7 +11,9 @@
     "romanized": "Romanized",
     "burmese": "Burmese",
     "meaning": "Meaning",
-    "lyrics": "Lyrics"
+    "lyrics": "Lyrics",
+    "report": "Report/Suggestion",
+    "submit": "Submit"
   },
   "Menu" : {
     "about": "About",
@@ -22,6 +24,36 @@
   "GuessTheLyrics" : {
     "romanized": "Romanized",
     "burmese": "Burmese",
-    "start": "Start"
+    "start": "Start",
+    "leaderboard": "Leaderboard",
+    "rank": "Rank",
+    "name": "Name",
+    "country": "Country",
+    "score": "Score",
+    "date": "Date"
+  },
+  "SongCatalogue" : {
+    "title": "Song Catalogue",
+    "description": "Discover the list of songs available in our catalogue",
+    "requestSong": "Request Song",
+    "song": "Song",
+    "artist": "Artist(s)",
+    "link": "Link"
+  },
+  "AboutPage" : {
+    "title": "About RomanizedMM"
+  },
+  "SongRequestPage": {
+    "title": "Song Request",
+    "description": "Do you have a song that you want to sing along, but can't find it on this website? Fill out the form below!",
+    "songTitle": "Song Title",
+    "artist": "Artist",
+    "youtubeLink": "YouTube (Optional)",
+    "details": "Details (Optional)",
+    "songsInQueue": "Songs in Queue",
+    "submit": "Submit"
+  },
+  "SearchBar": {
+    "search": "Type a song title..."
   }
 }

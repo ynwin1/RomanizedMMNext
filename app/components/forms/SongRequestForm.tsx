@@ -3,7 +3,7 @@ import React, {useActionState} from 'react';
 import {createSongRequest, State} from "@/app/lib/action";
 import {MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon} from "@heroicons/react/16/solid";
 import { Button } from '@/app/components/buttons/FormSubmitButton';
-import {useLocale} from "next-intl";
+import {useLocale, useTranslations} from "next-intl";
 
 const SongRequestForm = () => {
     const initialState: State = {message: "", errors: {}};
@@ -11,12 +11,14 @@ const SongRequestForm = () => {
     const actionWithLocale = createSongRequest.bind(null, useLocale());
     const [state, formAction] = useActionState(actionWithLocale, initialState);
 
+    const translator = useTranslations("SongRequestPage");
+
     return (
         <form action={formAction}>
             {/* Song Name */}
             <div className="mb-4">
                 <label htmlFor="songName" className="mb-2 block text-sm font-medium">
-                    Song Title
+                    {translator("songTitle")}
                 </label>
                 <div className="relative mt-2 rounded-md">
                     <div className="relative">
@@ -24,7 +26,7 @@ const SongRequestForm = () => {
                             id="songName"
                             name="songName"
                             type="string"
-                            placeholder="Song Title"
+                            placeholder={translator("songTitle")}
                             className="peer text-black block w-[45vw] max-md:w-[80vw] rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                             aria-describedby="songName-error"
                         />
@@ -44,7 +46,7 @@ const SongRequestForm = () => {
             {/* Artist Name */}
             <div className="mb-4">
                 <label htmlFor="artist" className="mb-2 block text-sm font-medium">
-                    Artist
+                    {translator("artist")}
                 </label>
                 <div className="relative mt-2 rounded-md">
                     <div className="relative">
@@ -52,7 +54,7 @@ const SongRequestForm = () => {
                             id="artist"
                             name="artist"
                             type="string"
-                            placeholder="Artist"
+                            placeholder={translator("artist")}
                             className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                             aria-describedby="artist-error"
                         />
@@ -72,7 +74,7 @@ const SongRequestForm = () => {
             {/* Song YouTube URL */}
             <div className="mb-4">
                 <label htmlFor="youtubeLink" className="mb-2 block text-sm font-medium">
-                    YouTube (Optional)
+                    {translator("youtubeLink")}
                 </label>
                 <div className="relative mt-2 rounded-md">
                     <div className="relative">
@@ -80,7 +82,7 @@ const SongRequestForm = () => {
                             id="youtubeLink"
                             name="youtubeLink"
                             type="string"
-                            placeholder="YouTube Link"
+                            placeholder={translator("youtubeLink")}
                             className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                             aria-describedby="youtubeLink-error"
                         />
@@ -100,7 +102,7 @@ const SongRequestForm = () => {
             {/* Details */}
             <div className="mb-4">
                 <label htmlFor="details" className="mb-2 block text-sm font-medium">
-                    Details (Optional)
+                    {translator("details")}
                 </label>
                 <div className="relative mt-2 rounded-md">
                     <div className="relative">
@@ -108,7 +110,7 @@ const SongRequestForm = () => {
                             id="details"
                             name="details"
                             type="string"
-                            placeholder="Details"
+                            placeholder={translator("details")}
                             className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
                             aria-describedby="details-error"
                         />
@@ -125,7 +127,7 @@ const SongRequestForm = () => {
                 </div>
             </div>
             <div className="mt-6 flex justify-end gap-4">
-                <Button type="submit">Submit</Button>
+                <Button type="submit">{translator("submit")}</Button>
             </div>
         </form>
     )

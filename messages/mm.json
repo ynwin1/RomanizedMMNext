@@ -11,7 +11,9 @@
     "romanized": "ရိုမန်",
     "burmese": "မြန်မာ",
     "meaning": "အဓိပ္ပာယ်",
-    "lyrics": "သီချင်းစာသား"
+    "lyrics": "သီချင်းစာသား",
+    "report": "ရီပို့/အကြံပြု",
+    "submit": "တင်မယ်"
   },
   "Menu" : {
     "about": "အကြောင်း",
@@ -22,6 +24,36 @@
   "GuessTheLyrics" : {
     "romanized": "ရိုမန်",
     "burmese": "မြန်မာ",
-    "start": "စမယ်"
+    "start": "စမယ်",
+    "leaderboard": "အမှတ်ပေးဇယား",
+    "rank": "အဆင့်",
+    "name": "နာမည်",
+    "country": "နိုင်ငံ",
+    "score": "ရမှတ်",
+    "date": "ရက်စွဲ"
+  },
+  "SongCatalogue" : {
+    "title": "သီချင်းစာအုပ်",
+    "description": "RomanizedMM မှာရှိသောသီချင်းများ",
+    "requestSong": "သီချင်းတောင်းမယ်",
+    "song": "သီချင်း",
+    "artist": "တေးဆို",
+    "link": "လင့်ခ်"
+  },
+  "AboutPage" : {
+    "title": "RomanizedMM အကြောင်း"
+  },
+  "SongRequestPage": {
+    "title": "သီချင်းတောင်းမယ်",
+    "description": "ကိုယ်ရှာနေတဲ့ သီချင်း ဒီဝဘ်ဆိုဒ်မှာ မရှိဘူးလား? ဒါဆို အောက်က ဖောင်ကိုဖြည့်ပြီး သီချင်းတောင်းဆိုလိုက်ပါ!",
+    "songTitle": "သီချင်းအမည်",
+    "artist": "တေးဆို",
+    "youtubeLink": "YouTube လင့်ခ်",
+    "details": "အကြောင်းအရာ",
+    "songsInQueue": "တောင်းဆိုထားသောသီချင်းများ",
+    "submit": "တောင်းမယ်"
+  },
+  "SearchBar": {
+    "search": "သီချင်းနာမည်ရိုက်ထည့်ပါ..."
   }
 }
