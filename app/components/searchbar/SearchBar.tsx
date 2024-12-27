@@ -16,7 +16,7 @@ const colourStyles = {
         borderColor: "#000000",
         borderWidth: "2px",
         width: '50vw',
-        borderRadius: '2rem',
+        borderRadius: '0.5rem',
         '@media (max-width: 768px)': {
             width: '85vw',
         }

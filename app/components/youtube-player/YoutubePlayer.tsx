@@ -6,11 +6,11 @@ const YoutubePlayer = ({link}: {link: string}) => {
     const [isFixed, setIsFixed] = useState(false);
     const { ref, inView } = useInView({
         threshold: 0,
-        rootMargin: "-100px 0px"
+        rootMargin: "-50px 0px"
     });
 
     useEffect(() => {
-        // Add a small delay to prevent immediate position changes
+        // Add a small delay to prevent flickering
         const timer = setTimeout(() => {
             setIsFixed(!inView);
         }, 100);
@@ -21,14 +21,14 @@ const YoutubePlayer = ({link}: {link: string}) => {
     return (
         <div
             ref={ref}
-            className="min-h-[226px] relative"
+            className="min-h-[226px]"
         >
             <div
                 className={`
-          transition-all duration-300 ease-in-out
+          transition-all duration-300 ease-in-out flex flex-col items-center
           ${isFixed ?
-                    'fixed bottom-8 right-8 w-[400px] h-[226px] z-50 max-md:w-[200px] max-md:h-[113px]' :
-                    'w-[40vw] h-[25vw] mx-auto max-md:w-[80vw] max-md:h-[25vh] mt-4'
+                    'fixed bottom-8 right-8 w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]' :
+                    'w-[30vw] h-[20vw] mx-auto max-md:w-[80vw] max-md:h-[25vh] mt-4'
                 }
         `}
             >
