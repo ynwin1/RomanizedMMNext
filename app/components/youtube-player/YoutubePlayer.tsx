@@ -10,7 +10,6 @@ const YoutubePlayer = ({link}: {link: string}) => {
     });
 
     useEffect(() => {
-        // Add a small delay to prevent flickering
         const timer = setTimeout(() => {
             setIsFixed(!inView);
         }, 100);
@@ -21,24 +20,26 @@ const YoutubePlayer = ({link}: {link: string}) => {
     return (
         <div
             ref={ref}
-            className="min-h-[226px] flex justify-center items-center "
+            className="min-h-[226px] w-full flex justify-center items-center"
         >
             <div
                 className={`
           transition-all duration-300 ease-in-out
-          ${isFixed ?
-                    'fixed bottom-8 right-8 w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]' :
-                    'relative w-[30vw] h-[20vw] mx-auto max-md:w-[80vw] max-md:h-[25vh] mt-4'
+          ${isFixed
+                    ? 'fixed bottom-8 right-8 w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]'
+                    : 'w-[30vw] h-[20vw] max-md:w-[80vw] max-md:h-[25vh]'
                 }
         `}
             >
-                <ReactPlayer
-                    url={link}
-                    width="100%"
-                    height="100%"
-                    controls={true}
-                    className="w-full h-full"
-                />
+                <div className="relative w-full h-full">
+                    <ReactPlayer
+                        url={link}
+                        width="100%"
+                        height="100%"
+                        controls={true}
+                        className="absolute top-0 left-0"
+                    />
+                </div>
             </div>
         </div>
     );
