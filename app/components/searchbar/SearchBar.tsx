@@ -54,14 +54,14 @@ const SearchBar = () => {
         const data = await resp.json();
 
         if (data.success) {
-            return data.data.map((song: any) => ({
+            return data.songs.map((song: any) => ({
                 value: song.mmid,
                 label: song.songName,
             }));
         }
 
         return [];
-    }, 200);
+    }, 300, { leading: true, trailing: true });
 
     useEffect(() => {
         setMounted(true);

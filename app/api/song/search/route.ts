@@ -15,10 +15,11 @@ export async function GET(request: Request) {
         const songs = await Song.find({
             songName: { $regex: query, $options: "i" }
         })
+            .sort({ songName: 1 })
             .select("songName mmid -_id")
             .lean();
 
-        return Response.json({ success: true, data: songs });
+        return Response.json({ success: true, songs: songs });
     } catch (error) {
         return Response.json({ error: (error as Error).message }, { status: 500 });
     }
