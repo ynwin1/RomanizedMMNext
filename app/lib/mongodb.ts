@@ -8,7 +8,6 @@ interface ConnectOptions {
 const connectDB = async ({retries = 5, delay = 2000}: ConnectOptions = {}): Promise<void> => {
   try {
     if (mongoose.connection.readyState) {
-      console.log("MongoDB is already connected.");
       return;
     }
 

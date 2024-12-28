@@ -65,7 +65,7 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
 
 function PaginationNumber({href, page, position, isCurrentPage}: {href: string, page: number | string, position: 'first' | 'last' | 'single' | 'middle' | undefined, isCurrentPage: boolean}) {
     const className = clsx(
-        'flex h-10 w-10 items-center justify-center rounded-md border max-md:w-[30px]',
+        'flex h-10 w-10 items-center justify-center rounded-md border ',
         {
             'rounded-l-md': position === 'first' || position === 'single',
             'rounded-r-md': position === 'last' || position === 'single',

@@ -57,13 +57,13 @@ export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) 
                     <select
                         name="country"
                         className="block text-black w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
-                        defaultValue={countryFlags[0]}
+                        defaultValue={Object.keys(countryFlags)[0]}
                         aria-describedby="country-error"
                         required
                     >
-                        {countryFlags.map((flag, index) => (
-                            <option key={index} value={flag}>
-                                {flag}
+                        {Object.keys(countryFlags).map((country, index) => (
+                            <option key={index} value={country}>
+                                {`${country} ${countryFlags[country]}`}
                             </option>
                         ))}
                     </select>

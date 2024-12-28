@@ -16,7 +16,7 @@ enum LyricsChoice {
     Burmese = 'burmese'
 }
 
-const Trivia = ({songs} : {songs: any[]}) => {
+const Trivia = ({songs, minScore} : {songs: any[], minScore: number}) => {
     const [triviaState, setTriviaState] = useState<TriviaState>(TriviaState.Start);
     const [lyricsChoice, setLyricsChoice] = useState<LyricsChoice>(LyricsChoice.Burmese);
     const [score, setScore] = useState<number>(0);
@@ -48,8 +48,7 @@ const Trivia = ({songs} : {songs: any[]}) => {
                     </>
                     :
                     <div className="flex flex-col justify-center items-center">
-                        {/* Save Card */} {/* TODO - Score greater than lowest */}
-                        {showSaveCard && score > 0 ?
+                        {showSaveCard && score > minScore ?
                             <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>
                             :
                             <h1 className="text-2xl text-white text-center max-md:text-base bg-black bg-opacity-80 p-4 rounded-xl max-md:w-[80vw]">
@@ -134,7 +133,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
         });
 
         return (
-            <div className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
+            <div className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[4rem] max-md:text-xl">
                 <h1>{seconds}s</h1>
             </div>
         )
@@ -159,7 +158,9 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                         Quit
                     </button>
                 </div>
-
+                <h3 className="text-lg text-center border-2 rounded-xl border-amber-200 bg-black bg-opacity-70 p-4 mb-6 max-md:text-sm">
+                    <u>{song.songName}</u>
+                </h3>
                 <h3 className="text-lg p-4 text-center bg-black bg-opacity-70 rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
                     {lyricToAskNeighborsIndexes.length === 1 ? (
                         lyricIndex < lyricToAskNeighborsIndexes[0] ? (
@@ -203,7 +204,7 @@ function LyricsSelector({lyricsChoice, setLyricsChoice}:
     const translator = useTranslations("GuessTheLyrics");
     return (
         <div className="pl-4 pr-4 pt-2 pb-2 bg-black bg-opacity-70 rounded-2xl border-2 border-orange-200">
-            <div className="flex flex-row max-sm:flex-col justify-evenly items-center gap-4 ">
+            <div className="flex flex-row justify-evenly items-center gap-4 ">
                 <div className="flex items-center gap-2">
                     <input
                         type="radio"

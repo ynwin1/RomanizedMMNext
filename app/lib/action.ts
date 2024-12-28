@@ -4,6 +4,7 @@ import {redirect} from "next/navigation";
 import SongRequest from "@/app/model/SongRequest";
 import connectDB from "@/app/lib/mongodb";
 import TriviaScore from "@/app/model/TriviaScore";
+import {countryFlags} from "@/app/lib/utils";
 
 const SongRequestForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
@@ -173,8 +174,6 @@ export async function createTriviaScore(prevState: TriviaScoreState, formData: F
     }
 
     const { userName, country, score } = validatedFields.data;
-    console.log(`userName: ${userName}, country: ${country}, score: ${score}`);
-
     try {
         await saveScoreAction(userName, country, score);
         const resp: TriviaScoreState = { message: "Score saved successfully" };
@@ -199,7 +198,6 @@ export async function fetchSongRequests() {
 export async function findMinimumTriviaScore() {
     try {
         await connectDB();
-        console.log("Finding min trivia score");
         const result = await TriviaScore.find().sort({ score: 1 }).limit(1).lean();
         if (result.length === 0) {
             return 0;
@@ -214,7 +212,6 @@ export async function findMinimumTriviaScore() {
 export async function fetchAllTriviaScores() {
     try {
         await connectDB();
-        console.log("Fetching all trivia scores");
         const scores = await TriviaScore.find().sort({ score: -1 }).lean(); // sort by score in descending order
         const plainScores = scores.map(score => ({
             ...score,
@@ -230,11 +227,13 @@ export async function fetchAllTriviaScores() {
 export async function saveScoreAction(userName: string, country: string, score: number) {
     try {
         await connectDB();
-        console.log("Saving score action");
+
+        const emoji = countryFlags[country] || '🌎';
+
         await TriviaScore.create({
-            userName,
-            country,
-            score
+            userName: userName,
+            country: emoji,
+            score: score
         });
 
         // remove the lowest score if there are more than 10 scores
