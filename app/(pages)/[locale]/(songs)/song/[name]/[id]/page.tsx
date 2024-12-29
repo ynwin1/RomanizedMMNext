@@ -7,7 +7,6 @@ import SearchBar from "@/app/components/searchbar/SearchBar";
 import LyricsSection from "@/app/components/music-box/LyricsSection";
 import ExtLinks from "@/app/components/music-box/ExtLinks";
 import {getTranslations, setRequestLocale} from "next-intl/server";
-import About from "@/app/components/music-box/About";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
 
@@ -36,9 +35,8 @@ export async function generateMetadata(
         const { engName, mmName } = extractSongName(songQ.songName);
 
         const titleToDisplay = songQ.songName;
-        const description = locale === "en" ?
-                `${titleToDisplay} lyrics by ${songQ.artistName} - Sing along with the romanized lyrics and learn the meaning of the song.` :
-                `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
+        const description = `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
+
         const mmid: number = songQ.mmid;
         const artists: string = songQ.artistName;
 
