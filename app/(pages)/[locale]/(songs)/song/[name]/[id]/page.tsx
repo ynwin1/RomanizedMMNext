@@ -73,7 +73,7 @@ export async function generateMetadata(
                 canonical: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
                 languages: {
                     'en': `https://romanizedmm.com/en/song/${songNameURL}/${mmid}`,
-                    'my': `https://romanizedmm.com/mm/song/${songNameURL}/${mmid}`,
+                    'my': `https://romanizedmm.com/my/song/${songNameURL}/${mmid}`,
                 }
             },
             other: {
@@ -92,7 +92,7 @@ export async function generateMetadata(
                     },
                 ] : [],
                 locale: locale,
-                alternateLocale: ["en", "mm"],
+                alternateLocale: ["en", "my"],
                 url: `https://romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
                 siteName: "RomanizedMM",
                 musicians: artists,

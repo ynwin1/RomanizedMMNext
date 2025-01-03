@@ -2,7 +2,7 @@ import {getAllSongs} from "@/app/lib/action";
 import {MetadataRoute} from "next";
 
 const WEBSITE_URL = 'http://localhost:3000' // TODO - Change this to the actual website URL
-const LOCALES = ['en', 'mm']
+const LOCALES = ['en', 'my']
 const SONG_OPTIONS = ['english', 'burmese', 'meaning'] // Added 'meaning' option
 
 const songs = await getAllSongs();
