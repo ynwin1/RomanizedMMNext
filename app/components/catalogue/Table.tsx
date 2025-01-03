@@ -4,17 +4,10 @@ import {useTranslations} from "next-intl";
 
 interface TableProps {
     locale: string;
-    sortedSongs: any[];
-    currentPage: number;
+    songs: any[];
 }
 
-const Table = ({locale, sortedSongs, currentPage}: TableProps) => {
-    // slice the songs array to display only 10 songs based on currentPage
-    const startIndex = (currentPage - 1) * 10;
-    const endIndex = currentPage * 10;
-
-    const songs = sortedSongs.slice(startIndex, endIndex);
-
+const Table = ({locale, songs}: TableProps) => {
     const translator = useTranslations("SongCatalogue");
 
     return (
