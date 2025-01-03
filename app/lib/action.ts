@@ -5,6 +5,7 @@ import SongRequest from "@/app/model/SongRequest";
 import connectDB from "@/app/lib/mongodb";
 import TriviaScore from "@/app/model/TriviaScore";
 import {countryFlags} from "@/app/lib/utils";
+import Song from "@/app/model/Song";
 
 const SongRequestForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
@@ -213,14 +214,29 @@ export async function fetchAllTriviaScores() {
     try {
         await connectDB();
         const scores = await TriviaScore.find().sort({ score: -1 }).lean(); // sort by score in descending order
-        const plainScores = scores.map(score => ({
+        return scores.map(score => ({
             ...score,
             _id: score._id.toString(),
         }));
-        return plainScores;
     } catch (error) {
-        console.error(error);
+        console.error("Error fetching Trivia Scores - " + error);
         return [];
+    }
+}
+
+// for usage in sitemap.ts
+export async function getAllSongs() {
+    try {
+        await connectDB();
+        const songs = await Song.find().select("mmid songName -_id").lean();
+        const songList = songs.map(song => ({
+            mmid: song.mmid,
+            songName: song.songName.split("(")[0].trim().replace(/\s/g, "")
+        }))
+        return songList;
+    } catch (e) {
+        console.error("Error getting all songs - ", e);
+        return null;
     }
 }
 
