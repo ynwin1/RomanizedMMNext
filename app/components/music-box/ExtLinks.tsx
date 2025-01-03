@@ -19,26 +19,43 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
     }
 
     return (
-        <>
-            <div className="flex flex-row gap-10 justify-evenly border-white border-2 rounded-2xl pl-2 pr-2 px-2 py-2 ">
-                {youtube &&
-                    <button onClick={togglePlayer}>
-                        <img src="/media/youtube.png" alt="youtube" className="w-16 max-md:w-12 hover:scale-90 ease-in" loading="lazy"/>
-                    </button>
-                }
-                {spotify &&
-                    <button onClick={() => openLink(spotify)}>
-                        <img src="/media/spotify.png" alt="spotify" className="w-16 max-md:w-12 hover:scale-90 ease-in" loading="lazy" />
-                    </button>
-                }
-                {apple &&
-                    <button onClick={() => openLink(apple)}>
-                        <img src="/media/appleMusic.png" alt="apple music" className="w-16 max-md:w-12 hover:scale-90 ease-in" loading="lazy" />
-                    </button>
-                }
+        <div className="flex flex-col items-center space-y-6">
+            <div className="bg-transparent backdrop-blur-sm border-2 border-white rounded-2xl p-6">
+                <div className="flex items-center gap-8">
+                    {youtube && (
+                        <button className="transform transition-all duration-300 hover:scale-110" onClick={togglePlayer}>
+                            <img
+                                src="/media/youtube.png"
+                                alt="youtube"
+                                className="w-16 max-md:w-12"
+                                loading="lazy"
+                            />
+                        </button>
+                    )}
+                    {spotify && (
+                        <button className="transform transition-all duration-300 hover:scale-110" onClick={() => openLink(spotify)}>
+                            <img
+                                src="/media/spotify.png"
+                                alt="spotify"
+                                className="w-16 max-md:w-12"
+                                loading="lazy"
+                            />
+                        </button>
+                    )}
+                    {apple && (
+                        <button className="transform transition-all duration-300 hover:scale-110" onClick={() => openLink(apple)}>
+                            <img
+                                src="/media/appleMusic.png"
+                                alt="apple music"
+                                className="w-16 max-md:w-12"
+                                loading="lazy"
+                            />
+                        </button>
+                    )}
+                </div>
             </div>
             {youtube && player && <YoutubePlayer link={youtube} />}
-        </>
+        </div>
 
     )
 }

@@ -124,6 +124,13 @@ function extractSongName(songName: string): { engName: string, mmName: string } 
 
 export const revalidate: number = 3600; // 24 hours
 
+const DetailRow = ({ label, value }: {label: string, value: string}) => (
+    <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+        <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
+        <span className="text-white md:flex-1">{value}</span>
+    </div>
+);
+
 const Page = async ({ params, searchParams }: SongPageProps) => {
     const { locale, id, name } = await params;
     const { option = 'burmese' } = await searchParams;
@@ -159,7 +166,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 alt={song.songName}
                 width={160}
                 height={160}
-                className="rounded-xl"
+                className="rounded-2xl hover:scale-105 transition-all duration-300"
                 quality={85}
                 priority={true}
                 />
@@ -169,12 +176,14 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <p className="text-lg text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-[1rem] max-md:leading-8">{song.about}</p>
 
             {/* About */}
-            <div className="text-[1rem] border-2 border-white p-4 rounded-2xl max-md:w-[85vw] md:w-[40vw]">
-                <h1 className="mb-6">{song.songName}</h1>
-                <h2 className="pb-2"><u>{translator("artist")}</u>: {song.artistName}</h2>
-                <h2 className="pb-2"><u>{translator("album")}</u>: {song.albumName}</h2>
-                <h2 className="pb-2"><u>{translator("genre")}</u>: {song.genre}</h2>
-                <h2 className="pb-2 leading-8"><u>{translator("whenToListen")}</u>: {song.whenToListen}</h2>
+            <div className="bg-transparent border-2 border-white rounded-3xl p-8 max-w-[50vw] max-md:max-w-[80vw] mx-auto">
+                <h1 className="text-2xl font-bold mb-6 text-center">{song.songName}</h1>
+                <div className="space-y-4">
+                    <DetailRow label={translator("artist")} value={song.artistName} />
+                    <DetailRow label={translator("album")} value={song.albumName || ""} />
+                    <DetailRow label={translator("genre")} value={song.genre} />
+                    <DetailRow label={translator("whenToListen")} value={song.whenToListen} />
+                </div>
             </div>
 
             {/* Medias */}
