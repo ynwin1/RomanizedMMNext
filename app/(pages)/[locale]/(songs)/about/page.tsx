@@ -19,7 +19,7 @@ const Page = async ({params} : AboutPageProps) => {
     return (
         <div className="flex flex-col justify-center items-center mt-4">
             <h1 className="text-3xl font-bold mt-6 ">{translator("title")}</h1>
-            <Image src="/weblogo.png" alt="RomanizedMM" width={150} height={150} className="mt-6 mb-4"/>
+            <Image src="/weblogo.png" alt="RomanizedMM" width={180} height={180} className="mt-6 mb-4 border-2 border-white rounded-full"/>
             <div className="border-2 border-orange-200 p-4 rounded-2xl space-y-4 mt-6 leading-8 w-[80vw] text-left text-[1rem] max-md:text-base max-md:w-[90vw]">
                 {locale === "en" ?
                     <>

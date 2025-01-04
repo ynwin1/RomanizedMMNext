@@ -9,6 +9,7 @@ import ExtLinks from "@/app/components/music-box/ExtLinks";
 import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
+import SocialShare from "@/app/components/social/SocialShare";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -35,12 +36,12 @@ export async function generateMetadata(
         const { engName, mmName } = extractSongName(songQ.songName);
 
         const titleToDisplay = songQ.songName;
-        const description = `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 100)}...`;
+        const description = `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 150)}...`;
 
         const mmid: number = songQ.mmid;
         const artists: string = songQ.artistName;
 
-        const songNameURL = engName.replace(/\s/g, "");
+        const songNameURL = engName.replace(/\s/g, "").trim(); // Remove spaces from song name
 
         const jsonLd = {
             "@context": "https://schema.org",
@@ -70,7 +71,7 @@ export async function generateMetadata(
             category: "Music",
             keywords: ["Burmese", "Myanmar", "Song", "Lyrics", "Romanized", engName, mmName],
             alternates: {
-                canonical: `https://romanizedmm.com/${locale}/song/${engName}/${mmid}`,
+                canonical: `https://romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
                 languages: {
                     'en': `https://romanizedmm.com/en/song/${songNameURL}/${mmid}`,
                     'my': `https://romanizedmm.com/my/song/${songNameURL}/${mmid}`,
@@ -126,7 +127,7 @@ export const revalidate: number = 3600; // 24 hours
 
 const DetailRow = ({ label, value }: {label: string, value: string}) => (
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-        <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
+        <span className="text-white font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
         <span className="text-white md:flex-1">{value}</span>
     </div>
 );
@@ -191,6 +192,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             {/* Radio Buttons & Lyrics */}
             <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
+
+            <SocialShare url={`https://romanizedmm.com/song/${name}/${id}?option=${option}`} title={song.songName} />
         </main>
     )
 }

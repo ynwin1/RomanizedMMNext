@@ -23,7 +23,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
             <div className="bg-transparent backdrop-blur-sm border-2 border-white rounded-2xl p-6">
                 <div className="flex items-center gap-8">
                     {youtube && (
-                        <button className="transform transition-all duration-300 hover:scale-110" onClick={togglePlayer}>
+                        <button className="transform transition-all duration-300 hover:scale-90" onClick={togglePlayer}>
                             <img
                                 src="/media/youtube.png"
                                 alt="youtube"
@@ -33,7 +33,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
                         </button>
                     )}
                     {spotify && (
-                        <button className="transform transition-all duration-300 hover:scale-110" onClick={() => openLink(spotify)}>
+                        <button className="transform transition-all duration-300 hover:scale-90" onClick={() => openLink(spotify)}>
                             <img
                                 src="/media/spotify.png"
                                 alt="spotify"
@@ -43,7 +43,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
                         </button>
                     )}
                     {apple && (
-                        <button className="transform transition-all duration-300 hover:scale-110" onClick={() => openLink(apple)}>
+                        <button className="transform transition-all duration-300 hover:scale-90" onClick={() => openLink(apple)}>
                             <img
                                 src="/media/appleMusic.png"
                                 alt="apple music"

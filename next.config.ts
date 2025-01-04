@@ -13,6 +13,26 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    async redirects() {
+        return [
+            {
+                source: '/song/:songName',
+                destination: '/',
+                permanent: false
+            },
+            {
+                source: '/:path*',
+                has: [
+                    {
+                        type: 'host',
+                        value: 'www.romanizedmm.com',
+                    },
+                ],
+                destination: 'https://romanizedmm.com/:path*',
+                permanent: true,
+            }
+        ]
+    },
 };
 
 export default withNextIntl(nextConfig);

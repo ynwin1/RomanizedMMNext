@@ -55,5 +55,9 @@
   },
   "SearchBar": {
     "search": "Type a song title..."
+  },
+  "SocialShare": {
+    "share": "Share on",
+    "others": "Others"
   }
 }
