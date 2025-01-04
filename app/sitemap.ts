@@ -1,7 +1,7 @@
 import {getAllSongs} from "@/app/lib/action";
 import {MetadataRoute} from "next";
 
-const WEBSITE_URL = 'http://localhost:3000' // TODO - Change this to the actual website URL
+const WEBSITE_URL = 'https://romanizedmm.com'
 const LOCALES = ['en', 'my']
 const SONG_OPTIONS = ['english', 'burmese', 'meaning'] // Added 'meaning' option
 
