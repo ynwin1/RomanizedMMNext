@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     description: 'Request a song to be added to the RomanizedMM website!'
 };
 
+export const revalidate = 0;
+
 const Page = async () => {
     const songRequests = await fetchSongRequests();
     const translator = await getTranslations("SongRequestPage");
