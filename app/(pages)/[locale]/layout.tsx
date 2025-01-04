@@ -5,8 +5,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
-import {Navbar} from "@/app/components/navbar/Navbar";
-import Footer from "@/app/components/footer/Footer";
+import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
     title: {
@@ -46,6 +45,7 @@ export default async function RootLayout({
         <body className={`${lusitana.className} antialiased`}>
         <NextIntlClientProvider messages={messages}>
             {children}
+            <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
         </NextIntlClientProvider>
         </body>
         </html>
