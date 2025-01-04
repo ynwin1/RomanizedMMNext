@@ -25,10 +25,10 @@ const nextConfig: NextConfig = {
                 has: [
                     {
                         type: 'host',
-                        value: 'www.romanizedmm.com',
+                        value: 'romanizedmm.com',
                     },
                 ],
-                destination: 'https://romanizedmm.com/:path*',
+                destination: 'https://www.romanizedmm.com/:path*', // Redirect to www
                 permanent: true,
             }
         ]
