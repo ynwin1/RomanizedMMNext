@@ -51,7 +51,7 @@ export default function SocialShare({ url, title }: { url: string, title: string
     };
 
     return (
-        <div className="flex md:space-x-4 max-md:space-y-4 max-md:flex-col">
+        <div className="flex items-center justify-center md:space-x-4 max-md:space-y-4 max-md:flex-col">
             <button
                 onClick={() => window.open(shareURLs.facebook, '_blank')}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"

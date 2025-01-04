@@ -127,8 +127,8 @@ export const revalidate: number = 3600; // 24 hours
 
 const DetailRow = ({ label, value }: {label: string, value: string}) => (
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-        <span className="text-white font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
-        <span className="text-white md:flex-1">{value}</span>
+        <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
+        <span className="text-white md:flex-1 leading-[2rem] -mt-1">{value}</span>
     </div>
 );
 

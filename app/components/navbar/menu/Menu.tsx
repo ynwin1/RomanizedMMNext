@@ -21,8 +21,8 @@ export const Menu = () => {
 
     return (
         <div>
-            <button className="w-8 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
-                <Bars3Icon className="w-8 cursor-pointer hover:opacity-60 hover:rounded" />
+            <button className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
+                <Bars3Icon className="w-10 cursor-pointer hover:opacity-60 hover:rounded" />
             </button>
             {isOpen && <MenuOverlay close={setIsOpen} locale={locale}/>}
         </div>
