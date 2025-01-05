@@ -1,7 +1,7 @@
 # RomanizedMM
 Official Website - www.romanizedmm.com
 
-Demo - https://www.youtube.com/watch?v=9P4RoPcO_RM
+Demo - [https://www.youtube.com/watch?v=9P4RoPcO_RM](https://youtu.be/rP2xi7OrS_E)
 ## About
 RomanizedMM is a web application providing romanized lyrics of Myanmar songs to 
 music lovers out there who like to sing Myanmar songs along. 
