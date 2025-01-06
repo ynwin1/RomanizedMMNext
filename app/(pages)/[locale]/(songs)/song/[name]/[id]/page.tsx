@@ -71,10 +71,10 @@ export async function generateMetadata(
             category: "Music",
             keywords: ["Burmese", "Myanmar", "Song", "Lyrics", "Romanized", engName, mmName],
             alternates: {
-                canonical: `https://romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
+                canonical: `https://www.romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
                 languages: {
-                    'en': `https://romanizedmm.com/en/song/${songNameURL}/${mmid}`,
-                    'my': `https://romanizedmm.com/my/song/${songNameURL}/${mmid}`,
+                    'en': `https://www.romanizedmm.com/en/song/${songNameURL}/${mmid}`,
+                    'my': `https://www.romanizedmm.com/my/song/${songNameURL}/${mmid}`,
                 }
             },
             other: {

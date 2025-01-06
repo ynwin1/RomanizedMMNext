@@ -18,7 +18,7 @@ export const metadata: Metadata = {
         title: "RomanizedMM",
         description: "Discover the lyrics of your favorite Myanmar songs and sing along!",
         type: "website",
-        url: "https://romanizedmm.com",
+        url: "https://www.romanizedmm.com",
         siteName: "RomanizedMM",
         images: [
             {
