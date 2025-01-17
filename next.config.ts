@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
         return [
             {
                 source: '/song/:songName',
-                destination: '/',
+                destination: '/en',
                 permanent: false
             },
             {

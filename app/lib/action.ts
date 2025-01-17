@@ -14,7 +14,7 @@ const SongRequestForm = z.object({
     details: z.string().optional()
 });
 
-export type State = {
+export typeState = {
     errors? : {
         songName?: string[];
         artist?: string[];
