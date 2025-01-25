@@ -140,11 +140,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     let song;
     try {
         await connectDB();
-        song = await Song.findOne({ mmid: id}).lean();
-
-        const engName = name.replace(/(?<!^)(?=[A-Z])/g, "");
-
-        if (!song || song.songName.split("(")[0].trim() !== engName) {
+        song = await Song.findOne({ mmid: id }).lean();
+        if (!song) {
             return notFound();
         }
     } catch (error) {
