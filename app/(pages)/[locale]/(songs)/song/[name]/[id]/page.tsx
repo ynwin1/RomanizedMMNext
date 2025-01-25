@@ -22,6 +22,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
     try {
         const { id, locale } = await params;
+        console.log("Song page for id:", id, "locale:", locale);
 
         if (!id || !locale) {
             throw new Error("Missing required parameters: id or locale");
@@ -141,7 +142,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         await connectDB();
         song = await Song.findOne({ mmid: id}).lean();
 
-        const engName = name.replace(/(?<!^)(?=[A-Z])/g, " ");
+        const engName = name.replace(/(?<!^)(?=[A-Z])/g, "");
 
         if (!song || song.songName.split("(")[0].trim() !== engName) {
             return notFound();
