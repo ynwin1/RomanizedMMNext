@@ -20,7 +20,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
 
     return (
         <div className="flex flex-col items-center space-y-6">
-            <div className="bg-transparent backdrop-blur-sm border-2 border-white rounded-2xl p-6">
+            <div className="bg-transparent backdrop-blur-sm border-2 border-white rounded-2xl px-6 py-2">
                 <div className="flex items-center gap-8">
                     {youtube && (
                         <button className="transform transition-all duration-300 hover:scale-90" onClick={togglePlayer}>
