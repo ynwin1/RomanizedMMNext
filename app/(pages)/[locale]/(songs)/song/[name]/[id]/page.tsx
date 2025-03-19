@@ -36,7 +36,7 @@ export async function generateMetadata(
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
-        const titleToDisplay = `${songQ.songName} - ${songQ.artistName}`;
+        const titleToDisplay = `${songQ.songName} Lyrics - ${songQ.artistName}`;
         const description = `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 150)}...`;
 
         const mmid: number = songQ.mmid;
