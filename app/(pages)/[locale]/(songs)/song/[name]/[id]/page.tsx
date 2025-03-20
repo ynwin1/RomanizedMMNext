@@ -36,8 +36,8 @@ export async function generateMetadata(
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
-        const titleToDisplay = `${songQ.songName} Lyrics - ${songQ.artistName}`;
-        const description = `${titleToDisplay} lyrics by ${songQ.artistName} - ${songQ.burmese.slice(0, 150)}...`;
+        const titleToDisplay = `${engName} Lyrics - ${songQ.artistName}`;
+        const description = `${titleToDisplay} - Full song lyrics in Burmese with English meaning.`;
 
         const mmid: number = songQ.mmid;
         const artists: string = songQ.artistName;
@@ -47,7 +47,7 @@ export async function generateMetadata(
         const jsonLd = {
             "@context": "https://schema.org",
             "@type": "MusicRecording",
-            "name": songQ.songName,
+            "name": engName,
             "byArtist": {
                 "@type": "MusicGroup",
                 "name": songQ.artistName,
@@ -70,7 +70,7 @@ export async function generateMetadata(
             title: titleToDisplay,
             description: description,
             category: "Music",
-            keywords: ["Burmese", "Myanmar", "Song", "Lyrics", "Romanized", engName, mmName],
+            keywords: [`${engName} Lyrics`, `${mmName} Lyrics`, `${songQ.artistName}`, "Burmese songs", "Myanmar music", "song lyrics"],
             alternates: {
                 canonical: `https://www.romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
                 languages: {
