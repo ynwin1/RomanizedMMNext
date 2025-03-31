@@ -1,57 +1,51 @@
 "use client"
-import React, {useEffect, useRef, useState} from 'react'
+
+import React, { useRef } from 'react';
 
 interface RotatingTextProps {
     messages: string[];
     link: string;
 }
 
-const RotatingText = ({messages, link} : RotatingTextProps) => {
-    const [animate, setAnimate] = useState(true);
+const RotatingText = ({ messages, link }: RotatingTextProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-
     const joinedMessage = messages.join(" • ");
 
-    useEffect(() => {
-        const handleAnimationEnd = () => {
-            // Reset the animation by briefly turning it off then on
-            setAnimate(false);
-            setTimeout(() => setAnimate(true), 10);
-        };
-
-        const container = containerRef.current;
-        if (container) {
-            container.addEventListener('animationend', handleAnimationEnd);
-
-            return () => {
-                container.removeEventListener('animationend', handleAnimationEnd);
-            };
-        }
-    }, []);
+    // Create duplicate text for seamless looping
+    const duplicatedText = `${joinedMessage} • ${joinedMessage}`;
 
     return (
-        <div className="relative w-full overflow-hidden bg-red-600 py-3 text-white z-50 hover:cursor-pointer" onClick={() => window.open(link, "_blank")}>
-            <div
-                ref={containerRef}
-                className={`whitespace-nowrap font-bold ${animate ? 'animate-ticker' : ''}`}
-                style={{
-                    display: 'inline-block'
-                }}
-            >
-                {joinedMessage}
+        <div
+            className="relative w-full overflow-hidden bg-red-600 py-3 text-white z-50 hover:cursor-pointer"
+            onClick={() => window.open(link, "_blank")}
+        >
+            <div className="ticker-container">
+                <div className="ticker-text">
+                    {duplicatedText}
+                </div>
             </div>
+
             <style jsx global>{`
-        @keyframes ticker {
-          0% {
-            transform: translateX(100%);
-          }
-          100% {
-            transform: translateX(-100%);
-          }
+        .ticker-container {
+          width: 100%;
+          overflow: hidden;
+          white-space: nowrap;
         }
         
-        .animate-ticker {
-          animation: ticker 30s linear;
+        .ticker-text {
+          display: inline-block;
+          white-space: nowrap;
+          padding-right: 50px;
+          animation: ticker-scroll 30s linear infinite;
+        }
+        
+        @keyframes ticker-scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
         }
       `}</style>
 
@@ -60,4 +54,5 @@ const RotatingText = ({messages, link} : RotatingTextProps) => {
         </div>
     );
 };
-export default RotatingText
+
+export default RotatingText;

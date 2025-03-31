@@ -35,7 +35,8 @@ export default async function RootLayout({
         "10000+ injured, many families displaced",
         "Donate medical supplies, food, and shelter materials",
         "Support local relief organizations on the ground",
-        "Emergency aid needed in rural regions"
+        "Emergency aid needed in rural regions",
+        "Click here to donate and help Myanmar",
     ];
 
     // Ensure that the incoming `locale` is valid
