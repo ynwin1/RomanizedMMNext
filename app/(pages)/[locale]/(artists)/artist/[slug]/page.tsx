@@ -1,87 +1,213 @@
-import React from 'react'
-import connectDB from "@/app/lib/mongodb";
-import Artist from "@/app/model/Artist";
-import {notFound} from "next/navigation";
-import Song from "@/app/model/Song";
+import React from 'react';
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import connectDB from "@/app/lib/mongodb";
+import Artist from "@/app/model/Artist";
+import Song from "@/app/model/Song";
+import Biography from "@/app/components/artist/biography";
+import SongCard from "@/app/components/artist/SongCard";
 
 interface ArtistPageProps {
-    params: Promise<{locale: string, slug: string}>,
-    searchParams: Promise<{page?: string}>,
+    params: Promise<{ locale: string, slug: string }>;
+    searchParams: Promise<{ page?: string }>;
 }
 
-const Page = async ({params, searchParams}: ArtistPageProps) => {
+const Page = async ({ params, searchParams }: ArtistPageProps) => {
     const { locale, slug } = await params;
     const { page } = await searchParams;
 
     const currentPage: number = Number(page) || 1;
 
-    let artist;
-    const artistSongs = [];
-    try {
-        await connectDB();
-        artist = await Artist.findOne({slug: slug}).lean();
+    // Commented out original database fetching logic
+    // let artist;
+    // const artistSongs = [];
+    // try {
+    //     await connectDB();
+    //     artist = await Artist.findOne({slug: slug}).lean();
+    //
+    //     if (!artist) {
+    //         return notFound();
+    //     }
+    //
+    //     for (const songId of artist.songs) {
+    //         const song = await Song.findOne({mmid: songId}).select("songName imageLink about").lean();
+    //         artistSongs.push(song);
+    //     }
+    // } catch (e) {
+    //     console.error("Error fetching artist page data:", e);
+    //     return notFound();
+    // }
 
-        if (!artist) {
-            return notFound();
-        }
+    // Populate for testing
+    const artist = {
+        name: "Eternal Gosh",
+        slug: "eternal-gosh",
+        imageLink: "https://i.scdn.co/image/ab67616100005174102bdd11d1f338a62ee52ae6",
+        bannerLink: "/emoji.jpg",
+        biography: "It was their first date and she had been looking forward to it the entire week. She had her eyes on him for months, and it had taken a convoluted scheme with several friends to make it happen, but he'd finally taken the hint and asked her out. After all the time and effort she'd invested into it, she never thought that it would be anything but wonderful. It goes without saying that things didn't work out quite as she expected.",
+        type: "Singer",
+        members: ["Member 1", "Member 2"],
+        origin: "Yangon, Myanmar",
+        labels: ["Label 1", "Label 2"],
+        musicGenre: ["Genre 1", "Genre 2"],
+        songs: [1, 2, 3],
+        socials: {
+            facebook: "https://facebook.com",
+            instagram: "https://instagram.com",
+            youtube: "https://youtube.com",
+            spotify: "https://spotify.com",
+            appleMusic: "https://music.apple.com",
+        },
+        likes: 100,
+    };
 
-        for (const songId of artist.songs) {
-            const song = await Song.findOne({mmid: songId}).select("songName imageLink about").lean();
-            artistSongs.push(song);
-        }
-    } catch (e) {
-        console.error("Error fetching artist page data:", e);
-        return notFound();
-    }
+    // Populate for testing
+    const artistSongs = [
+        {
+            songName: "Song 1",
+            mmid: 1,
+            imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
+            about: "About Song 1",
+        },
+        {
+            songName: "Song 2",
+            mmid: 2,
+            imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
+            about: "About Song 2",
+        },
+        {
+            songName: "Song 3",
+            mmid: 3,
+            imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
+            about: "About Song 3",
+        },
+    ];
 
     return (
         <main className="flex flex-col items-center justify-center">
             {/* Artist Banner */}
-            <div className="flex flex-col items-center justify-center md:h-[200px] w-full">
+            <div className="flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full">
                 <Image
-                    src={artist.bannerLink || "hello"}
+                    src={artist.bannerLink}
                     alt="artist-banner"
-                    fill
-                    className="object-cover"
+                    height={300}
+                    width={300}
+                    className="object-cover w-full h-full"
                     priority
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"/>
             </div>
 
-            {/* Artist Info */}
+            {/* Artist */}
             <div className="container max-w-6xl px-4 mx-auto -mt-24 relative z-10">
                 {/* Artist Info Section */}
-                <div className="flex flex-col md:flex-row gap-6 items-start mb-12">
+                <div className="flex flex-col md:flex-row gap-12 max-md:items-center max-md:justify-center">
                     {/* Profile Picture */}
-                    <div className="relative w-36 h-36 md:w-48 md:h-48 rounded-full border-4 border-background overflow-hidden shadow-xl">
-                        <Image src={artist.imageLink || "/placeholder.png"} alt={artist.name} fill className="object-cover" />
+                    <div className="relative w-48 h-48 rounded-full border-4 border-white overflow-hidden hover:scale-90 hover:border-amber-400 transition-all duration-300">
+                        <Image
+                            src={artist.imageLink}
+                            alt={artist.name}
+                            fill
+                            className="object-cover"
+                        />
                     </div>
-                    {/* Name */}
-                    <div className="flex-1 pt-4">
-                        <h1 className="text-3xl md:text-5xl font-bold mb-2">{artist.name}</h1>
-                    </div>
-                    {/* Genres */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {artist.musicGenre.map((genre, index) => (
-                            <span key={index} className="text-black bg-white p-1 rounded-full text-sm">{genre}</span>
-                        ))}
-                    </div>
-                    {/* Origin */}
-                    <div className="text-muted-foreground mb-4">
-                        <p>
-                            {artist.origin}
-                        </p>
-                    </div>
-                    {/* Social Links */}
 
+                    {/* Artist Details */}
+                    <div className="flex-2 max-md:text-center max-md:flex max-md:flex-col max-md:items-center gap-3">
+                        {/* Name */}
+                        <h1 className="text-5xl font-bold mb-2 hover:text-amber-400 hover:cursor-pointer transition-all duration-300">
+                            {artist.name}
+                        </h1>
+
+                        {/* Genres */}
+                        <div className="flex flex-wrap gap-2 mb-4 max-md:justify-center">
+                            {artist.musicGenre.map((genre, index) => (
+                                <span
+                                    key={index}
+                                    className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer hover:text-white transition-all duration-300"
+                                >
+                        {genre}
+                    </span>
+                            ))}
+                        </div>
+
+                        {/* Origin */}
+                        <p className="text-muted-foreground mb-4">
+                            📍 {artist.origin}
+                        </p>
+
+                        {/* Social Links */}
+                        <div className="flex gap-8 max-md:justify-center">
+                            {artist.socials?.facebook && (
+                                <a
+                                    href={artist.socials.facebook}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <img src="/facebook-icon-50.png" alt="facebook-icon" className="h-8 w-8 hover:scale-90 transition-all duration-300" />
+                                </a>
+                            )}
+                            {artist.socials?.instagram && (
+                                <a
+                                    href={artist.socials.instagram}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <img src="/instagram-icon.png" alt="instagram-icon" className="h-8 w-8 hover:scale-90 transition-all duration-300" />
+                                </a>
+                            )}
+                            {artist.socials?.youtube && (
+                                <a
+                                    href={artist.socials.youtube}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <img src="/youtube-icon.png" alt="youtube-icon" className="h-8 w-8 hover:scale-90 transition-all duration-300" />
+                                </a>
+                            )}
+                            {artist.socials?.spotify && (
+                                <a
+                                    href={artist.socials.spotify}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <img src="/spotify-icon.png" alt="spotify-icon" className="h-8 w-8 hover:scale-90 transition-all duration-300" />
+                                </a>
+                            )}
+                            {artist.socials?.appleMusic && (
+                                <a
+                                    href={artist.socials.appleMusic}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <img src="/apple-music-icon.png" alt="applemusic-icon" className="h-8 w-8 hover:scale-90 transition-all duration-300" />
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Artist Biography */}
+                <Biography biography={artist.biography} />
+
+                {/* Artist Songs */}
+                <div className="grid grid-cols-2 gap-8 mt-8">
+                    {artistSongs.map((song, index) => (
+                        <SongCard
+                            key={index}
+                            songName={song.songName}
+                            mmid={song.mmid}
+                            imageLink={song.imageLink}
+                            about={song.about}
+                        />
+                    ))}
                 </div>
             </div>
 
-            {/* Artist Biography */}
-
-            {/* Artist Songs */}
         </main>
-    )
-}
-export default Page
+    );
+};
+
+export default Page;
