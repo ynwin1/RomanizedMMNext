@@ -54,7 +54,7 @@ export default async function RootLayout({
     return (
         <html lang={locale}>
         <body className={`${lusitana.className} antialiased`}>
-        <RotatingText messages={eqMsgs} link="https://www.gofundme.com/f/aid-myanmar-in-crisis-earthquake-relief?qid=f0b7d9f63238f35ff9200d3d0624da8f" />
+        <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" />
         <NextIntlClientProvider messages={messages}>
             {children}
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
