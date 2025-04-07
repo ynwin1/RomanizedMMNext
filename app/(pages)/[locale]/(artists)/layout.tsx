@@ -4,12 +4,6 @@ import {getMessages, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import {Navbar} from "@/app/components/navbar/Navbar";
-import Footer from "@/app/components/footer/Footer";
-import { lusitana } from "@/app/components/fonts/fonts";
-
-export function generateStaticParams() {
-    return routing.locales.map((locale) => ({locale}));
-}
 
 export default async function LocaleLayout({
                                                children,

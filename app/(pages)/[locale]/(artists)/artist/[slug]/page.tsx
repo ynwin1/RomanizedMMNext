@@ -193,7 +193,8 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                 <Biography biography={artist.biography} />
 
                 {/* Artist Songs */}
-                <div className="grid grid-cols-2 gap-8 mt-8">
+                <h3 className="text-4xl font-bold text-center mt-8 mb-4">Songs</h3>
+                <div className="grid grid-cols-2 max-md:grid-cols-1 gap-8 mt-8 mb-8 px-4">
                     {artistSongs.map((song, index) => (
                         <SongCard
                             key={index}
@@ -205,8 +206,8 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                     ))}
                 </div>
             </div>
-
         </main>
+
     );
 };
 

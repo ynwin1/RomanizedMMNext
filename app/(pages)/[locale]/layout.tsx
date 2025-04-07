@@ -7,6 +7,7 @@ import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
 import RotatingText from "@/app/components/rotating-text/RotatingText";
+import Footer from "@/app/components/footer/Footer";
 
 export const metadata: Metadata = {
     title: {
@@ -59,6 +60,7 @@ export default async function RootLayout({
             {children}
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
         </NextIntlClientProvider>
+        <Footer />
         </body>
         </html>
     );

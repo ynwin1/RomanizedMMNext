@@ -10,7 +10,7 @@ interface SongCardProps {
 }
 const SongCard = ({songName, mmid, imageLink, about}: SongCardProps) => {
     return (
-        <div className="flex flex-row justify-between items-center p-4 border-white border-2 rounded-lg">
+        <div className="flex flex-row justify-around items-center p-4 border-white border-2 rounded-lg gap-x-4">
             {/* Song Image */}
             <Image src={imageLink} alt={songName} width={100} height={100} className="rounded-lg" />
             {/* Song Details */}
