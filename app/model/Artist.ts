@@ -6,6 +6,7 @@ export interface IArtist extends mongoose.Document {
     imageLink?: string;
     bannerLink?: string;
     biography: string;
+    biographyMy?: string;
     type: "Singer" | "Band";
     members?: string[];
     origin?: string;
