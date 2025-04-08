@@ -9,7 +9,7 @@ export interface IArtist extends mongoose.Document {
     biographyMy?: string;
     type: "Singer" | "Band";
     members?: string[];
-    origin?: string;
+    origin?: string[];
     labels?: string[];
     musicGenre: string[];
     songs: number[];
@@ -29,9 +29,10 @@ const ArtistSchema: Schema<IArtist> = new Schema({
     imageLink: { type: String },
     bannerLink: { type: String },
     biography: { type: String, required: true },
+    biographyMy: { type: String },
     type: { type: String, required: true },
     members: { type: [String] },
-    origin: { type: String },
+    origin: { type: [String] },
     labels: { type: [String] },
     musicGenre: { type: [String], required: true },
     songs: { type: [Number], required: true },
