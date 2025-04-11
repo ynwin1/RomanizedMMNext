@@ -44,11 +44,11 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
     const artist = {
         name: "Eternal Gosh",
         slug: "eternal-gosh",
-        imageLink: "https://i.scdn.co/image/ab67616100005174102bdd11d1f338a62ee52ae6",
-        bannerLink: "/emoji.jpg",
+        imageLink: "https://i.scdn.co/image/ab67616100005174788770aee1b9b4edd5769f85",
+        bannerLink: null,
         biography: "It was their first date and she had been looking forward to it the entire week. She had her eyes on him for months, and it had taken a convoluted scheme with several friends to make it happen, but he'd finally taken the hint and asked her out. After all the time and effort she'd invested into it, she never thought that it would be anything but wonderful. It goes without saying that things didn't work out quite as she expected.",
-        type: "Singer",
-        members: ["Member 1", "Member 2"],
+        type: "Band",
+        members: ["Han Nay Tar", "Bon Bon", "Nay Min", "Yee Mon"],
         origin: "Yangon, Myanmar",
         labels: ["Label 1", "Label 2"],
         musicGenre: ["Genre 1", "Genre 2"],
@@ -88,16 +88,18 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
     return (
         <main className="flex flex-col items-center justify-center">
             {/* Artist Banner */}
-            <div className="flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full">
-                <Image
-                    src={artist.bannerLink}
-                    alt="artist-banner"
-                    height={300}
-                    width={300}
-                    className="object-cover w-full h-full"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"/>
+            <div className="relative flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full">
+                {artist.bannerLink !== "" && artist.bannerLink !== undefined && artist.bannerLink !== null ?
+                    <Image
+                        src={artist.bannerLink}
+                        alt="artist-banner"
+                        fill
+                        className="object-cover w-full h-full"
+                        priority
+                    /> :
+                    <div className="absolute inset-0 bg-gray-800" />
+                }
+                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
             </div>
 
             {/* Artist */}
@@ -115,11 +117,34 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                     </div>
 
                     {/* Artist Details */}
-                    <div className="flex-2 max-md:text-center max-md:flex max-md:flex-col max-md:items-center gap-3">
+                    <div className="max-md:text-center flex flex-col max-md:items-center gap-2">
                         {/* Name */}
                         <h1 className="text-5xl font-bold mb-2 hover:text-amber-400 hover:cursor-pointer transition-all duration-300">
                             {artist.name}
                         </h1>
+
+                        {artist.type.toLowerCase() === "band" && (
+                            <div className="flex md:flex-col flex-col gap-3 mb-4 text-center">
+                                {/*<h3 className="text-xl font-bold">*/}
+                                {/*    Members:*/}
+                                {/*</h3>*/}
+                                <div className="grid grid-cols-2 md:flex md:flex-row gap-2">
+                                    {artist.members.map((member, index) => (
+                                        <span
+                                            key={index}
+                                            className="text-black bg-white p-2 rounded-lg text-sm"
+                                        >
+                                            {member}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Origin */}
+                        <p className="text-muted-foreground text-lg mb-4">
+                            📍 {artist.origin}
+                        </p>
 
                         {/* Genres */}
                         <div className="flex flex-wrap gap-2 mb-4 max-md:justify-center">
@@ -132,11 +157,6 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                     </span>
                             ))}
                         </div>
-
-                        {/* Origin */}
-                        <p className="text-muted-foreground mb-4">
-                            📍 {artist.origin}
-                        </p>
 
                         {/* Social Links */}
                         <div className="flex gap-8 max-md:justify-center">
