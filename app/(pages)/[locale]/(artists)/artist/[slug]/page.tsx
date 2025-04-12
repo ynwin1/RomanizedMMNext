@@ -1,6 +1,5 @@
 import React from 'react';
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import connectDB from "@/app/lib/mongodb";
@@ -21,75 +20,77 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
     const currentPage: number = Number(page) || 1;
 
     // Commented out original database fetching logic
-    // let artist;
-    // const artistSongs = [];
-    // try {
-    //     await connectDB();
-    //     artist = await Artist.findOne({slug: slug}).lean();
-    //
-    //     if (!artist) {
-    //         return notFound();
-    //     }
-    //
-    //     for (const songId of artist.songs) {
-    //         const song = await Song.findOne({mmid: songId}).select("songName imageLink about").lean();
-    //         artistSongs.push(song);
-    //     }
-    // } catch (e) {
-    //     console.error("Error fetching artist page data:", e);
-    //     return notFound();
-    // }
+    let artist;
+    const artistSongs = [];
+    try {
+        await connectDB();
+        artist = await Artist.findOne({slug: slug}).lean();
+
+        if (!artist) {
+            return notFound();
+        }
+
+        for (const songId of artist.songs) {
+            const song = await Song.findOne({mmid: songId}).select("songName mmid imageLink about").lean();
+            if (song) {
+                artistSongs.push(song);
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching artist page data:", e);
+        return notFound();
+    }
 
     // Populate for testing
-    const artist = {
-        name: "Eternal Gosh",
-        slug: "eternal-gosh",
-        imageLink: "https://i.scdn.co/image/ab67616100005174788770aee1b9b4edd5769f85",
-        bannerLink: null,
-        biography: "It was their first date and she had been looking forward to it the entire week. She had her eyes on him for months, and it had taken a convoluted scheme with several friends to make it happen, but he'd finally taken the hint and asked her out. After all the time and effort she'd invested into it, she never thought that it would be anything but wonderful. It goes without saying that things didn't work out quite as she expected.",
-        type: "Band",
-        members: ["Han Nay Tar", "Bon Bon", "Nay Min", "Yee Mon"],
-        origin: "Yangon, Myanmar",
-        labels: ["Label 1", "Label 2"],
-        musicGenre: ["Genre 1", "Genre 2"],
-        songs: [1, 2, 3],
-        socials: {
-            facebook: "https://facebook.com",
-            instagram: "https://instagram.com",
-            youtube: "https://youtube.com",
-            spotify: "https://spotify.com",
-            appleMusic: "https://music.apple.com",
-        },
-        likes: 100,
-    };
-
-    // Populate for testing
-    const artistSongs = [
-        {
-            songName: "Song 1",
-            mmid: 1,
-            imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
-            about: "About Song 1",
-        },
-        {
-            songName: "Song 2",
-            mmid: 2,
-            imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
-            about: "About Song 2",
-        },
-        {
-            songName: "Song 3",
-            mmid: 3,
-            imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
-            about: "About Song 3",
-        },
-    ];
+    // const artist = {
+    //     name: "Eternal Gosh",
+    //     slug: "eternal-gosh",
+    //     imageLink: "https://i.scdn.co/image/ab67616100005174788770aee1b9b4edd5769f85",
+    //     bannerLink: null,
+    //     biography: "It was their first date and she had been looking forward to it the entire week. She had her eyes on him for months, and it had taken a convoluted scheme with several friends to make it happen, but he'd finally taken the hint and asked her out. After all the time and effort she'd invested into it, she never thought that it would be anything but wonderful. It goes without saying that things didn't work out quite as she expected.",
+    //     type: "Band",
+    //     members: ["Han Nay Tar", "Bon Bon", "Nay Min", "Yee Mon"],
+    //     origin: "Yangon, Myanmar",
+    //     labels: ["Label 1", "Label 2"],
+    //     musicGenre: ["Genre 1", "Genre 2"],
+    //     songs: [1, 2, 3],
+    //     socials: {
+    //         facebook: "https://facebook.com",
+    //         instagram: "https://instagram.com",
+    //         youtube: "https://youtube.com",
+    //         spotify: "https://spotify.com",
+    //         appleMusic: "https://music.apple.com",
+    //     },
+    //     likes: 100,
+    // };
+    //
+    // // Populate for testing
+    // const artistSongs = [
+    //     {
+    //         songName: "Song 1",
+    //         mmid: 1,
+    //         imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
+    //         about: "About Song 1",
+    //     },
+    //     {
+    //         songName: "Song 2",
+    //         mmid: 2,
+    //         imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
+    //         about: "About Song 2",
+    //     },
+    //     {
+    //         songName: "Song 3",
+    //         mmid: 3,
+    //         imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
+    //         about: "About Song 3",
+    //     },
+    // ];
 
     return (
         <main className="flex flex-col items-center justify-center">
             {/* Artist Banner */}
             <div className="relative flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full">
-                {artist.bannerLink !== "" && artist.bannerLink !== undefined && artist.bannerLink !== null ?
+                {!!artist.bannerLink ?
                     <Image
                         src={artist.bannerLink}
                         alt="artist-banner"
@@ -128,11 +129,11 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                                 {/*<h3 className="text-xl font-bold">*/}
                                 {/*    Members:*/}
                                 {/*</h3>*/}
-                                <div className="grid grid-cols-2 md:flex md:flex-row gap-2">
-                                    {artist.members.map((member, index) => (
+                                <div className="grid grid-cols-3 md:flex md:flex-row gap-2">
+                                    {artist.members?.map((member, index) => (
                                         <span
                                             key={index}
-                                            className="text-black bg-white p-2 rounded-lg text-sm"
+                                            className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer hover:text-black  transition-all duration-300"
                                         >
                                             {member}
                                         </span>
@@ -218,10 +219,10 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                     {artistSongs.map((song, index) => (
                         <SongCard
                             key={index}
-                            songName={song.songName}
                             mmid={song.mmid}
-                            imageLink={song.imageLink}
-                            about={song.about}
+                            songName={song.songName}
+                            imageLink={song.imageLink || ""}
+                            locale={locale}
                         />
                     ))}
                 </div>

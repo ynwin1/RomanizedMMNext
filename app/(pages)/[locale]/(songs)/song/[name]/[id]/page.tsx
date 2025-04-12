@@ -10,6 +10,7 @@ import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
 import SocialShare from "@/app/components/social/SocialShare";
+import {extractSongName} from "@/app/lib/utils";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -111,17 +112,6 @@ export async function generateMetadata(
 interface SongPageProps {
     params: Promise<{locale: string, id: string, name: string}>,
     searchParams: Promise<{ option: string }>;
-}
-
-function extractSongName(songName: string): { engName: string, mmName: string } {
-    const names = songName.split("(");
-    const engName = names[0].trim();
-    const mmName = names.length > 1 ? names[1].replace(/[()]/g, "").trim() : engName;
-
-    return {
-        engName: engName,
-        mmName: mmName,
-    };
 }
 
 export const revalidate: number = 3600; // 24 hours

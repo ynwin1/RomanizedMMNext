@@ -3,7 +3,7 @@ import mongoose, { Schema, Model, models } from "mongoose";
 export interface IArtist extends mongoose.Document {
     name: string;
     slug: string;
-    imageLink?: string;
+    imageLink: string;
     bannerLink?: string;
     biography: string;
     biographyMy?: string;
@@ -27,7 +27,7 @@ export interface IArtist extends mongoose.Document {
 const ArtistSchema: Schema<IArtist> = new Schema({
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    imageLink: { type: String },
+    imageLink: { type: String, required: true },
     bannerLink: { type: String },
     biography: { type: String, required: true },
     biographyMy: { type: String },

@@ -26,6 +26,17 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 };
 
+export function extractSongName(songName: string): { engName: string, mmName: string } {
+    const names = songName.split("(");
+    const engName = names[0].trim();
+    const mmName = names.length > 1 ? names[1].replace(/[()]/g, "").trim() : engName;
+
+    return {
+        engName: engName,
+        mmName: mmName,
+    };
+}
+
 export const countryFlags: Record<string, string> = {
     "Myanmar": "🇲🇲",
     "Afghanistan": "🇦🇫",
