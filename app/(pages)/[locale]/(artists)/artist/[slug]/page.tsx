@@ -31,11 +31,15 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
         }
 
         for (const songId of artist.songs) {
-            const song = await Song.findOne({mmid: songId}).select("songName mmid imageLink about").lean();
+            const song = await Song.findOne({mmid: songId})
+                .select("songName mmid imageLink about")
+                .lean();
             if (song) {
                 artistSongs.push(song);
             }
         }
+
+        artistSongs.sort((a, b) => a.songName.localeCompare(b.songName));
     } catch (e) {
         console.error("Error fetching artist page data:", e);
         return notFound();
