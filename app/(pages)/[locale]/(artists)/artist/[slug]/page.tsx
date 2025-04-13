@@ -7,11 +7,37 @@ import Artist from "@/app/model/Artist";
 import Song from "@/app/model/Song";
 import Biography from "@/app/components/artist/biography";
 import SongCard from "@/app/components/artist/SongCard";
+import Link from "next/link";
 
 interface ArtistPageProps {
     params: Promise<{ locale: string, slug: string }>;
     searchParams: Promise<{ page?: string }>;
 }
+
+interface Member {
+    name: string;
+    imageLink?: string;
+}
+
+const MemberCard = ({ name, imageLink }: Member) => (
+    <div className="group flex flex-col items-center justify-center hover:text-amber-400 transition-all duration-300">
+        <div className="relative w-48 rounded-3xl h-36 border-2 border-white overflow-hidden hover:border-amber-400">
+            {imageLink && (
+                <div className="flex flex-col">
+                    <Image
+                        src={imageLink}
+                        alt={name}
+                        fill
+                        className="object-cover hover:scale-110 hover:cursor-pointer transition-all duration-300"
+                    />
+                </div>
+            )}
+        </div>
+        <h3 className="text-lg font-bold mt-2 hover:cursor-pointer">
+            {name}
+        </h3>
+    </div>
+);
 
 const Page = async ({ params, searchParams }: ArtistPageProps) => {
     const { locale, slug } = await params;
@@ -45,61 +71,16 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
         return notFound();
     }
 
-    // Populate for testing
-    // const artist = {
-    //     name: "Eternal Gosh",
-    //     slug: "eternal-gosh",
-    //     imageLink: "https://i.scdn.co/image/ab67616100005174788770aee1b9b4edd5769f85",
-    //     bannerLink: null,
-    //     biography: "It was their first date and she had been looking forward to it the entire week. She had her eyes on him for months, and it had taken a convoluted scheme with several friends to make it happen, but he'd finally taken the hint and asked her out. After all the time and effort she'd invested into it, she never thought that it would be anything but wonderful. It goes without saying that things didn't work out quite as she expected.",
-    //     type: "Band",
-    //     members: ["Han Nay Tar", "Bon Bon", "Nay Min", "Yee Mon"],
-    //     origin: "Yangon, Myanmar",
-    //     labels: ["Label 1", "Label 2"],
-    //     musicGenre: ["Genre 1", "Genre 2"],
-    //     songs: [1, 2, 3],
-    //     socials: {
-    //         facebook: "https://facebook.com",
-    //         instagram: "https://instagram.com",
-    //         youtube: "https://youtube.com",
-    //         spotify: "https://spotify.com",
-    //         appleMusic: "https://music.apple.com",
-    //     },
-    //     likes: 100,
-    // };
-    //
-    // // Populate for testing
-    // const artistSongs = [
-    //     {
-    //         songName: "Song 1",
-    //         mmid: 1,
-    //         imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
-    //         about: "About Song 1",
-    //     },
-    //     {
-    //         songName: "Song 2",
-    //         mmid: 2,
-    //         imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
-    //         about: "About Song 2",
-    //     },
-    //     {
-    //         songName: "Song 3",
-    //         mmid: 3,
-    //         imageLink: "https://i.scdn.co/image/ab67616d00001e0240812d0cd2273ec24f12f47c",
-    //         about: "About Song 3",
-    //     },
-    // ];
-
     return (
         <main className="flex flex-col items-center justify-center">
             {/* Artist Banner */}
-            <div className="relative flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full">
+            <div className="relative flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full ">
                 {!!artist.bannerLink ?
                     <Image
                         src={artist.bannerLink}
                         alt="artist-banner"
                         fill
-                        className="object-cover w-full h-full"
+                        className="object-cover overflow-hidden"
                         priority
                     /> :
                     <div className="absolute inset-0 bg-gray-800" />
@@ -130,16 +111,23 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
 
                         {artist.type.toLowerCase() === "band" && (
                             <div className="flex md:flex-col flex-col gap-3 mb-4 text-center">
-                                {/*<h3 className="text-xl font-bold">*/}
-                                {/*    Members:*/}
-                                {/*</h3>*/}
-                                <div className="grid grid-cols-3 md:flex md:flex-row gap-2">
+                                <div className="grid grid-cols-2 md:flex md:flex-row gap-2 justify-center items-center">
                                     {artist.members?.map((member, index) => (
                                         <span
                                             key={index}
                                             className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer hover:text-black  transition-all duration-300"
                                         >
-                                            {member}
+                                            {member.slug ? (
+                                                <Link
+                                                    href={`/${locale}/artist/${member.slug}`}
+                                                    >
+                                                    {member.name}
+                                                </Link>
+                                            ) :
+                                                (
+                                                    <span>{member.name}</span>
+                                                )
+                                            }
                                         </span>
                                     ))}
                                 </div>
@@ -156,7 +144,7 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                             {artist.musicGenre.map((genre, index) => (
                                 <span
                                     key={index}
-                                    className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer hover:text-white transition-all duration-300"
+                                    className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer transition-all duration-300"
                                 >
                         {genre}
                     </span>
@@ -212,6 +200,27 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                             )}
                         </div>
                     </div>
+                </div>
+
+                {/* Artist Band Members Pics */}
+                <div className="flex flex-row gap-4 max-md:flex-col items-center justify-center mt-12">
+                    {artist.members?.map((member, index) => (
+                        <div key={index} className="group flex flex-col items-center justify-center">
+                            {member.slug ? (
+                                <Link href={`/${locale}/artist/${member.slug}`}>
+                                    <MemberCard
+                                        name={member.name}
+                                        imageLink={member.imageLink}
+                                    />
+                                </Link>
+                            ) : (
+                                <MemberCard
+                                    name={member.name}
+                                    imageLink={member.imageLink}
+                                />
+                            )}
+                        </div>
+                    ))}
                 </div>
 
                 {/* Artist Biography */}
