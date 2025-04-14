@@ -3,7 +3,10 @@ import mongoose, { Schema, Model, models } from "mongoose";
 export interface ISong extends mongoose.Document {
     mmid: number;
     songName: string;
-    artistName: string;
+    artistName: [{
+        name: string,
+        slug?: string
+    }]
     albumName?: string;
     genre: string;
     spotifyTrackId?: string;
@@ -22,7 +25,13 @@ export interface ISong extends mongoose.Document {
 const SongSchema: Schema<ISong> = new Schema({
     mmid: { type: Number, required: true, unique: true },
     songName: { type: String, required: true },
-    artistName: { type: String, required: true },
+    artistName: { type: [
+            {
+                name: { type: String, required: true },
+                slug: { type: String, required: true, unique: true}
+            },
+        ]
+    },
     albumName: { type: String },
     genre: { type: String, required: true },
     spotifyTrackId: { type: String },

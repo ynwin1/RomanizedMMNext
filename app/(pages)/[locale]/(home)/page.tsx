@@ -63,8 +63,6 @@ export default async function Home({params}: HomeProps) {
                     <SearchBar />
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 }

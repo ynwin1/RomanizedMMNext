@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from "next/link";
 import {useTranslations} from "next-intl";
+import {buildArtistNames} from "@/app/lib/utils";
 
 interface TableProps {
     locale: string;
@@ -25,6 +26,7 @@ const Table = ({locale, songs}: TableProps) => {
                 const burmeseName = song.songName.split("(")[1]?.replace(/[()]/g, "").trim();
                 const urlSongName = engName.replace(/\s/g, "");
                 const nameToDisplay = locale === "en" ? engName : burmeseName || engName;
+                const artistNames = buildArtistNames(song.artistName);
                 const songURL = `/${locale}/song/${urlSongName}/${song.mmid}`;
                 return (
                     <tr key={song.mmid}>
@@ -33,7 +35,7 @@ const Table = ({locale, songs}: TableProps) => {
                             <p className="text-white">{nameToDisplay}</p>
                             </Link>
                         </td>
-                        <td className="border border-gray-400 p-2">{song.artistName}</td>
+                        <td className="border border-gray-400 p-2">{artistNames}</td>
                         <td className="border border-gray-400 p-2 hover:bg-gray-600">
                             <Link href={songURL}>
                                 <u>View</u>

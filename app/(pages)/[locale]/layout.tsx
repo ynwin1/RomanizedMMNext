@@ -7,6 +7,7 @@ import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
 import RotatingText from "@/app/components/rotating-text/RotatingText";
+import Footer from "@/app/components/footer/Footer";
 
 export const metadata: Metadata = {
     title: {
@@ -31,12 +32,12 @@ export default async function RootLayout({
 
     const eqMsgs: string[] = [
         "URGENT: Support Myanmar Earthquake Relief",
-        "Over 7,000 deaths by 7.7 magnitude earthquake",
+        "Over 4,000 deaths by 7.7 magnitude earthquake",
         "10000+ injured, many families displaced",
         "Donate medical supplies, food, and shelter materials",
         "Support local relief organizations on the ground",
         "Emergency aid needed in rural regions",
-        "Click here to donate and help Myanmar",
+        "Click here to browse charities",
     ];
 
     // Ensure that the incoming `locale` is valid
@@ -59,6 +60,7 @@ export default async function RootLayout({
             {children}
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
         </NextIntlClientProvider>
+        <Footer />
         </body>
         </html>
     );
