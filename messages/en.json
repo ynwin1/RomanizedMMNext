@@ -59,5 +59,9 @@
   "SocialShare": {
     "share": "Share on",
     "others": "Others"
+  },
+  "ArtistPage": {
+    "askMore": "More lyrics from",
+    "request": "Request Songs"
   }
 }

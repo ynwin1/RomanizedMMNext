@@ -16,7 +16,7 @@ const SongCard = ({ songName, mmid, imageLink, locale }: SongCardProps) => {
 
     return (
         <div className="flex flex-row bg-slate-900 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
-            <div className="relative w-28 h-28 hover:scale-110 hover:cursor-pointer transition-all duration-300">
+            <div className="relative w-28 h-28 hover:scale-110 hover:cursor-pointer transition-all duration-300 shrink-0">
                 {imageLink && (
                     <Image
                         src={imageLink}
@@ -28,7 +28,6 @@ const SongCard = ({ songName, mmid, imageLink, locale }: SongCardProps) => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900 opacity-40"></div>
             </div>
-
             <div className="flex flex-col justify-between p-3 flex-grow items-center gap-4">
                 <Link href={`/${locale}/song/${songNameURL}/${mmid}`}>
                     <h3 className="text-lg font-bold text-white hover:text-amber-400 hover:cursor-pointer transition-all duration-300 ">

@@ -123,17 +123,19 @@ const ArtistRow = ({ label, artists }: { label: string, artists: SongPageArtist[
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
         <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
         <div className="flex flex-wrap gap-2">
-            {artists.map((artist) => {
+            {artists.map((artist, index) => {
                 const content = (
-                    <span className="md:flex-1 leading-[2rem] -mt-1">
+                    <span className={`md:flex-1 leading-[2rem] -mt-1 
+                    ${artist.slug ? "hover:text-amber-400 hover:cursor-pointer underline" : "" }`}
+                    >
                         {artist.name}
+                        {index < artists.length - 1 && ","}
                     </span>
                 );
 
                 return (
                     <span
                         key={artist.slug ?? artist.name}
-                        className="hover:text-amber-400 hover:cursor-pointer underline"
                     >
                         {artist.slug ? (
                             <Link href={`/en/artist/${artist.slug}`}>{content}</Link>

@@ -8,10 +8,91 @@ import Song from "@/app/model/Song";
 import Biography from "@/app/components/artist/biography";
 import SongCard from "@/app/components/artist/SongCard";
 import Link from "next/link";
+import {getTranslations} from "next-intl/server";
+import {Metadata, ResolvingMetadata} from "next";
+import {buildArtistNames, extractSongName} from "@/app/lib/utils";
+import artist from "@/app/model/Artist";
+
+type Props = {
+    params: Promise<{ locale: string, slug: string }>
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export async function generateMetadata(
+    { params }: Props,
+): Promise<Metadata> {
+    try {
+        const { locale, slug } = await params;
+
+        if (!slug || !locale) {
+            throw new Error("Missing required parameters: id or locale");
+        }
+
+        const artistQ = await Artist.findOne({ slug: slug }).lean();
+
+        if (!artistQ) {
+            throw new Error("Song not found when generating metadata");
+        }
+
+        const artistName: string = artistQ.name;
+        const artistSlug: string = artistQ.slug;
+        const description: string = `${artistName} (Myanmar) - ${artistQ.biography.slice(0, 150)}...`;
+
+        const jsonLd = {
+            "@context": "https://schema.org",
+            "@type": "MusicRecording",
+            "name": artistName,
+            "byArtist": {
+                "@type": "MusicGroup",
+                "name": artistName,
+            },
+            "url": `https://romanizedmm.com/${locale}/artist/${artistSlug}`,
+        };
+
+        return {
+            title: artistName,
+            description: description,
+            category: "Music",
+            keywords: [`${artistName}`, `${artistSlug}`, "Musician", "Artist", "Myanmar", "Singer", "Band"],
+            alternates: {
+                canonical: `https://www.romanizedmm.com/${locale}/artist/${artistSlug}`,
+                languages: {
+                    'en': `https://www.romanizedmm.com/en/artist/${artistSlug}`,
+                    'my': `https://www.romanizedmm.com/my/artist/${artistSlug}`,
+                }
+            },
+            other: {
+                'application/ld+json': JSON.stringify(jsonLd)
+            },
+            openGraph: {
+                title: artistName,
+                description: description,
+                type: "music.song",
+                images: artistQ.imageLink ? [
+                    {
+                        url: artistQ.imageLink,
+                        width: 800,
+                        height: 600,
+                        alt: artistName,
+                    },
+                ] : [],
+                locale: locale,
+                alternateLocale: ["en", "my"],
+                url: `https://www.romanizedmm.com/${locale}/artist/${artistSlug}`,
+                siteName: "RomanizedMM",
+                musicians: artistName,
+            },
+        };
+    } catch (error) {
+        console.error("Error generating metadata:", error);
+        return {
+            title: "Song",
+        };
+    }
+}
 
 interface ArtistPageProps {
     params: Promise<{ locale: string, slug: string }>;
-    searchParams: Promise<{ page?: string }>;
 }
 
 interface Member {
@@ -39,11 +120,8 @@ const MemberCard = ({ name, imageLink }: Member) => (
     </div>
 );
 
-const Page = async ({ params, searchParams }: ArtistPageProps) => {
+const Page = async ({ params }: ArtistPageProps) => {
     const { locale, slug } = await params;
-    const { page } = await searchParams;
-
-    const currentPage: number = Number(page) || 1;
 
     // Commented out original database fetching logic
     let artist;
@@ -69,6 +147,15 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
     } catch (e) {
         console.error("Error fetching artist page data:", e);
         return notFound();
+    }
+
+    // Request more sentence
+    const translator = await getTranslations("ArtistPage");
+    let reqMore: string = "";
+    if (locale === "en") {
+        reqMore = `${translator("askMore")} ${artist.name}?`
+    } else {
+        reqMore = `${artist.name} ${translator("askMore")}`
     }
 
     return (
@@ -238,6 +325,16 @@ const Page = async ({ params, searchParams }: ArtistPageProps) => {
                             locale={locale}
                         />
                     ))}
+                </div>
+
+                {/* Song Request */}
+                <div className="flex flex-col justify-center items-center flex-wrap">
+                    <h3 className="text-2xl font-bold text-center mt-12 mb-4">{reqMore}</h3>
+                    <Link href={`/${locale}/song-request`}>
+                        <button className="bg-blue-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-blue-400 mb-12">
+                            {translator("request")}
+                        </button>
+                    </Link>
                 </div>
             </div>
         </main>

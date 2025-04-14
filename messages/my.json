@@ -59,5 +59,9 @@
   "SocialShare": {
     "share": "မျှဝေပါ",
     "others": "အခြား"
+  },
+  "ArtistPage": {
+    "askMore": " ရဲ့သီချင်းတွေတောင်းမယ်",
+    "request": "သီချင်းတောင်းမယ်"
   }
 }
