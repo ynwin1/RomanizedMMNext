@@ -1,3 +1,5 @@
+import {SongPageArtist} from "@/app/lib/types";
+
 export const generatePagination = (currentPage: number, totalPages: number) => {
     // For 5 or fewer pages, show all pages without ellipses
     if (totalPages <= 5) {
@@ -35,6 +37,10 @@ export function extractSongName(songName: string): { engName: string, mmName: st
         engName: engName,
         mmName: mmName,
     };
+}
+
+export function buildArtistNames(artists: [SongPageArtist]): string {
+    return artists.map(artist => artist.name).join(", ");
 }
 
 export const countryFlags: Record<string, string> = {

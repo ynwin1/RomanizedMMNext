@@ -10,7 +10,9 @@ import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
 import SocialShare from "@/app/components/social/SocialShare";
-import {extractSongName} from "@/app/lib/utils";
+import {buildArtistNames, extractSongName} from "@/app/lib/utils";
+import Link from "next/link";
+import {SongPageArtist} from "@/app/lib/types";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -37,11 +39,12 @@ export async function generateMetadata(
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
-        const titleToDisplay = `${engName} Lyrics - ${songQ.artistName}`;
+        const artistNames = buildArtistNames(songQ.artistName);
+        const titleToDisplay = `${engName} Lyrics - ${artistNames}`;
         const description = `${titleToDisplay} - Full song lyrics in Burmese with English meaning. ${songQ.burmese.slice(0, 100)}...`;
 
         const mmid: number = songQ.mmid;
-        const artists: string = songQ.artistName;
+        const artists: string = buildArtistNames(songQ.artistName);
 
         const songNameURL = engName.replace(/\s/g, "").trim(); // Remove spaces from song name
 
@@ -51,7 +54,7 @@ export async function generateMetadata(
             "name": engName,
             "byArtist": {
                 "@type": "MusicGroup",
-                "name": songQ.artistName,
+                "name": artistNames,
             },
             "inAlbum": songQ.albumName ? {
                 "@type": "MusicAlbum",
@@ -71,7 +74,7 @@ export async function generateMetadata(
             title: titleToDisplay,
             description: description,
             category: "Music",
-            keywords: [`${engName} Lyrics`, `${mmName} Lyrics`, `${songQ.artistName}`, "Burmese songs", "Myanmar music", "song lyrics"],
+            keywords: [`${engName} Lyrics`, `${mmName} Lyrics`, `${artistNames}`, "Burmese songs", "Myanmar music", "song lyrics"],
             alternates: {
                 canonical: `https://www.romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
                 languages: {
@@ -116,6 +119,34 @@ interface SongPageProps {
 
 export const revalidate: number = 3600; // 24 hours
 
+const ArtistRow = ({ label, artists }: { label: string, artists: SongPageArtist[] }) => (
+    <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+        <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
+        <div className="flex flex-wrap gap-2">
+            {artists.map((artist) => {
+                const content = (
+                    <span className="md:flex-1 leading-[2rem] -mt-1">
+                        {artist.name}
+                    </span>
+                );
+
+                return (
+                    <span
+                        key={artist.slug ?? artist.name}
+                        className="hover:text-amber-400 hover:cursor-pointer underline"
+                    >
+                        {artist.slug ? (
+                            <Link href={`/en/artist/${artist.slug}`}>{content}</Link>
+                        ) : (
+                            content
+                        )}
+                    </span>
+                );
+            })}
+        </div>
+    </div>
+);
+
 const DetailRow = ({ label, value }: {label: string, value: string}) => (
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
         <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
@@ -142,11 +173,13 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     setRequestLocale(locale);
     const translator = await getTranslations("MusicPage");
 
+    const artistNames = buildArtistNames(song.artistName);
+
     return (
         <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
 
-            <SongReportButton songName={song.songName} artist={song.artistName} />
+            <SongReportButton songName={song.songName} artist={artistNames} />
 
             {/* Album Cover */}
             {song.imageLink &&
@@ -168,7 +201,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <div className="bg-transparent border-2 border-white rounded-3xl p-8 max-w-[50vw] max-md:max-w-[80vw] mx-auto">
                 <h1 className="text-2xl font-bold mb-6 text-center">{song.songName}</h1>
                 <div className="space-y-4">
-                    <DetailRow label={translator("artist")} value={song.artistName} />
+                    <ArtistRow label={translator("artist")} artists={song.artistName} />
                     <DetailRow label={translator("album")} value={song.albumName || ""} />
                     <DetailRow label={translator("genre")} value={song.genre} />
                     <DetailRow label={translator("whenToListen")} value={song.whenToListen} />

@@ -8,7 +8,7 @@ const Biography = ({ biography }: { biography: string }) => {
         setShowMore(!showMore);
     }
 
-    const shortBiography = biography.slice(0, 200);
+    const shortBiography = biography.slice(0, 280);
 
     return (
         <div className="mt-8 gap-y-10 max-md:p-8">
