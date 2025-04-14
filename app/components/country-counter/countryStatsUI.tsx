@@ -1,12 +1,14 @@
 import React from 'react'
 import CountryStat from "@/app/model/CountryStat";
 import {countryFlags} from "@/app/lib/utils";
+import connectDB from "@/app/lib/mongodb";
 
 export const revalidate = 60; // revalidate every 60 seconds
 
 const CountryStatsUi = async () => {
     let countryStats = [];
     try {
+        await connectDB();
         const resp = await CountryStat.find({}).sort({ count: -1 }).limit(10);
         if (!resp) {
             throw new Error("Failed to fetch country stats");
