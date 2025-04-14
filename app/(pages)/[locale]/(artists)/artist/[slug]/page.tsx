@@ -9,9 +9,7 @@ import Biography from "@/app/components/artist/biography";
 import SongCard from "@/app/components/artist/SongCard";
 import Link from "next/link";
 import {getTranslations} from "next-intl/server";
-import {Metadata, ResolvingMetadata} from "next";
-import {buildArtistNames, extractSongName} from "@/app/lib/utils";
-import artist from "@/app/model/Artist";
+import {Metadata} from "next";
 
 type Props = {
     params: Promise<{ locale: string, slug: string }>
