@@ -28,7 +28,7 @@ const SongCard = ({ songName, mmid, imageLink, locale }: SongCardProps) => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-900 opacity-40"></div>
             </div>
-            <div className="flex flex-col justify-between p-3 flex-grow items-center gap-4">
+            <div className="flex flex-col justify-between p-3 flex-grow items-center gap-4 text-center">
                 <Link href={`/${locale}/song/${songNameURL}/${mmid}`}>
                     <h3 className="text-lg font-bold text-white hover:text-amber-400 hover:cursor-pointer transition-all duration-300 ">
                         {locale === "en" ? songNames.engName : songNames.mmName}
