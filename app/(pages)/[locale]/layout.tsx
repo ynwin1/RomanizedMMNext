@@ -32,12 +32,12 @@ export default async function RootLayout({
 
     const eqMsgs: string[] = [
         "URGENT: Support Myanmar Earthquake Relief",
-        "Over 7,000 deaths by 7.7 magnitude earthquake",
+        "Over 4,000 deaths by 7.7 magnitude earthquake",
         "10000+ injured, many families displaced",
         "Donate medical supplies, food, and shelter materials",
         "Support local relief organizations on the ground",
         "Emergency aid needed in rural regions",
-        "Click here to donate and help Myanmar",
+        "Click here to browse charities",
     ];
 
     // Ensure that the incoming `locale` is valid
