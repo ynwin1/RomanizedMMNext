@@ -2,6 +2,7 @@ import React from 'react';
 import {Metadata} from "next";
 import Image from 'next/image';
 import {getTranslations} from "next-intl/server";
+import CountryStatsUI from "@/app/components/country-counter/countryStatsUI";
 
 interface AboutPageProps {
     params: Promise<{ locale: string }>;
@@ -55,6 +56,7 @@ const Page = async ({params} : AboutPageProps) => {
                     </>
                 }
             </div>
+            <CountryStatsUI />
         </div>
     )
 }

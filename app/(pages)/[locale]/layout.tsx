@@ -8,6 +8,7 @@ import {routing} from '@/i18n/routing';
 import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
 import RotatingText from "@/app/components/rotating-text/RotatingText";
 import Footer from "@/app/components/footer/Footer";
+import CountryCounter from "@/app/components/country-counter/country-counter";
 
 export const metadata: Metadata = {
     title: {
@@ -56,6 +57,7 @@ export default async function RootLayout({
         <html lang={locale}>
         <body className={`${lusitana.className} antialiased`}>
         <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" />
+        <CountryCounter />
         <NextIntlClientProvider messages={messages}>
             {children}
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
