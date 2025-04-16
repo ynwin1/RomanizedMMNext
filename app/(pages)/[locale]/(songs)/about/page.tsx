@@ -4,6 +4,8 @@ import Image from 'next/image';
 import {getTranslations} from "next-intl/server";
 import CountryStatsUI from "@/app/components/country-counter/countryStatsUI";
 
+export const dynamic = 'force-dynamic'; // live data for visits
+
 interface AboutPageProps {
     params: Promise<{ locale: string }>;
 }
