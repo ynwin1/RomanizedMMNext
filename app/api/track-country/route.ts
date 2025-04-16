@@ -7,6 +7,10 @@ export async function POST(req: Request) {
         await connectDB();
         const { country, country_code } = await req.json();
 
+        if (!country || country === "Unknown") {
+            return Response.json({ error: 'Invalid country name' }, { status: 400 });
+        }
+
         const resp = await CountryStat.findOneAndUpdate(
             { code: country_code },
             { $inc: { count: 1 }, $set: { country: country } },

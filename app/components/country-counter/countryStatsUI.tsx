@@ -27,7 +27,6 @@ const CountryStatsUi = async () => {
     return (
         <div className="flex flex-col gap-6 mt-16 mb-16 text-white items-center z-20">
             <h2 className="text-3xl font-extrabold tracking-tight">Top 10 Visitors</h2>
-            <h3 className="text-lg font-semibold text-gray-400 tracking-tight">{`Last Updated: ${new Date().toLocaleString()}`}</h3>
 
             <div className="overflow-x-auto w-full flex justify-center">
                 <table className="w-[80vw] md:w-[30vw] bg-gradient-to-br from-gray-900 to-gray-800 shadow-lg rounded-xl overflow-hidden text-sm sm:text-base">
