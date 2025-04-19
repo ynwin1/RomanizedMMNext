@@ -19,7 +19,8 @@
     "about": "အကြောင်း",
     "catalogue": "သီချင်းစာအုပ်",
     "songRequest": "သီချင်းတောင်းမယ်",
-    "guessTheLyrics": "Guess The Lyrics"
+    "guessTheLyrics": "Guess The Lyrics",
+    "artistCatalogue": "အဆိုတော်စာအုပ်"
   },
   "GuessTheLyrics" : {
     "romanized": "ရိုမန်",
@@ -63,5 +64,9 @@
   "ArtistPage": {
     "askMore": " ရဲ့သီချင်းတွေတောင်းမယ်",
     "request": "သီချင်းတောင်းမယ်"
+  },
+  "ArtistCatalogue": {
+    "title": "အဆိုတော်စာအုပ်",
+    "description": "RomanizedMM မှာရှိသော အဆိုတော်များ"
   }
 }

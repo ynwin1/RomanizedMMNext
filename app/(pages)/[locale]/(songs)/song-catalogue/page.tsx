@@ -3,7 +3,7 @@ import Song from "@/app/model/Song";
 import Link from "next/link";
 import {Metadata} from "next";
 import Pagination from "@/app/components/catalogue/Pagination";
-import Table from "@/app/components/catalogue/Table";
+import SongCard from "@/app/components/catalogue/SongCard";
 import connectDB from "@/app/lib/mongodb";
 import {getTranslations} from 'next-intl/server';
 import ItemsPerPageSelector from "@/app/components/items-selector/ItemsSelector";
@@ -27,7 +27,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
     const translator = await getTranslations("SongCatalogue");
 
     await connectDB();
-    const allSongs = await Song.find({}).select("songName artistName mmid -_id").lean();
+    const allSongs = await Song.find({}).select("songName artistName mmid imageLink -_id").lean();
 
     // sort songs by songName
     const sortedSongs = allSongs
@@ -52,8 +52,10 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
                 </button>
             </Link>
             <ItemsPerPageSelector />
-            <div className="flex justify-center items-center mt-8 border-2 border-gray-400">
-                <Table locale={locale} songs={songsToShow}/>
+            <div className="w-full flex flex-wrap justify-center gap-8 mt-8">
+                {songsToShow.map((song: any) => (
+                    <SongCard key={song.mmid} locale={locale} song={song} />
+                ))}
             </div>
             <div className="flex w-full mt-8 mb-8 justify-center">
                 <Pagination totalPages={totalPages} />

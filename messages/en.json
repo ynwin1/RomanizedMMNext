@@ -17,9 +17,10 @@
   },
   "Menu" : {
     "about": "About",
-    "catalogue": "Catalogue",
+    "catalogue": "Songs",
     "songRequest": "Song Request",
-    "guessTheLyrics": "Guess The Lyrics"
+    "guessTheLyrics": "Guess The Lyrics",
+    "artistCatalogue": "Artists"
   },
   "GuessTheLyrics" : {
     "romanized": "Romanized",
@@ -63,5 +64,9 @@
   "ArtistPage": {
     "askMore": "More lyrics from",
     "request": "Request Songs"
+  },
+  "ArtistCatalogue": {
+    "title": "Artist Catalogue",
+    "description": "Discover all the artists available on RomanizedMM"
   }
 }
