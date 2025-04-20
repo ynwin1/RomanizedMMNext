@@ -11,8 +11,14 @@ const SongRequestForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
     artist: z.string().min(1, { message: "Artist is required." }),
     youtubeLink: z.string().optional(),
-    details: z.string().optional()
-});
+    details: z.string().optional(),
+    notifyEmail: z.string().email({ message: "Invalid email address." }).optional(),
+}).refine((data) => {
+    if (data.notifyEmail && !data.notifyEmail.includes('@')) {
+        return false;
+    }
+    return true;
+}, { message: "Please enter a valid email address." });
 
 export type State = {
     errors? : {
@@ -20,6 +26,7 @@ export type State = {
         artist?: string[];
         youtubeLink?: string[];
         details?: string[];
+        notifyEmail?: string[];
     };
     message?: string;
 }
@@ -73,7 +80,8 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         songName: formData.get("songName") as string,
         artist: formData.get("artist") as string,
         youtubeLink: formData.get("youtubeLink") as string,
-        details: formData.get("details") as string
+        details: formData.get("details") as string,
+        notifyEmail: formData.get("notifyEmail") as string,
     });
 
     if (!validatedFields.success) {
@@ -82,7 +90,7 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         };
     }
 
-    const { songName, artist, youtubeLink, details } = validatedFields.data;
+    const { songName, artist, youtubeLink, details, notifyEmail } = validatedFields.data;
 
     const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
     if (!discordWebhook) {
@@ -102,11 +110,12 @@ export async function createSongRequest(locale: string, prevState: State, formDa
             songName,
             artist,
             youtubeLink,
-            details
+            details,
+            notifyEmail
         });
 
         const discordMessage = {
-            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${youtubeLink}\nDetails: ${details}`
+            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${youtubeLink}\nDetails: ${details}\nNotify Email: ${notifyEmail}`
         };
         await sendToDiscord(discordWebhook, discordMessage);
         message = "Song request submitted successfully";
@@ -264,4 +273,3 @@ export async function saveScoreAction(userName: string, country: string, score: 
         return { success: false };
     }
 }
-

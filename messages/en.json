@@ -51,6 +51,7 @@
     "artist": "Artist",
     "youtubeLink": "YouTube (Optional)",
     "details": "Details (Optional)",
+    "notifyEmail": "Notify Me (Optional)",
     "songsInQueue": "Songs in Queue",
     "submit": "Submit"
   },

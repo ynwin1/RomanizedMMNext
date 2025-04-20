@@ -5,6 +5,7 @@ export interface ISongRequest extends mongoose.Document {
     artist: string;
     youtubeLink?: string;
     details?: string;
+    notifyEmail?: string;
 }
 
 const SongRequestSchema: Schema<ISongRequest> = new Schema({
@@ -12,6 +13,7 @@ const SongRequestSchema: Schema<ISongRequest> = new Schema({
     artist: { type: String, required: true },
     youtubeLink: { type: String },
     details: { type: String },
+    notifyEmail: { type: String }
 });
 
 const SongRequest: Model<ISongRequest> = models.SongRequest || mongoose.model("SongRequest", SongRequestSchema);

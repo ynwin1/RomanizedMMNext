@@ -1,12 +1,12 @@
 "use client";
-import React, {useActionState} from 'react';
-import {createSongRequest, State} from "@/app/lib/action";
-import {MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon} from "@heroicons/react/16/solid";
+import React, { useActionState, useState } from 'react';
+import { createSongRequest, State } from "@/app/lib/action";
+import { MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon, EnvelopeIcon } from "@heroicons/react/16/solid";
 import { Button } from '@/app/components/buttons/FormSubmitButton';
-import {useLocale, useTranslations} from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 const SongRequestForm = () => {
-    const initialState: State = {message: "", errors: {}};
+    const initialState: State = { message: "", errors: {} };
 
     const actionWithLocale = createSongRequest.bind(null, useLocale());
     const [state, formAction] = useActionState(actionWithLocale, initialState);
@@ -34,11 +34,11 @@ const SongRequestForm = () => {
                     </div>
                     <div id="songName-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.songName &&
-                        state.errors.songName.map((error) => (
-                            <p className="mt-2 text-sm text-red-500" key={error}>
-                                {error}
-                            </p>
-                        ))}
+                            state.errors.songName.map((error) => (
+                                <p className="mt-2 text-sm text-red-500" key={error}>
+                                    {error}
+                                </p>
+                            ))}
                     </div>
                 </div>
             </div>
@@ -126,9 +126,40 @@ const SongRequestForm = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Notify Email */}
+            <div className="mb-4">
+                <label htmlFor="notifyEmail" className="mb-2 block text-sm font-medium">
+                    {translator("notifyEmail")}
+                </label>
+                <div className="relative mt-2 rounded-md">
+                    <div className="relative">
+                        <input
+                            id="notifyEmail"
+                            name="notifyEmail"
+                            type="email"
+                            placeholder="Email"
+                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            aria-describedby="notifyEmail-error"
+                        />
+                        <EnvelopeIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                    </div>
+                    <div id="notifyEmail-error" aria-live="polite" aria-atomic="true">
+                        {state.errors?.notifyEmail &&
+                            state.errors.notifyEmail.map((error) => (
+                                <p className="mt-2 text-sm text-red-500" key={error}>
+                                    {error}
+                                </p>
+                            ))}
+                    </div>
+                </div>
+            </div>
+
             <div className="mt-6 flex justify-end gap-4">
                 <Button type="submit">{translator("submit")}</Button>
             </div>
+
+
         </form>
     )
 }
