@@ -13,6 +13,8 @@ import SocialShare from "@/app/components/social/SocialShare";
 import {buildArtistNames, extractSongName} from "@/app/lib/utils";
 import Link from "next/link";
 import {SongPageArtist} from "@/app/lib/types";
+import Artist from "@/app/model/Artist";
+import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -177,6 +179,31 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
     const artistNames = buildArtistNames(song.artistName);
 
+    let firstArtist = {
+        name: song.artistName[0].name,
+        slug: "",
+        imageLink: "",
+        biography: "",
+    }
+    // fetch artist details if profile available
+    try {
+        for (const artist of song.artistName) {
+            if (artist.slug) {
+                const artistDetails = await Artist.findOne({ slug: artist.slug }).select("imageLink biography").lean();
+                if (!artistDetails) {
+                    continue;
+                }
+                firstArtist.slug = artist.slug;
+                firstArtist.imageLink = artistDetails.imageLink;
+                firstArtist.biography = artistDetails.biography;
+                break;
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching artist details:", e);
+    }
+    
+    
     return (
         <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
@@ -209,6 +236,11 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                     <DetailRow label={translator("whenToListen")} value={song.whenToListen} />
                 </div>
             </div>
+
+            {/* About Artist */}
+            {firstArtist.slug && (
+                <AboutArtistCard artist={firstArtist} locale={locale} />
+            )}
 
             {/* Medias */}
             <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>
