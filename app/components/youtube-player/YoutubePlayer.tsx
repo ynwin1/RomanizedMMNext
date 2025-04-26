@@ -45,7 +45,7 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
                 </div>
 
                 {/* Left & Right buttons to toggle links*/}
-                {links.length > 1 && 
+                {links.length > 1 && inView &&
                 <div className="flex justify-center items-center gap-2 mt-4">
                     <button 
                     className="transform transition-all duration-300 hover:scale-90 hover:text-blue-500"
