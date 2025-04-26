@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useInView } from "react-intersection-observer";
 import ReactPlayer from "react-player";
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-const YoutubePlayer = ({link}: {link: string}) => {
+const YoutubePlayer = ({links}: {links: string[]}) => {
+    console.log(`links: ${links}`);
     const [isFixed, setIsFixed] = useState(false);
+    const [currentLinkIdx, setCurrentLinkIdx] = useState(0);
     const { ref, inView } = useInView({
         threshold: 0,
         rootMargin: "-50px 0px"
@@ -15,12 +18,12 @@ const YoutubePlayer = ({link}: {link: string}) => {
         }, 100);
 
         return () => clearTimeout(timer);
-    }, [inView]);
+    }, [inView, currentLinkIdx]);
 
     return (
         <div
             ref={ref}
-            className="min-h-[226px] w-full flex justify-center items-center"
+            className="min-h-[226px] w-full flex justify-center items-center mb-4"
         >
             <div
                 className={`
@@ -33,13 +36,33 @@ const YoutubePlayer = ({link}: {link: string}) => {
             >
                 <div className="relative w-full h-full">
                     <ReactPlayer
-                        url={link}
+                        url={links[currentLinkIdx]}
                         width="100%"
                         height="100%"
                         controls={true}
                         className="absolute top-0 left-0"
                     />
                 </div>
+
+                {/* Left & Right buttons to toggle links*/}
+                {links.length > 1 && 
+                <div className="flex justify-center items-center gap-2 mt-4">
+                    <button 
+                    className="transform transition-all duration-300 hover:scale-90 hover:text-blue-500"
+                    onClick={() => setCurrentLinkIdx((prev) => Math.max(0, prev - 1))}
+                    disabled={currentLinkIdx === 0}
+                    >
+                        <ChevronLeftIcon className="w-8 h-8" />
+                    </button>
+                    <button 
+                    className="transform transition-all duration-300 hover:scale-90 hover:text-blue-500" 
+                    onClick={() => setCurrentLinkIdx((prev) => Math.min(links.length - 1, prev + 1))}
+                    disabled={currentLinkIdx === links.length - 1}
+                    >
+                        <ChevronRightIcon className="w-8 h-8" />
+                    </button>
+                </div>
+                }
             </div>
         </div>
     );

@@ -66,7 +66,7 @@ export async function generateMetadata(
             "description": songQ.about || "A Burmese song",
             "url": `https://romanizedmm.com/${locale}/song/${songNameURL}/${songQ.mmid}`,
             "sameAs": [
-                songQ.youtubeLink,
+                songQ.youtubeLink?.[0],
                 songQ.spotifyLink,
                 songQ.appleMusicLink,
             ].filter(Boolean), // Removes undefined/empty links

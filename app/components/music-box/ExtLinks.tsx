@@ -3,7 +3,7 @@ import React, {useState} from 'react'
 import YoutubePlayer from "@/app/components/youtube-player/YoutubePlayer";
 
 interface ExtLinksProps {
-    youtube: string | undefined,
+    youtube: string[] | undefined,
     spotify: string | undefined,
     apple: string | undefined
 }
@@ -19,7 +19,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
     }
 
     return (
-        <div className="flex flex-col items-center space-y-6">
+        <div className="flex flex-col items-center space-y-6 mb-6">
             <div className="bg-transparent backdrop-blur-sm border-2 border-white rounded-2xl px-6 py-2">
                 <div className="flex items-center gap-8">
                     {youtube && (
@@ -54,7 +54,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
                     )}
                 </div>
             </div>
-            {youtube && player && <YoutubePlayer link={youtube} />}
+            {youtube && player && <YoutubePlayer links={youtube} />}
         </div>
 
     )

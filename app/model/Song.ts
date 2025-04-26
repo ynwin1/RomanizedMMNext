@@ -12,7 +12,7 @@ export interface ISong extends mongoose.Document {
     spotifyTrackId?: string;
     spotifyLink?: string;
     appleMusicLink?: string;
-    youtubeLink?: string;
+    youtubeLink?: string[];
     imageLink?: string;
     about: string;
     whenToListen: string;
@@ -37,7 +37,7 @@ const SongSchema: Schema<ISong> = new Schema({
     spotifyTrackId: { type: String },
     spotifyLink: { type: String },
     appleMusicLink: { type: String },
-    youtubeLink: { type: String },
+    youtubeLink: { type: [String] },
     imageLink: { type: String },
     about: { type: String, required: true },
     whenToListen: { type: String, required: true },
