@@ -246,7 +246,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>
 
             {/* Radio Buttons & Lyrics */}
-            <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
+            <LyricsSection title={song.songName} artists={artistNames}romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
 
             <SocialShare url={`https://romanizedmm.com/song/${name}/${id}?option=${option}`} title={song.songName} />
         </main>

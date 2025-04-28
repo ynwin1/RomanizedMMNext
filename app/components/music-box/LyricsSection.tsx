@@ -2,15 +2,19 @@
 import React, {useState, useEffect} from 'react'
 import {useSearchParams, usePathname, useRouter } from "next/navigation";
 import {useTranslations} from "next-intl";
+import LyricsPDFModal from '../pdf/LyricsPDFModal';
+import {LyricsPDFProps} from '../../lib/types';
 
 interface LyricsSectionProps {
-    romanized: string,
-    burmese: string,
-    meaning: string,
-    initialOption?: string
+    title: string;
+    artists: string;
+    romanized: string;
+    burmese: string;
+    meaning: string;
+    initialOption?: string;
 }
 
-const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized }: LyricsSectionProps) => {
+const LyricsSection = ({ title, artists, romanized, burmese, meaning, initialOption = romanized }: LyricsSectionProps) => {
     const[selectedOption, setSelectedOption] = useState(initialOption);
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -34,6 +38,14 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
             </React.Fragment>
         ))
     }
+
+    const pdfProps: LyricsPDFProps = {
+        name: title,
+        artists: artists,
+        romanized,
+        burmese,
+        meaning,
+    };
 
     return (
         <>
@@ -77,6 +89,9 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                 </div>
             </div>
 
+            {/* Save PDF */}
+            <LyricsPDFModal pdfProps={pdfProps} />
+            
             {/* Lyrics */}
             <p className="text-3xl font-bold">{translator("lyrics")}</p>
             <div className="text-base leading-[2.2rem] border-2 text-center max-md:text-left border-white p-4 rounded-2xl md:w-[50vw]
