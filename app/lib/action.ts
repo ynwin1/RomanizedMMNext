@@ -12,13 +12,12 @@ const SongRequestForm = z.object({
     artist: z.string().min(1, { message: "Artist is required." }),
     youtubeLink: z.string().optional(),
     details: z.string().optional(),
-    notifyEmail: z.string().email({ message: "Invalid email address." }).optional(),
-}).refine((data) => {
-    if (data.notifyEmail && !data.notifyEmail.includes('@')) {
-        return false;
-    }
-    return true;
-}, { message: "Please enter a valid email address." });
+    notifyEmail: z
+        .string()
+        .optional()
+        .transform((val) => (val === "" ? undefined : val))
+        .pipe(z.string().email({ message: "Invalid email address." }).optional())
+})
 
 export type State = {
     errors? : {
@@ -81,7 +80,7 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         artist: formData.get("artist") as string,
         youtubeLink: formData.get("youtubeLink") as string,
         details: formData.get("details") as string,
-        notifyEmail: formData.get("notifyEmail") as string,
+        notifyEmail: formData.get("notifyEmail"),
     });
 
     if (!validatedFields.success) {
@@ -104,18 +103,23 @@ export async function createSongRequest(locale: string, prevState: State, formDa
     let message = "";
 
     // Create a new song request
+    const notProvided: string = "Not Provided";
+
+    const email = notifyEmail ? notifyEmail : notProvided;
+    const ytLink = youtubeLink ? youtubeLink : notProvided;
+    const detailsText = details ? details : notProvided;
     try {
         await connectDB();
         await SongRequest.create({
             songName,
             artist,
-            youtubeLink,
-            details,
-            notifyEmail
+            youtubeLink: ytLink,
+            details: detailsText,
+            notifyEmail: email
         });
 
         const discordMessage = {
-            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${youtubeLink}\nDetails: ${details}\nNotify Email: ${notifyEmail}`
+            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nNotify Email: ${email}`
         };
         await sendToDiscord(discordWebhook, discordMessage);
         message = "Song request submitted successfully";
