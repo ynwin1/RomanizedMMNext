@@ -193,6 +193,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 if (!artistDetails) {
                     continue;
                 }
+                firstArtist.name = artist.name;
                 firstArtist.slug = artist.slug;
                 firstArtist.imageLink = artistDetails.imageLink;
                 firstArtist.biography = artistDetails.biography;
