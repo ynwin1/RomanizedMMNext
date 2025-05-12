@@ -55,6 +55,13 @@ export default async function RootLayout({
 
     return (
         <html lang={locale}>
+        <head>
+            <script
+                async
+                src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1042163793764562"
+                crossOrigin="anonymous"
+            ></script>
+        </head>
         <body className={`${lusitana.className} antialiased`}>
         <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" />
         <CountryCounter />
