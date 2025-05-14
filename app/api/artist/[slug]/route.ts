@@ -1,15 +1,18 @@
 import Artist from "@/app/model/Artist";
 import connectDB from "@/app/lib/mongodb";
-import { NextRequest } from "next/server";
+
+type Props = {
+    params: Promise<{ slug: string }>
+}
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { slug: string } }
+    request: Request,
+    props: Props
 ) {
   // fetch artist from db
   try {
+    const { slug } = await props.params;
     await connectDB();
-    const { slug } = context.params;
     const artist = await Artist.findOne({ slug }).select("-_id -__v").lean();
     if (!artist) {
       return Response.json({ error: 'Artist not found' }, { status: 404 });
