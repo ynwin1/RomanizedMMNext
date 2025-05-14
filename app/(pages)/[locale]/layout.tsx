@@ -63,7 +63,7 @@ export default async function RootLayout({
             ></script>
         </head>
         <body className={`${lusitana.className} antialiased`}>
-        <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" />
+        {/* <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" /> */}
         <CountryCounter />
         <NextIntlClientProvider messages={messages}>
             {children}

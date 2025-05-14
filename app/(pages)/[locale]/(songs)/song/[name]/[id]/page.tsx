@@ -15,6 +15,7 @@ import Link from "next/link";
 import {SongPageArtist} from "@/app/lib/types";
 import Artist from "@/app/model/Artist";
 import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
+import MoreSongs from "@/app/components/music-box/MoreSongs";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -248,6 +249,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             {/* Radio Buttons & Lyrics */}
             <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
+
+            <MoreSongs artists={song.artistName} currentSongId={parseInt(id)} locale={locale}/>
 
             <SocialShare url={`https://romanizedmm.com/song/${name}/${id}?option=${option}`} title={song.songName} />
         </main>
