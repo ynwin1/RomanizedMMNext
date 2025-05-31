@@ -5,17 +5,18 @@ import YoutubePlayer from "@/app/components/youtube-player/YoutubePlayer";
 interface ExtLinksProps {
     youtube: string[] | undefined,
     spotify: string | undefined,
-    apple: string | undefined
+    apple: string | undefined,
+    playerVisible: boolean,
+    onYoutubeToggle: (isVisible: boolean) => void,
+    onProgress: (playedSeconds: number) => void
 }
 
 function openLink(url: string) {
     window.open(url, '_blank');
 }
-const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
-    const [player, setPlayer] = useState(false);
-
+const ExtLinks = ({youtube, spotify, apple, playerVisible, onYoutubeToggle, onProgress} : ExtLinksProps) => {
     function togglePlayer() {
-        setPlayer(!player);
+        onYoutubeToggle(!playerVisible);
     }
 
     return (
@@ -54,7 +55,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
                     )}
                 </div>
             </div>
-            {youtube && player && <YoutubePlayer links={youtube} />}
+            {youtube && playerVisible && <YoutubePlayer links={youtube} onProgress={onProgress} />}
         </div>
 
     )

@@ -13,7 +13,9 @@ interface SyncedLyricsPlayerProps {
         romanized: string,
         burmese: string,
         meaning: string,
-        initialOption?: string
+        initialOption: string,
+        customRenderer?: (lyrics: string) => React.ReactNode,
+        onOptionChange?: (option: string) => void
     }
 }
 
@@ -29,7 +31,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
     const [activeLyricIndex, setActiveLyricIndex] = useState(0);
 
     const [playerVisible, setPlayerVisible] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(lyrics.initialOption || "burmese");
+    const [selectedOption, setSelectedOption] = useState(lyrics.initialOption);
 
     // Parse lyrics when selected option changes
     useEffect(() => {
@@ -48,7 +50,29 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
         setHasTimestamps(parsedLyrics.some(lyric => lyric.startTime >= 0));
     }, [parsedLyrics]);
 
-    
+    // Highlight active lyric based on current time
+    useEffect(() => {
+        if (!playerVisible || !hasTimestamps) {
+            setActiveLyricIndex(-1);
+            return;
+        }
+
+        // Find the last lyric that starts before or at the current time
+        let newActiveIndex = -1;
+        
+        for (let i = parsedLyrics.length - 1; i >= 0; i--) {
+            const lyric = parsedLyrics[i];
+            if (lyric.startTime >= 0 && lyric.startTime <= currentTime) {
+                newActiveIndex = i;
+                break;
+            }
+        }
+        
+        // If we found a valid lyric and it's different from the current active one
+        if (newActiveIndex !== -1 && newActiveIndex !== activeLyricIndex) {
+            setActiveLyricIndex(newActiveIndex);
+        }
+    }, [currentTime, parsedLyrics, playerVisible, hasTimestamps, activeLyricIndex]);
 
     // Handle progress update from player
     const handleProgress = (playedSeconds: number) => {
@@ -94,6 +118,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
                 }
             >
               {lyric.text}
+              <br/>
             </div>
           ))}
         </div>
@@ -104,12 +129,19 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
             <ExtLinks 
             youtube={extLinks.youtube} 
             spotify={extLinks.spotify} 
-            apple={extLinks.apple}/>
+            apple={extLinks.apple}
+            playerVisible={playerVisible}
+            onYoutubeToggle={handleTogglePlayer}
+            onProgress={handleProgress}
+            />
             <LyricsSection 
             romanized={lyrics.romanized} 
             burmese={lyrics.burmese} 
             meaning={lyrics.meaning} 
-            initialOption={lyrics.initialOption}/>
+            selectedOption={selectedOption}
+            customRenderer={renderSyncedLyrics}
+            onOptionChange={setSelectedOption}
+            />
         </div>
     )
 }

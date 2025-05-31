@@ -1,5 +1,5 @@
 "use client";
-import React, {useState, useEffect} from 'react'
+import React, {useEffect} from 'react'
 import {useSearchParams, usePathname, useRouter } from "next/navigation";
 import {useTranslations} from "next-intl";
 
@@ -7,11 +7,12 @@ interface LyricsSectionProps {
     romanized: string,
     burmese: string,
     meaning: string,
-    initialOption?: string
+    selectedOption: string,
+    customRenderer: (lyrics: string) => React.ReactNode,
+    onOptionChange: (option: string) => void
 }
 
-const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized }: LyricsSectionProps) => {
-    const[selectedOption, setSelectedOption] = useState(initialOption);
+const LyricsSection = ({ romanized, burmese, meaning, selectedOption, customRenderer, onOptionChange }: LyricsSectionProps) => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -24,16 +25,20 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
         replace(`${pathname}?${params.toString()}`, { scroll: false });
         // set local storage choice
         localStorage.setItem("RomanizedMM_lyricsType", selectedOption);
-    }, [selectedOption]);
 
-    function formatLyrics(lyrics: string) {
-        return lyrics.split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-                {line}
-                <br/>
-            </React.Fragment>
-        ))
-    }
+        onOptionChange(selectedOption);
+    }, [selectedOption, onOptionChange, replace, pathname, searchParams]);
+
+    // Determine which lyrics to display
+    const getLyricsContent = () => {
+        const selectedLyrics = selectedOption === "romanized" 
+            ? romanized 
+            : selectedOption === "burmese" 
+                ? burmese 
+                : meaning;
+
+        return customRenderer(selectedLyrics);
+    };
 
     return (
         <>
@@ -44,7 +49,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                         type="radio"
                         id="romanized"
                         checked={selectedOption === "romanized"}
-                        onChange={() => setSelectedOption("romanized")}
+                        onChange={() => onOptionChange("romanized")}
                         className="w-4 h-4"
                     />
                     <label htmlFor="romanized" className="hover:text-gray-300">
@@ -56,7 +61,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                         type="radio"
                         id="burmese"
                         checked={selectedOption === "burmese"}
-                        onChange={() => setSelectedOption("burmese")}
+                        onChange={() => onOptionChange("burmese")}
                         className="w-4 h-4"
                     />
                     <label htmlFor="burmese" className="hover:text-gray-300">
@@ -68,7 +73,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
                         type="radio"
                         id="meaning"
                         checked={selectedOption === "meaning"}
-                        onChange={() => setSelectedOption("meaning")}
+                        onChange={() => onOptionChange("meaning")}
                         className="w-4 h-4"
                     />
                     <label htmlFor="meaning" className="hover:text-gray-300">
@@ -82,12 +87,7 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
             <div className="text-base leading-[2.2rem] border-2 text-center max-md:text-left border-white p-4 rounded-2xl md:w-[50vw]
             max-md:w-[90vw] max-md:text-[1rem]
             ">
-                {selectedOption === "romanized" ?
-                    formatLyrics(romanized) :
-                    selectedOption === "burmese" ?
-                        formatLyrics(burmese) :
-                        formatLyrics(meaning)
-                }
+                {getLyricsContent()}
             </div>
         </>
     )

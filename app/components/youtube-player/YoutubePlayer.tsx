@@ -3,7 +3,12 @@ import { useInView } from "react-intersection-observer";
 import ReactPlayer from "react-player";
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-const YoutubePlayer = ({links}: {links: string[]}) => {
+interface YoutubePlayerProps {
+    links: string[];
+    onProgress: (playedSeconds: number) => void;
+}
+
+const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
     console.log(`links: ${links}`);
     const [isFixed, setIsFixed] = useState(false);
     const [currentLinkIdx, setCurrentLinkIdx] = useState(0);
@@ -19,6 +24,12 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
 
         return () => clearTimeout(timer);
     }, [inView, currentLinkIdx]);
+
+    const handleProgress = (state: any) => {
+        if (onProgress) {
+            onProgress(state.playedSeconds);
+        }
+    };
 
     return (
         <div
@@ -41,6 +52,7 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
                         height="100%"
                         controls={true}
                         className="absolute top-0 left-0"
+                        onProgress={handleProgress}
                     />
                 </div>
 
