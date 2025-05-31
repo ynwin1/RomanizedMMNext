@@ -1,5 +1,5 @@
 "use client";
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, ReactNode} from 'react'
 import {useSearchParams, usePathname, useRouter } from "next/navigation";
 import {useTranslations} from "next-intl";
 
@@ -7,10 +7,19 @@ interface LyricsSectionProps {
     romanized: string,
     burmese: string,
     meaning: string,
-    initialOption?: string
+    initialOption?: string,
+    customRenderer?: (lyrics: string) => ReactNode,
+    onOptionChange?: (option: string) => void
 }
 
-const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized }: LyricsSectionProps) => {
+const LyricsSection = ({ 
+    romanized, 
+    burmese, 
+    meaning, 
+    initialOption = romanized,
+    customRenderer,
+    onOptionChange
+}: LyricsSectionProps) => {
     const[selectedOption, setSelectedOption] = useState(initialOption);
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -24,7 +33,12 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
         replace(`${pathname}?${params.toString()}`, { scroll: false });
         // set local storage choice
         localStorage.setItem("RomanizedMM_lyricsType", selectedOption);
-    }, [selectedOption]);
+        
+        // Notify parent component if option changes
+        if (onOptionChange) {
+            onOptionChange(selectedOption);
+        }
+    }, [selectedOption, onOptionChange, searchParams, pathname, replace]);
 
     function formatLyrics(lyrics: string) {
         return lyrics.split('\n').map((line, index) => (
@@ -34,6 +48,22 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
             </React.Fragment>
         ))
     }
+    
+    // Determine which lyrics to display
+    const getLyricsContent = () => {
+        const selectedLyrics = selectedOption === "romanized" 
+            ? romanized 
+            : selectedOption === "burmese" 
+                ? burmese 
+                : meaning;
+        
+        // Use custom renderer if provided, otherwise use default formatter
+        if (customRenderer) {
+            return customRenderer(selectedLyrics);
+        } else {
+            return formatLyrics(selectedLyrics);
+        }
+    };
 
     return (
         <>
@@ -80,14 +110,9 @@ const LyricsSection = ({ romanized, burmese, meaning, initialOption = romanized 
             {/* Lyrics */}
             <p className="text-3xl font-bold">{translator("lyrics")}</p>
             <div className="text-base leading-[2.2rem] border-2 text-center max-md:text-left border-white p-4 rounded-2xl md:w-[50vw]
-            max-md:w-[90vw] max-md:text-[1rem]
+            max-md:w-[90vw] max-md:text-[1rem] max-h-[60vh] overflow-y-auto scroll-smooth
             ">
-                {selectedOption === "romanized" ?
-                    formatLyrics(romanized) :
-                    selectedOption === "burmese" ?
-                        formatLyrics(burmese) :
-                        formatLyrics(meaning)
-                }
+                {getLyricsContent()}
             </div>
         </>
     )

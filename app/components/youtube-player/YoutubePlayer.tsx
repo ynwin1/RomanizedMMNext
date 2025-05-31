@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useInView } from "react-intersection-observer";
 import ReactPlayer from "react-player";
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-const YoutubePlayer = ({links}: {links: string[]}) => {
+interface YoutubePlayerProps {
+    links: string[];
+    onProgress?: (playedSeconds: number) => void;
+}
+
+const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
     console.log(`links: ${links}`);
     const [isFixed, setIsFixed] = useState(false);
     const [currentLinkIdx, setCurrentLinkIdx] = useState(0);
@@ -11,6 +16,7 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
         threshold: 0,
         rootMargin: "-50px 0px"
     });
+    const playerRef = useRef<ReactPlayer>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -19,6 +25,29 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
 
         return () => clearTimeout(timer);
     }, [inView, currentLinkIdx]);
+    
+    // Add event listener for seeking from lyrics
+    useEffect(() => {
+        const handleSeekEvent = (e: Event) => {
+            const seekEvent = e as CustomEvent;
+            const time = seekEvent.detail?.time;
+            if (typeof time === 'number' && playerRef.current) {
+                playerRef.current.seekTo(time);
+            }
+        };
+        
+        window.addEventListener('seek-youtube', handleSeekEvent);
+        
+        return () => {
+            window.removeEventListener('seek-youtube', handleSeekEvent);
+        };
+    }, []);
+
+    const handleProgress = (state: any) => {
+        if (onProgress) {
+            onProgress(state.playedSeconds);
+        }
+    };
 
     return (
         <div
@@ -36,11 +65,13 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
             >
                 <div className="relative w-full h-full">
                     <ReactPlayer
+                        ref={playerRef}
                         url={links[currentLinkIdx]}
                         width="100%"
                         height="100%"
                         controls={true}
                         className="absolute top-0 left-0"
+                        onProgress={handleProgress}
                     />
                 </div>
 

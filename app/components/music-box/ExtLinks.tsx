@@ -1,22 +1,35 @@
 "use client";
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import YoutubePlayer from "@/app/components/youtube-player/YoutubePlayer";
 
 interface ExtLinksProps {
     youtube: string[] | undefined,
     spotify: string | undefined,
-    apple: string | undefined
+    apple: string | undefined,
+    onYoutubeToggle?: (isVisible: boolean) => void,
+    onProgress?: (playedSeconds: number) => void
 }
 
 function openLink(url: string) {
     window.open(url, '_blank');
 }
-const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
+const ExtLinks = ({youtube, spotify, apple, onYoutubeToggle, onProgress} : ExtLinksProps) => {
     const [player, setPlayer] = useState(false);
 
     function togglePlayer() {
-        setPlayer(!player);
+        const newState = !player;
+        setPlayer(newState);
+        if (onYoutubeToggle) {
+            onYoutubeToggle(newState);
+        }
     }
+    
+    // Notify parent component when player state changes
+    useEffect(() => {
+        if (onYoutubeToggle) {
+            onYoutubeToggle(player);
+        }
+    }, [player, onYoutubeToggle]);
 
     return (
         <div className="flex flex-col items-center space-y-6 mb-6">
@@ -54,7 +67,7 @@ const ExtLinks = ({youtube, spotify, apple} : ExtLinksProps) => {
                     )}
                 </div>
             </div>
-            {youtube && player && <YoutubePlayer links={youtube} />}
+            {youtube && player && <YoutubePlayer links={youtube} onProgress={onProgress}    />}
         </div>
 
     )
