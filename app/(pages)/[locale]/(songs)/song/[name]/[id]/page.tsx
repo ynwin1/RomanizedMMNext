@@ -4,8 +4,7 @@ import connectDB from "@/app/lib/mongodb";
 import Song from "@/app/model/Song";
 import {notFound} from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
-import LyricsSection from "@/app/components/music-box/LyricsSection";
-import ExtLinks from "@/app/components/music-box/ExtLinks";
+import SyncedLyricsPlayer from "@/app/components/sync-lyrics/SyncedLyricsPlayer";
 import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
@@ -244,11 +243,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 <AboutArtistCard artist={firstArtist} locale={locale} />
             )}
 
-            {/* Medias */}
-            <ExtLinks youtube={song.youtubeLink} spotify={song.spotifyLink} apple={song.appleMusicLink}/>
-
-            {/* Radio Buttons & Lyrics */}
-            <LyricsSection romanized={song.romanized} burmese={song.burmese} meaning={song.meaning} initialOption={option} />
+            <SyncedLyricsPlayer extLinks={{youtube: song.youtubeLink, spotify: song.spotifyLink, apple: song.appleMusicLink}} lyrics={{romanized: song.romanized, burmese: song.burmese, meaning: song.meaning, initialOption: option}} />
 
             <MoreSongs artists={song.artistName} currentSongId={parseInt(id)} locale={locale}/>
 
