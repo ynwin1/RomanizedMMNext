@@ -86,13 +86,12 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
           {parsedLyrics.map((lyric, index) => (
             <div
               key={index}
-              className={`lyric-line ${index === activeLyricIndex && playerVisible ? 'active font-bold text-blue-500' : ''}`}
-              style={{
-                transition: 'all 0.3s ease',
-                padding: '4px 0',
-                overflowX: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
+              className={
+                `${index === activeLyricIndex && playerVisible ? 
+                    'active font-bold text-blue-500' : ''}
+                    transition-all duration-300 ease-in-out overflow-x-hidden
+                    `
+                }
             >
               {lyric.text}
             </div>
@@ -102,8 +101,15 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
 
     return (
         <div className="flex flex-col items-center gap-8 mb-6">
-            <ExtLinks youtube={extLinks.youtube} spotify={extLinks.spotify} apple={extLinks.apple}/>
-            <LyricsSection romanized={lyrics.romanized} burmese={lyrics.burmese} meaning={lyrics.meaning} initialOption={lyrics.initialOption}/>
+            <ExtLinks 
+            youtube={extLinks.youtube} 
+            spotify={extLinks.spotify} 
+            apple={extLinks.apple}/>
+            <LyricsSection 
+            romanized={lyrics.romanized} 
+            burmese={lyrics.burmese} 
+            meaning={lyrics.meaning} 
+            initialOption={lyrics.initialOption}/>
         </div>
     )
 }
