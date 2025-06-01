@@ -35,7 +35,7 @@ const Biography = ({ biography }: { biography: string }) => {
             }
             
             // Regular paragraph text
-            return <p key={index} className="text-muted-foreground text-lg leading-7 mb-4">{line}</p>;
+            return <p key={index} className="text-muted-foreground text-lg leading-8 mb-4">{line}</p>;
         });
     };
 
