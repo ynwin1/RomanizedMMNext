@@ -32,6 +32,13 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
             const time = seekEvent.detail?.time;
             if (typeof time === 'number' && playerRef.current) {
                 playerRef.current.seekTo(time);
+                // Add a small delay before playing to ensure the seek completes
+                setTimeout(() => {
+                    if (playerRef.current) {
+                        // Force the player to play after seeking
+                        playerRef.current.getInternalPlayer()?.playVideo();
+                    }
+                }, 50);
             }
         };
 
