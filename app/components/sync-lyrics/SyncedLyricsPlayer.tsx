@@ -168,6 +168,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
             burmese={lyrics.burmese} 
             meaning={lyrics.meaning} 
             selectedOption={selectedOption}
+            hasTimestamps={hasTimestamps}
             customRenderer={renderSyncedLyrics}
             onOptionChange={setSelectedOption}
             />

@@ -2,17 +2,19 @@
 import React, {useEffect} from 'react'
 import {useSearchParams, usePathname, useRouter } from "next/navigation";
 import {useTranslations} from "next-intl";
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface LyricsSectionProps {
     romanized: string,
     burmese: string,
     meaning: string,
     selectedOption: string,
+    hasTimestamps: boolean,
     customRenderer: (lyrics: string) => React.ReactNode,
     onOptionChange: (option: string) => void
 }
 
-const LyricsSection = ({ romanized, burmese, meaning, selectedOption, customRenderer, onOptionChange }: LyricsSectionProps) => {
+const LyricsSection = ({ romanized, burmese, meaning, selectedOption, hasTimestamps, customRenderer, onOptionChange }: LyricsSectionProps) => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -81,6 +83,16 @@ const LyricsSection = ({ romanized, burmese, meaning, selectedOption, customRend
                     </label>
                 </div>
             </div>
+
+            {/* Info stamp for synced lyrics */}
+            {hasTimestamps && (
+                <div className="relative group inline-block">
+                    <span className="text-blue-500 cursor-pointer"><InformationCircleIcon className="w-6 h-6 text-white" /></span>
+                    <div className="absolute rounded-lg border-2 border-white left-1/2 -translate-x-1/2 mt-2 w-max bg-black text-white text-sm rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        {translator("sync")}
+                    </div>
+                </div>
+            )}
 
             {/* Lyrics */}
             <p className="text-3xl font-bold">{translator("lyrics")}</p>

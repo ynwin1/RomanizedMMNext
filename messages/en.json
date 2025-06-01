@@ -13,7 +13,8 @@
     "meaning": "Meaning",
     "lyrics": "Lyrics",
     "report": "Report/Suggestion",
-    "submit": "Submit"
+    "submit": "Submit",
+    "sync": "Open YouTube player for synced lyrics"
   },
   "Menu" : {
     "about": "About",
