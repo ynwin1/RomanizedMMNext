@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useInView } from "react-intersection-observer";
 import ReactPlayer from "react-player";
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
-const YoutubePlayer = ({links}: {links: string[]}) => {
+interface YoutubePlayerProps {
+    links: string[];
+    onProgress: (playedSeconds: number) => void;
+}
+
+const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
     console.log(`links: ${links}`);
     const [isFixed, setIsFixed] = useState(false);
     const [currentLinkIdx, setCurrentLinkIdx] = useState(0);
@@ -11,6 +16,7 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
         threshold: 0,
         rootMargin: "-50px 0px"
     });
+    const playerRef = useRef<ReactPlayer>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -19,6 +25,35 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
 
         return () => clearTimeout(timer);
     }, [inView, currentLinkIdx]);
+
+    useEffect(() => {
+        const handleSeekEvent = (e: Event) => {
+            const seekEvent = e as CustomEvent;
+            const time = seekEvent.detail?.time;
+            if (typeof time === 'number' && playerRef.current) {
+                playerRef.current.seekTo(time);
+                // Add a small delay before playing to ensure the seek completes
+                setTimeout(() => {
+                    if (playerRef.current) {
+                        // Force the player to play after seeking
+                        playerRef.current.getInternalPlayer()?.playVideo();
+                    }
+                }, 50);
+            }
+        };
+
+        window.addEventListener('seek-youtube', handleSeekEvent);
+
+        return () => {
+            window.removeEventListener('seek-youtube', handleSeekEvent);
+        };
+    }, []);
+
+    const handleProgress = (state: any) => {
+        if (onProgress) {
+            onProgress(state.playedSeconds);
+        }
+    };
 
     return (
         <div
@@ -41,6 +76,8 @@ const YoutubePlayer = ({links}: {links: string[]}) => {
                         height="100%"
                         controls={true}
                         className="absolute top-0 left-0"
+                        onProgress={handleProgress}
+                        ref={playerRef}
                     />
                 </div>
 
