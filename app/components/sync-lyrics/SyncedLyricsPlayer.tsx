@@ -74,6 +74,33 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
         }
     }, [currentTime, parsedLyrics, playerVisible, hasTimestamps, activeLyricIndex]);
 
+    // Handle clicking on a lyric line to seek
+    const handleLyricClick = (startTime: number) => {
+        if (startTime >= 0 && playerVisible) {
+            const event = new CustomEvent('seek-youtube', { 
+                detail: { time: startTime } 
+            });
+            window.dispatchEvent(event);
+        }
+    };
+
+    // Add event listener for seeking
+    useEffect(() => {
+        const handleSeek = (e: Event) => {
+        const seekEvent = e as CustomEvent;
+        const time = seekEvent.detail?.time;
+        if (typeof time === 'number') {
+            setCurrentTime(time);
+        }
+    };
+
+    window.addEventListener('youtube-progress', handleSeek);
+
+    return () => {
+        window.removeEventListener('youtube-progress', handleSeek);
+        };
+    }, []);
+
     // Handle progress update from player
     const handleProgress = (playedSeconds: number) => {
         setCurrentTime(playedSeconds);
@@ -110,12 +137,14 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
           {parsedLyrics.map((lyric, index) => (
             <div
               key={index}
+              onClick={() => handleLyricClick(lyric.startTime)}
               className={
-                `${index === activeLyricIndex && playerVisible ? 
-                    'active font-bold text-blue-500' : ''}
-                    transition-all duration-300 ease-in-out overflow-x-hidden
-                    `
-                }
+                `
+                transition-all duration-300 ease-in-out overflow-x-hidden
+                ${playerVisible ? 'hover:text-green-500 hover:cursor-pointer' : ''}
+                ${index === activeLyricIndex && playerVisible ? 'active font-bold text-blue-500' : ''}
+                `
+              }
             >
               {lyric.text}
               <br/>

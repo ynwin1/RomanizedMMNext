@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useInView } from "react-intersection-observer";
 import ReactPlayer from "react-player";
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
@@ -16,6 +16,7 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
         threshold: 0,
         rootMargin: "-50px 0px"
     });
+    const playerRef = useRef<ReactPlayer>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -24,6 +25,22 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
 
         return () => clearTimeout(timer);
     }, [inView, currentLinkIdx]);
+
+    useEffect(() => {
+        const handleSeekEvent = (e: Event) => {
+            const seekEvent = e as CustomEvent;
+            const time = seekEvent.detail?.time;
+            if (typeof time === 'number' && playerRef.current) {
+                playerRef.current.seekTo(time);
+            }
+        };
+
+        window.addEventListener('seek-youtube', handleSeekEvent);
+
+        return () => {
+            window.removeEventListener('seek-youtube', handleSeekEvent);
+        };
+    }, []);
 
     const handleProgress = (state: any) => {
         if (onProgress) {
@@ -53,6 +70,7 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
                         controls={true}
                         className="absolute top-0 left-0"
                         onProgress={handleProgress}
+                        ref={playerRef}
                     />
                 </div>
 
