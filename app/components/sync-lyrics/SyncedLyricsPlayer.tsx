@@ -30,7 +30,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
     const [parsedLyrics, setParsedLyrics] = useState<ParsedLyric[]>([]);
     const [activeLyricIndex, setActiveLyricIndex] = useState(0);
 
-    const [playerVisible, setPlayerVisible] = useState(false);
+    const [playerVisible, setPlayerVisible] = useState(true);
     const [selectedOption, setSelectedOption] = useState(lyrics.initialOption);
 
     // Parse lyrics when selected option changes

@@ -27,8 +27,8 @@ const Page = async () => {
             <div className="flex flex-row items-center justify-center border-2 border-white rounded-2xl">
                 <label className="text-lg font-bold p-3">Status:</label>
                 <div className="flex flex-row items-center gap-x-2 p-3">
-                    <p className="text-base">Busy</p>
-                    <div className="w-4 h-4 bg-red-600 rounded-full"/>
+                    <p className="text-base">Available</p>
+                    <div className="w-4 h-4 bg-green-500 rounded-full"/>
                 </div>
             </div>
 
