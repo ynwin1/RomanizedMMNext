@@ -141,8 +141,8 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
               className={
                 `
                 transition-all duration-300 ease-in-out overflow-x-hidden
-                ${playerVisible ? 'hover:text-green-500 hover:cursor-pointer' : ''}
-                ${index === activeLyricIndex && playerVisible ? 'active font-bold text-blue-500' : ''}
+                ${playerVisible ? 'hover:text-blue-500 hover:cursor-pointer' : ''}
+                ${index === activeLyricIndex && playerVisible ? 'active font-bold text-green-600' : ''}
                 `
               }
             >
