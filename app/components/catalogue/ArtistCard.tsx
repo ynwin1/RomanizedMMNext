@@ -11,7 +11,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
   const artistURL: string | null = artist.slug ? `/${locale}/artist/${artist.slug}` : null;
   
   const cardContent = (
-    <div className="w-[70vw] max-md:w-[90vw] mx-auto bg-black border border-gray-700 rounded-lg p-4 flex items-center hover:bg-gray-800 transition-colors duration-200">
+    <div className="w-[70vw] max-md:w-[90vw] mx-auto bg-black border border-white rounded-lg p-4 flex items-center hover:bg-gray-800 transition-colors duration-200">
       {/* Image */}
       <div className="flex-shrink-0 w-16 h-16 mr-4">
         <img
