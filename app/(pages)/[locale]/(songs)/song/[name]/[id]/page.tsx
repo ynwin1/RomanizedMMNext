@@ -15,6 +15,7 @@ import {SongPageArtist} from "@/app/lib/types";
 import Artist from "@/app/model/Artist";
 import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
 import MoreSongs from "@/app/components/music-box/MoreSongs";
+import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -209,7 +210,10 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
             <SearchBar />
 
-            <SongReportButton songName={song.songName} artist={artistNames} />
+            <div className="flex flex-row justify-center items-center gap-4 max-md:gap-6 max-md:flex-col">
+                <RandomSongButton locale={locale}/>
+                <SongReportButton songName={song.songName} artist={artistNames} />
+            </div>
 
             {/* Album Cover */}
             {song.imageLink &&
