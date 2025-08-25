@@ -1,4 +1,5 @@
 import mongoose, { Schema, Model, models } from "mongoose";
+import { ArtistType } from "../lib/types";
 
 export interface IArtist extends mongoose.Document {
     name: string;
@@ -8,7 +9,7 @@ export interface IArtist extends mongoose.Document {
     biography?: string;
     biographyMy?: string;
     unknownFact?: string;
-    type: "Singer" | "Band";
+    type: ArtistType;
     members?: [{
         name: string;
         imageLink?: string;
