@@ -17,7 +17,7 @@ export type ArtistCataloguePageProps = {
 const Page = async ({ params }: ArtistCataloguePageProps) => {
   const { locale } = await params;
   await connectDB();
-  const allArtists = await Artist.find({}).select("name slug imageLink musicGenre type -_id").lean();
+  const allArtists = await Artist.find({}).select("name slug imageLink musicGenre type songs -_id").lean();
 
   const translator = await getTranslations("ArtistCatalogue");
 

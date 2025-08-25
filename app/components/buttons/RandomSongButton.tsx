@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import {useRouter} from "next/navigation";
-import { extractSongName } from '@/app/lib/utils';
+import { extractSongName, formatSongNameForURL } from '@/app/lib/utils';
 
 const RandomSongButton = ({ locale }: { locale: string }) => {
     const router = useRouter();
@@ -14,7 +14,7 @@ const RandomSongButton = ({ locale }: { locale: string }) => {
             // process data
             const song = data.data;
             const songName = extractSongName(song.songName);
-            const urlName = songName.engName.replace(/\s/g, '');
+            const urlName = formatSongNameForURL(songName.engName);
             const mmid = song.mmid;
 
             // Use router.push for client-side navigation
