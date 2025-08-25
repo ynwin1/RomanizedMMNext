@@ -4,7 +4,7 @@ import { IArtist } from "@/app/model/Artist";
 import { ISong } from "@/app/model/Song";
 import { useRouter } from "next/navigation";
 import { extractSongName, formatSongNameForURL } from "@/app/lib/utils";
-import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface ArtistCardProps {
   locale: string;
@@ -274,7 +274,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
                       {locale === "my" ? extractSongName(song.songName).mmName : extractSongName(song.songName).engName}
                     </span>
                     <span className="text-blue-400 opacity-0 group-hover/song:opacity-100 transition-opacity ml-2 flex-shrink-0">
-                      →
+                      <ChevronRightIcon className="w-5 h-5" />
                     </span>
                   </div>
                 </button>
