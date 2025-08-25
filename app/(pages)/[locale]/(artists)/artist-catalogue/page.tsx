@@ -30,7 +30,7 @@ const Page = async ({ params }: ArtistCataloguePageProps) => {
       <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg">
         {translator("description")}
       </h3>
-      <div className="w-full flex flex-col items-center gap-8 mt-8">
+      <div className="w-full flex flex-col items-center gap-4 mt-8">
         {sortedArtists.map((artist: any) => (
           <div key={artist.slug} className="flex align-center justify-center">
             <ArtistCard locale={locale} artist={artist} />
