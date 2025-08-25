@@ -4,6 +4,7 @@ import { IArtist } from "@/app/model/Artist";
 import { ISong } from "@/app/model/Song";
 import { useRouter } from "next/navigation";
 import { extractSongName, formatSongNameForURL } from "@/app/lib/utils";
+import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface ArtistCardProps {
   locale: string;
@@ -72,17 +73,17 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
     <div className="group w-[70vw] max-md:w-[90vw] mx-auto bg-gradient-to-br from-gray-900 via-black to-gray-800 border border-gray-700/50 rounded-2xl p-6 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02] hover:border-blue-500/50 backdrop-blur-sm">
       <div className="flex items-center relative">
         {/* Animated background glow */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl opacity-0 transition-opacity duration-500"></div>
 
         {/* Image with enhanced styling */}
         <div className="relative flex-shrink-0 w-20 h-20 mr-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full blur-sm opacity-0 group-hover:opacity-60 transition-all duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full blur-sm opacity-0 transition-all duration-300"></div>
           <img
             src={artist.imageLink}
             alt={artist.name}
-            className="relative w-full h-full object-cover rounded-full border-3 border-white/20 group-hover:border-white/40 transition-all duration-300 shadow-lg"
+            className="relative w-full h-full object-cover rounded-full border-3 border-white/20 transition-all duration-300 shadow-lg"
           />
-          <div className="absolute inset-0 rounded-full ring-2 ring-transparent group-hover:ring-blue-400/50 transition-all duration-300"></div>
+          <div className="absolute inset-0 rounded-full ring-2 ring-transparent transition-all duration-300"></div>
         </div>
 
         {/* Desktop Layout */}
@@ -91,7 +92,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
           <div className="flex items-center flex-1 max-w-2xl">
             {/* Name */}
             <div className="flex-1 min-w-0 pr-8">
-              <h2 className={`text-xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent group-hover:from-blue-400 group-hover:via-white group-hover:to-purple-400 transition-all duration-300 truncate ${artistURL ? "cursor-pointer" : ""}`}>
+              <h2 className={`text-xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent transition-all duration-300 truncate ${artistURL ? "cursor-pointer" : ""}`}>
                 {artist.name}
               </h2>
               {/* Subtle animation line */}
@@ -149,7 +150,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
                 <span className="relative z-10 text-sm flex items-center gap-2">
                   Songs
                   <span className={`transform transition-transform duration-200 ${songsExpanded ? 'rotate-180' : ''}`}>
-                    ▼
+                    <ChevronDownIcon className="w-5 h-5" />
                   </span>
                 </span>
                 <div className={`absolute inset-0 rounded-xl blur opacity-0 group-hover/btn:opacity-40 transition-opacity duration-200 ${
@@ -209,7 +210,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
             >
               Songs
               <span className={`transform transition-transform duration-200 ${songsExpanded ? 'rotate-180' : ''}`}>
-                ▼
+                <ChevronDownIcon className="w-5 h-5" />
               </span>
             </button>
           </div>
@@ -235,7 +236,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
               onClick={() => setSongsExpanded(false)}
               className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-700/50"
             >
-              ✕
+              <XMarkIcon className="w-5 h-5" />
             </button>
           </div>
 
