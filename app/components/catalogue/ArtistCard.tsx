@@ -1,5 +1,7 @@
+"use client";
 import React from "react";
 import { IArtist } from "@/app/model/Artist";
+import { useRouter } from "next/navigation";
 
 interface ArtistCardProps {
   locale: string;
@@ -7,6 +9,7 @@ interface ArtistCardProps {
 }
 
 const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
+  const router = useRouter();
   const artistURL: string | null = artist.slug ? `/${locale}/artist/${artist.slug}` : null;
 
   const cardContent = (
@@ -72,7 +75,9 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
               <>
                 {
                   artistURL && (
-                    <button className="group/btn relative px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/30 transform hover:scale-105">
+                    <button 
+                      onClick={() => router.push(artistURL)}
+                      className="group/btn relative px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/30 transform hover:scale-105">
                       <span className="relative z-10 text-sm">Bio</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full blur opacity-0 group-hover/btn:opacity-40 transition-opacity duration-200"></div>
                     </button>
@@ -118,7 +123,9 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
           <div className="flex flex-col gap-2">
             {
               artistURL && (
-                <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg">
+                <button 
+                  onClick={() => router.push(artistURL)}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg">
                   Bio
                 </button>
               )
