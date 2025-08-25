@@ -18,7 +18,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const artistURL: string | null = artist.slug ? `/${locale}/artist/${artist.slug}` : null;
+  const artistURL: string = `/${locale}/artist/${artist.slug}`;
 
   const fetchSongs = async () => {
     if (!artist.songs?.length) {
@@ -92,10 +92,10 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
           <div className="flex items-center flex-1 max-w-2xl">
             {/* Name */}
             <div className="flex-1 min-w-0 pr-8">
-              <h2 className={`text-xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent transition-all duration-300 truncate ${artistURL ? "cursor-pointer" : ""}`}>
+              <h2 className={`text-xl font-bold bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent transition-all duration-300`}>
                 {artist.name}
               </h2>
-              {/* Subtle animation line */}
+              {/* Animation line */}
               <div className="h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left mt-1 rounded-full"></div>
             </div>
 
@@ -129,7 +129,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
           {/* GROUP 2: Actions (Buttons) */}
           <div className="flex-shrink-0 ml-12">
             <div className="flex gap-3">
-              {artistURL && (
+              {artist.biography && (
                 <button 
                   onClick={() => router.push(artistURL)}
                   className="group/btn relative px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-500/30 transform hover:scale-105"
@@ -191,7 +191,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
         {/* Mobile Buttons */}
         <div className="md:hidden flex-shrink-0 ml-4 relative z-10">
           <div className="flex flex-col gap-2">
-            {artistURL && (
+            {artist.biography && (
               <button 
                 onClick={() => router.push(artistURL)}
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg"
