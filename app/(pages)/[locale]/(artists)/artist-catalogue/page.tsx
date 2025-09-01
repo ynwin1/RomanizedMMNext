@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
 import connectDB from "@/app/lib/mongodb";
 import ArtistCard from "@/app/components/catalogue/ArtistCard";
+import Pagination from "@/app/components/catalogue/Pagination";
+import ItemsPerPageSelector from "@/app/components/items-selector/ItemsSelector";
 
 export const metadata: Metadata = {
   title: "Artist Catalogue",
@@ -12,17 +14,28 @@ export const metadata: Metadata = {
 
 export type ArtistCataloguePageProps = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string, limit?: number }>;
 };
 
-const Page = async ({ params }: ArtistCataloguePageProps) => {
+const Page = async ({ params, searchParams }: ArtistCataloguePageProps) => {
   const { locale } = await params;
+  const { page, limit } = await searchParams;
+  const currentPage: number = Number(page) || 1;
+  const limitPerPage: number = limit || 10;
+
   await connectDB();
-  const allArtists = await Artist.find({}).select("name slug imageLink musicGenre type songs -_id").lean();
+  const allArtists = await Artist
+    .find({})
+    .sort({ name: 1 })
+    .skip((currentPage - 1) * limitPerPage)
+    .limit(limitPerPage)
+    .select("name slug imageLink musicGenre type songs -_id")
+    .lean();
+
+  const totalArtistCount = await Artist.countDocuments({});
+  const totalPages = Math.ceil(totalArtistCount / limitPerPage);  
 
   const translator = await getTranslations("ArtistCatalogue");
-
-  // Sort artists by name
-  const sortedArtists = allArtists.sort((a: any, b: any) => a.name.localeCompare(b.name));
 
   return (
     <main className="flex flex-col items-center justify-center mb-8">
@@ -30,12 +43,16 @@ const Page = async ({ params }: ArtistCataloguePageProps) => {
       <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg">
         {translator("description")}
       </h3>
+      <ItemsPerPageSelector />
       <div className="w-full flex flex-col items-center gap-4 mt-8">
-        {sortedArtists.map((artist: any) => (
+        {allArtists.map((artist: any) => (
           <div key={artist.slug} className="flex align-center justify-center">
             <ArtistCard locale={locale} artist={artist} />
           </div>
         ))}
+      </div>
+      <div className="flex w-full mt-8 mb-8 justify-center">
+        <Pagination totalPages={totalPages} />
       </div>
     </main>
   );
