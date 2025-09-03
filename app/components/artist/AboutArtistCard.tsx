@@ -8,7 +8,7 @@ interface AboutArtistCardProps {
         name: string;
         slug: string;
         imageLink: string;
-        biography: string;
+        biography?: string;
     }
 }
 
@@ -32,7 +32,7 @@ const AboutArtistCard: React.FC<AboutArtistCardProps> = ({ locale, artist }) => 
                 </div>
                 <div className="text-white text-sm md:text-base mb-2 w-full break-words">
                     <span className="block">
-                        {artist.biography.slice(0, 130)}...
+                        {artist.biography?.slice(0, 130)}...
                     </span>
                 </div>
                 <Link href={`/${locale}/artist/${artist.slug}`} className="w-full md:w-auto">

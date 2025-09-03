@@ -34,7 +34,7 @@ export async function generateMetadata(
 
         const artistName: string = artistQ.name;
         const artistSlug: string = artistQ.slug;
-        const description: string = `${artistName} (Myanmar) - ${artistQ.biography.slice(0, 150)}...`;
+        const description: string = `${artistName} (Myanmar) - ${artistQ.biography ? artistQ.biography.slice(0, 150) : ""}...`;
 
         const jsonLd = {
             "@context": "https://schema.org",
@@ -309,7 +309,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                 </div>
 
                 {/* Artist Biography */}
-                <Biography biography={artist.biography} />
+                {artist.biography && <Biography biography={artist.biography} />}
 
                 {/* Artist Songs */}
                 <h3 className="text-4xl font-bold text-center mt-8 mb-4">Songs</h3>

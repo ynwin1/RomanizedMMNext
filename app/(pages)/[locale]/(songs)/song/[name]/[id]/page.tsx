@@ -197,7 +197,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 firstArtist.name = artist.name;
                 firstArtist.slug = artist.slug;
                 firstArtist.imageLink = artistDetails.imageLink;
-                firstArtist.biography = artistDetails.biography;
+                firstArtist.biography = artistDetails.biography || "";
                 break;
             }
         }
