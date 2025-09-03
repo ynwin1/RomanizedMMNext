@@ -29,7 +29,7 @@ const Page = async ({ params, searchParams }: ArtistCataloguePageProps) => {
     .sort({ name: 1 })
     .skip((currentPage - 1) * limitPerPage)
     .limit(limitPerPage)
-    .select("name slug imageLink musicGenre type songs -_id")
+    .select("name slug imageLink musicGenre type songs biography -_id")
     .lean();
 
   const totalArtistCount = await Artist.countDocuments({});

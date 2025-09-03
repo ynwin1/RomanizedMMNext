@@ -19,6 +19,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
   const [error, setError] = useState<string | null>(null);
 
   const artistURL: string = `/${locale}/artist/${artist.slug}`;
+  console.log(`Artist has biography: ${artist.biography}`);
 
   const fetchSongs = async () => {
     if (!artist.songs?.length) {
@@ -262,7 +263,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
 
           {/* Songs List */}
           {!loading && !error && songs.length > 0 && (
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+            <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
               {songs.map((song: ISong) => (
                 <button
                   key={song.mmid}
@@ -271,7 +272,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium truncate text-gray-200 group-hover/song:text-white">
-                      {locale === "my" ? extractSongName(song.songName).mmName : extractSongName(song.songName).engName}
+                      {locale === "my" ? extractSongName(song.songName).mmName || extractSongName(song.songName).engName : extractSongName(song.songName).engName}
                     </span>
                     <span className="text-blue-400 opacity-0 group-hover/song:opacity-100 transition-opacity ml-2 flex-shrink-0">
                       <ChevronRightIcon className="w-5 h-5" />
