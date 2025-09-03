@@ -166,7 +166,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
 
         {/* Mobile Layout */}
         <div className="md:hidden flex-1 relative z-10">
-          <div className="space-y-2">
+          <div className="space-y-4">
             {/* Artist Name */}
             <h2 className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-blue-400 group-hover:to-purple-400 transition-all duration-300 truncate">
               {artist.name}
@@ -186,16 +186,14 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
                 {artist.type}
               </span>
             </div>
-          </div>
-        </div>
 
-        {/* Mobile Buttons */}
-        <div className="md:hidden flex-shrink-0 ml-4 relative z-10">
-          <div className="flex flex-col gap-2">
+            {/* Mobile Buttons */}
+        <div className="md:hidden flex-shrink-0 relative z-10">
+          <div className="flex flex-row gap-2">
             {artist.biography && (
               <button 
                 onClick={() => router.push(artistURL)}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg"
+                className="w-[100px] px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg"
               >
                 Bio
               </button>
@@ -203,7 +201,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
 
             <button 
               onClick={toggleSongs}
-              className={`px-4 py-2 bg-gradient-to-r text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
+              className={`w-[100px] px-4 py-2 bg-gradient-to-r text-white text-sm font-medium rounded-full transition-all duration-200 shadow-lg flex items-center justify-center gap-2 ${
                 songsExpanded 
                   ? 'from-pink-600 to-pink-700 hover:from-pink-500 hover:to-pink-600' 
                   : 'from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600'
@@ -216,6 +214,10 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
             </button>
           </div>
         </div>
+          </div>
+        </div>
+
+        
 
       </div>
     </div>
