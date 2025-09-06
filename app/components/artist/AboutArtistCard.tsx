@@ -30,11 +30,15 @@ const AboutArtistCard: React.FC<AboutArtistCardProps> = ({ locale, artist }) => 
                 <div className="font-bold text-lg md:text-xl mb-1 break-words">
                     {artist.name}
                 </div>
-                <div className="text-white text-sm md:text-base mb-2 w-full break-words">
-                    <span className="block">
-                        {artist.biography?.slice(0, 130)}...
-                    </span>
-                </div>
+                {
+                    artist.biography && (
+                        <div className="text-white text-sm md:text-base mb-2 w-full break-words">
+                            <span className="block">
+                                {artist.biography?.slice(0, 130)}...
+                            </span>
+                        </div>
+                    )
+                }
                 <Link href={`/${locale}/artist/${artist.slug}`} className="w-full md:w-auto">
                     <button className="w-full md:w-auto bg-blue-600 text-white rounded-xl px-4 py-2 font-semibold hover:bg-blue-400 transition-colors">
                         View
