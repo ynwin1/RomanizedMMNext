@@ -3,14 +3,15 @@ import React from 'react'
 interface RequestedByBoxProps {
     locale?: string;
     requestedBy?: string;
-    songStory?: string;
+    songStoryEn?: string;
+    songStoryMy?: string;
 }
 
 function formatRequesterNameText(locale: string, name: string): string {
     if (locale === 'my') {
-        return `- ${name} မှ တောင်းဆိုထားသည်`;
+        return `${name} မှ တောင်းဆိုထားသည်`;
     } else {
-        return `- Requested by ${name}`;
+        return `Requested by ${name}`;
     }
 }
 
@@ -20,8 +21,10 @@ function formatRequesterNameText(locale: string, name: string): string {
     * Story present + no name = Use "Anonymous"
     * No story + name present = Just show the name
  */
-export const RequestedByBox = ({locale = "en", requestedBy = "Anonymous", songStory}: RequestedByBoxProps) => {
-    if (!songStory && !requestedBy) {
+export const RequestedByBox = ({locale = "en", requestedBy = "Anonymous", songStoryEn, songStoryMy}: RequestedByBoxProps) => {
+    const songStory = locale === "my" ? songStoryMy : songStoryEn;
+
+    if (!songStory && (!requestedBy || requestedBy === "Anonymous")) {
         return null;
     }
 

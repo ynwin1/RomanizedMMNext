@@ -20,6 +20,12 @@ export interface ISong extends mongoose.Document {
     romanized: string;
     burmese: string;
     meaning: string;
+    createdAt?: Date;
+
+    isRequested?: boolean; // Field to indicate if the song was requested by a user
+    requestedBy?: string; // Name of the user who requested the song
+    songStoryEn?: string; // Story provided by the user in English
+    songStoryMy?: string; // Story provided by the user in Burmese
 }
 
 const SongSchema: Schema<ISong> = new Schema({
@@ -45,6 +51,12 @@ const SongSchema: Schema<ISong> = new Schema({
     romanized: { type: String, required: true },
     burmese: { type: String, required: true },
     meaning: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+
+    isRequested: { type: Boolean, default: false },
+    requestedBy: { type: String },
+    songStoryEn: { type: String },
+    songStoryMy: { type: String },
 });
 
 const Song: Model<ISong> = models.Song || mongoose.model("Song", SongSchema);
