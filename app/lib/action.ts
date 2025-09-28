@@ -138,14 +138,7 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         });
 
         const discordMessage = {
-            content: `
-            Song Name: ${songName}\n
-            Artist: ${artist}\n
-            YouTube Link: ${ytLink}\n
-            Details: ${detailsText}\n
-            Requested By: ${reqBy}\n
-            Song Story: ${songStr}\n
-            Notify Email: ${email}`
+            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nRequested By: ${reqBy}\nSong Story: ${songStr}\nNotify Email: ${email}`
         };
         await sendToDiscord(discordWebhook, discordMessage);
         message = "Song request submitted successfully";
