@@ -48,6 +48,7 @@
   "SongRequestPage": {
     "title": "Song Request",
     "description": "Do you have a song that you want to sing along, but can't find it on this website? Fill out the form below!",
+    "request-proccessing": "Song requests are processed every Saturday and Sunday. Please enter your email if you want to be notified when your requested song is added.",
     "songTitle": "Song Title",
     "artist": "Artist",
     "youtubeLink": "YouTube (Optional)",

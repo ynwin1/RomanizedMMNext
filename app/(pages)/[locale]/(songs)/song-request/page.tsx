@@ -21,6 +21,9 @@ const Page = async () => {
             <p className="text-lg w-[80vw] text-center">
                 {translator("description")}
             </p>
+            <p className="text-lg w-[80vw] text-center">
+                {translator("request-proccessing")}
+            </p>
             <SongRequestForm/>
 
             {/* Status */}
