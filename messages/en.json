@@ -53,6 +53,8 @@
     "artist": "Artist",
     "youtubeLink": "YouTube (Optional)",
     "details": "Details (Optional)",
+    "requestedBy": "Requested By (Optional)",
+    "songStory": "Do you have your own story about this song? (Optional)",
     "notifyEmail": "Notify Me (Optional)",
     "songsInQueue": "Songs in Queue",
     "submit": "Submit"

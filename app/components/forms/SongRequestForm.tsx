@@ -127,6 +127,62 @@ const SongRequestForm = () => {
                 </div>
             </div>
 
+            {/* Requested By */}
+            <div className="mb-4">
+                <label htmlFor="requestedBy" className="mb-2 block text-sm font-medium">
+                    {translator("requestedBy")}
+                </label>
+                <div className="relative mt-2 rounded-md">
+                    <div className="relative">
+                        <input
+                            id="requestedBy"
+                            name="requestedBy"
+                            type="string"
+                            placeholder={translator("requestedBy")}
+                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            aria-describedby="requestedBy-error"
+                        />
+                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                    </div>
+                    <div id="requestedBy-error" aria-live="polite" aria-atomic="true">
+                        {state.errors?.requestedBy &&
+                            state.errors.requestedBy.map((error) => (
+                                <p className="mt-2 text-sm text-red-500" key={error}>
+                                    {error}
+                                </p>
+                            ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Song Story */}
+            <div className="mb-4">
+                <label htmlFor="songStory" className="mb-2 block text-sm font-medium">
+                    {translator("songStory")}
+                </label>
+                <div className="relative mt-2 rounded-md">
+                    <div className="relative">
+                        <input
+                            id="songStory"
+                            name="songStory"
+                            type="string"
+                            placeholder={translator("songStory")}
+                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            aria-describedby="songStory-error"
+                        />
+                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                    </div>
+                    <div id="songStory-error" aria-live="polite" aria-atomic="true">
+                        {state.errors?.songStory &&
+                            state.errors.songStory.map((error) => (
+                                <p className="mt-2 text-sm text-red-500" key={error}>
+                                    {error}
+                                </p>
+                            ))}
+                    </div>
+                </div>
+            </div>
+
             {/* Notify Email */}
             <div className="mb-4">
                 <label htmlFor="notifyEmail" className="mb-2 block text-sm font-medium">
@@ -154,6 +210,8 @@ const SongRequestForm = () => {
                     </div>
                 </div>
             </div>
+
+            {}
 
             <div className="mt-6 flex justify-end gap-4">
                 <Button type="submit">{translator("submit")}</Button>

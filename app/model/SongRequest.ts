@@ -6,6 +6,8 @@ export interface ISongRequest extends mongoose.Document {
     youtubeLink?: string;
     details?: string;
     notifyEmail?: string;
+    requestedBy?: string;
+    songStory?: string;
     createdAt?: Date;
     status?: "pending" | "added";
 }
@@ -16,6 +18,8 @@ const SongRequestSchema: Schema<ISongRequest> = new Schema({
     youtubeLink: { type: String },
     details: { type: String },
     notifyEmail: { type: String },
+    requestedBy: { type: String },
+    songStory: { type: String },
     createdAt: { type: Date, default: Date.now },
     status: { type: String, enum: ["pending", "added"], default: "pending" },
 });
