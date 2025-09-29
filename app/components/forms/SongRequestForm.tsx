@@ -4,6 +4,7 @@ import { createSongRequest, State } from "@/app/lib/action";
 import { MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon, EnvelopeIcon } from "@heroicons/react/16/solid";
 import { Button } from '@/app/components/buttons/FormSubmitButton';
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 const SongRequestForm = () => {
     const initialState: State = { message: "", errors: {} };
@@ -156,9 +157,14 @@ const SongRequestForm = () => {
             </div>
 
             {/* Song Story */}
-            <div className="mb-4">
+            <div className="mb-4 w-[45vw] max-md:w-[80vw]">
                 <label htmlFor="songStory" className="mb-2 block text-sm font-medium">
-                    {translator("songStory")}
+                    <div className="flex flex-col gap-2">
+                        {translator("songStory")}
+                        <Link href={"/en/song/KyayZuuParKwal/17"} className={"text-sm text-blue-200 hover:underline"}>
+                            ({translator("storyExample")})
+                        </Link>
+                    </div>
                 </label>
                 <div className="relative mt-2 rounded-md">
                     <div className="relative">
@@ -166,7 +172,7 @@ const SongRequestForm = () => {
                             id="songStory"
                             name="songStory"
                             placeholder={translator("songStory")}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            className="peer text-black block w-full px-1 rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
                             aria-describedby="songStory-error"
                         />
                         <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />

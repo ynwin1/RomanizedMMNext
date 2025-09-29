@@ -55,6 +55,7 @@
     "details": "Details (Optional)",
     "requestedBy": "Requested By (Optional)",
     "songStory": "Do you have a story to tell related to this song? (50 words max) (Optional)",
+    "storyExample": "Check a sample here!",
     "notifyEmail": "Notify Me (Optional)",
     "songsInQueue": "Songs in Queue",
     "submit": "Submit"
