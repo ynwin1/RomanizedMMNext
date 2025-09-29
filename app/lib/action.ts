@@ -13,7 +13,11 @@ const SongRequestForm = z.object({
     youtubeLink: z.string().optional(),
     details: z.string().optional(),
     requestedBy: z.string().optional(),
-    songStory: z.string().optional(),
+    songStory: z.string().optional()
+        .refine(
+            (value) => !value || value.trim().split(/\s+/).length <= 50,
+            { message: "50 words maximum" }
+        ),
     notifyEmail: z
         .string()
         .optional()

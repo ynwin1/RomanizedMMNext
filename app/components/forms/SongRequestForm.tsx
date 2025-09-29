@@ -162,10 +162,9 @@ const SongRequestForm = () => {
                 </label>
                 <div className="relative mt-2 rounded-md">
                     <div className="relative">
-                        <input
+                        <textarea
                             id="songStory"
                             name="songStory"
-                            type="string"
                             placeholder={translator("songStory")}
                             className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
                             aria-describedby="songStory-error"
