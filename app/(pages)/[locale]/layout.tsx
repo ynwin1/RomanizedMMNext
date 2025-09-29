@@ -6,7 +6,6 @@ import {getMessages, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
-import RotatingText from "@/app/components/rotating-text/RotatingText";
 import Footer from "@/app/components/footer/Footer";
 import CountryCounter from "@/app/components/country-counter/country-counter";
 

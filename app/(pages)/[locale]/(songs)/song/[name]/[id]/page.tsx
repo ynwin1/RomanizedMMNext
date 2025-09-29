@@ -16,6 +16,7 @@ import Artist from "@/app/model/Artist";
 import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
 import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
+import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -241,6 +242,9 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                     <DetailRow label={translator("whenToListen")} value={song.whenToListen} />
                 </div>
             </div>
+
+            {/* Song Requester & Story if available */}
+            <RequestedByBox requestedBy={song.requestedBy} songStoryEn={song.songStoryEn} songStoryMy={song.songStoryMy} locale={locale} />
 
             {/* About Artist */}
             {firstArtist.slug && (

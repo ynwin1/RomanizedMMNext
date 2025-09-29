@@ -12,6 +12,12 @@ const SongRequestForm = z.object({
     artist: z.string().min(1, { message: "Artist is required." }),
     youtubeLink: z.string().optional(),
     details: z.string().optional(),
+    requestedBy: z.string().optional(),
+    songStory: z.string().optional()
+        .refine(
+            (value) => !value || value.trim().split(/\s+/).length <= 50,
+            { message: "50 words maximum" }
+        ),
     notifyEmail: z
         .string()
         .optional()
@@ -25,6 +31,8 @@ export type State = {
         artist?: string[];
         youtubeLink?: string[];
         details?: string[];
+        requestedBy?: string[];
+        songStory?: string[];
         notifyEmail?: string[];
     };
     message?: string;
@@ -80,16 +88,26 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         artist: formData.get("artist") as string,
         youtubeLink: formData.get("youtubeLink") as string,
         details: formData.get("details") as string,
-        notifyEmail: formData.get("notifyEmail"),
+        requestedBy: formData.get("requestedBy") as string,
+        songStory: formData.get("songStory") as string,
+        notifyEmail: formData.get("notifyEmail") as string,
     });
 
     if (!validatedFields.success) {
         return { errors: validatedFields.error.flatten().fieldErrors,
-            message: "Missing Fields, Failed to Create Invoice."
+            message: "Missing Fields, Failed to Create Song Request."
         };
     }
 
-    const { songName, artist, youtubeLink, details, notifyEmail } = validatedFields.data;
+    const {
+        songName,
+        artist,
+        youtubeLink,
+        details,
+        requestedBy,
+        songStory,
+        notifyEmail
+    } = validatedFields.data;
 
     const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
     if (!discordWebhook) {
@@ -108,6 +126,9 @@ export async function createSongRequest(locale: string, prevState: State, formDa
     const email = notifyEmail ? notifyEmail : notProvided;
     const ytLink = youtubeLink ? youtubeLink : notProvided;
     const detailsText = details ? details : notProvided;
+    const reqBy = requestedBy ? requestedBy : notProvided;
+    const songStr = songStory ? songStory : notProvided;
+
     try {
         await connectDB();
         await SongRequest.create({
@@ -115,11 +136,13 @@ export async function createSongRequest(locale: string, prevState: State, formDa
             artist,
             youtubeLink: ytLink,
             details: detailsText,
+            requestedBy: reqBy,
+            songStory: songStr,
             notifyEmail: email
         });
 
         const discordMessage = {
-            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nNotify Email: ${email}`
+            content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nRequested By: ${reqBy}\nSong Story: ${songStr}\nNotify Email: ${email}`
         };
         await sendToDiscord(discordWebhook, discordMessage);
         message = "Song request submitted successfully";
