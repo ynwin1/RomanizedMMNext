@@ -1,17 +1,18 @@
-import createMiddleware from 'next-intl/middleware';
-import {routing} from './i18n/routing';
 import { clerkMiddleware } from '@clerk/nextjs/server';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 
-export default clerkMiddleware();
-export const intlMiddleware = createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
+
+export default clerkMiddleware((auth, req) => {
+    return intlMiddleware(req);
+});
 
 export const config = {
-    // Match only internationalized pathnames
     matcher: [
-        '/', '/(en|my)/:path*',
-        // Clerk: Skip Next.js internals and all static files, unless found in search params
+        '/',
+        '/(en|my)/:path*',
         '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-        // Clerk: Always run for API routes
         '/(api|trpc)(.*)',
     ]
 };

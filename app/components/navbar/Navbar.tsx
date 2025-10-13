@@ -5,8 +5,8 @@ import Image from 'next/image';
 import {
     SignedIn,
     SignedOut,
-    SignInButton,
-    SignUpButton, UserButton,
+    SignUpButton,
+    UserButton,
 } from '@clerk/nextjs';
 
 export const Navbar = () => {
@@ -26,20 +26,17 @@ export const Navbar = () => {
             </Link>
             <div className="flex items-center gap-3">
                 <SignedOut>
-                    <SignInButton mode="modal">
-                        <button className="bg-white text-black px-5 py-2 text-sm font-medium rounded-full hover:bg-opacity-90 hover:scale-105 transition-all duration-200 shadow-md">
-                            Sign In
+                    <SignUpButton mode="modal">
+                        <button className="bg-white text-black px-3 py-2 text-sm font-medium rounded-full hover:bg-opacity-90 hover:scale-105 transition-all duration-200 shadow-md">
+                            Get Started
                         </button>
-                    </SignInButton>
+                    </SignUpButton>
                 </SignedOut>
                 <SignedIn>
                     <UserButton
                         appearance={{
                             elements: {
-                                userButtonAvatarBox: "w-9 h-9 max-md:w-7 max-md:h-7 ring-2 ring-white",
-                                userButtonPopoverCard: "bg-black border border-white",
-                                userButtonActionButton: "hover:bg-white hover:text-black",
-                                userButtonPrimaryButton: "bg-white text-black hover:opacity-80",
+                                userButtonAvatarBox: "w-9 h-9 rounded-full",
                             },
                         }}
                     />

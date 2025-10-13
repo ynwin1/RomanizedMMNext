@@ -61,7 +61,11 @@ export default async function RootLayout({
     const messages = await getMessages();
 
     return (
-        <ClerkProvider>
+        <ClerkProvider
+            afterSignOutUrl={`/${locale}`}
+            signInFallbackRedirectUrl={`/${locale}`}
+            signUpFallbackRedirectUrl={`/${locale}`}
+        >
             <html lang={locale}>
             <head>
                 <script
