@@ -8,6 +8,14 @@ import {routing} from '@/i18n/routing';
 import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
 import Footer from "@/app/components/footer/Footer";
 import CountryCounter from "@/app/components/country-counter/country-counter";
+import {
+    ClerkProvider,
+    SignInButton,
+    SignUpButton,
+    SignedIn,
+    SignedOut,
+    UserButton,
+} from '@clerk/nextjs'
 
 export const metadata: Metadata = {
     title: {
@@ -53,23 +61,27 @@ export default async function RootLayout({
     const messages = await getMessages();
 
     return (
-        <html lang={locale}>
-        <head>
-            <script
-                async
-                src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1042163793764562"
-                crossOrigin="anonymous"
-            ></script>
-        </head>
-        <body className={`${lusitana.className} antialiased`}>
-        {/* <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" /> */}
-        <CountryCounter />
-        <NextIntlClientProvider messages={messages}>
-            {children}
-            <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
-        </NextIntlClientProvider>
-        <Footer />
-        </body>
-        </html>
+        <ClerkProvider>
+            <html lang={locale}>
+            <head>
+                <script
+                    async
+                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1042163793764562"
+                    crossOrigin="anonymous"
+                ></script>
+            </head>
+            <body className={`${lusitana.className} antialiased`}>
+            {/* <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" /> */}
+            <CountryCounter />
+
+            <NextIntlClientProvider messages={messages}>
+                {children}
+                <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
+            </NextIntlClientProvider>
+            <Footer />
+            </body>
+            </html>
+        </ClerkProvider>
+
     );
 }
