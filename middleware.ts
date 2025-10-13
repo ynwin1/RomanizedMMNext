@@ -1,10 +1,18 @@
-import { clerkMiddleware } from '@clerk/nextjs/server';
+import {clerkMiddleware, createRouteMatcher} from '@clerk/nextjs/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
-export default clerkMiddleware((auth, req) => {
+const isProtectedRoute = createRouteMatcher(['/admin(.*)']);
+
+export default clerkMiddleware(async (auth, req) => {
+    if (isProtectedRoute(req)) {
+        await auth.protect((has) => {
+            return has({ permission: 'org:admin:example1'});
+        })
+    }
+
     return intlMiddleware(req);
 });
 
