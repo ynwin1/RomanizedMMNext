@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import ArtistForm from "@/app/components/admin/ArtistForm";
 import SongForm from "@/app/components/admin/SongForm";
+import {ISong} from "@/app/model/Song";
+import {IArtist} from "@/app/model/Artist";
 
 enum Category {
     SONG = 'song',
@@ -15,14 +17,7 @@ export enum Action {
     EDIT = 'edit'
 }
 
-// Mock types for demonstration
-type ISong = { id: string; title: string };
-type IArtist = { id: string; name: string };
-
-type SelectedType = {
-    type: Category,
-    data: ISong | IArtist
-}
+type SelectedType = ISong | IArtist | null;
 
 export default function AdminDashboard() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -70,10 +65,10 @@ export default function AdminDashboard() {
             return (
                 <div className="bg-white rounded-lg shadow-md p-6 mt-6">
                     <h3 className="text-xl font-semibold text-gray-800 mb-4 capitalize">
-                        Edit {selectedCategory}
+                        <ArtistForm mode={Action.EDIT} />
                     </h3>
                     <div className="text-gray-600">
-                        Edit form will render here
+                        <SongForm mode={Action.EDIT} />
                     </div>
                 </div>
             );

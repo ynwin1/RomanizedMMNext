@@ -6,17 +6,10 @@ import {Action} from "@/app/(pages)/[locale]/(admin)/admin/dashboard/page";
 interface SongFormProps {
     mode: Action.ADD | Action.EDIT;
     initialData?: Partial<ISong>;
-    onCancel?: () => void;
 }
 
-const onSubmit = async (data: Partial<ISong>) => {
-    // Prepare Song Object To Save Via API
-    console.log('Submitting:', data);
-};
-
-export default function SongForm({ mode, initialData, onCancel }: SongFormProps) {
+export default function SongForm({ mode, initialData }: SongFormProps) {
     const [formData, setFormData] = useState<Partial<ISong>>(initialData || {
-        mmid: 0,
         songName: '',
         artistName: [{ name: '', slug: '' }],
         albumName: '',
@@ -37,7 +30,6 @@ export default function SongForm({ mode, initialData, onCancel }: SongFormProps)
         songStoryEn: '',
         songStoryMy: '',
     });
-
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (field: keyof ISong, value: any) => {
@@ -84,6 +76,31 @@ export default function SongForm({ mode, initialData, onCancel }: SongFormProps)
         }
     };
 
+    const onSubmit = async (data: Partial<ISong>) => {
+        try {
+            const isAddMode = mode === Action.ADD;
+            const response = await fetch('/api/song', {
+                method: isAddMode ? 'POST' : 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Error:', error);
+                alert(`Failed to ${isAddMode ? 'add' : 'update'} song. ${error.message || 'Please try again.'}`);
+                return;
+            }
+
+            const result = await response.json();
+            console.log(`Song ${isAddMode ? 'added' : 'updated'}:`, result);
+            alert(`Song ${isAddMode ? 'added' : 'updated'} successfully!`);
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information Section */}
@@ -96,15 +113,16 @@ export default function SongForm({ mode, initialData, onCancel }: SongFormProps)
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            MMID <span className="text-red-500">*</span>
+                            MMID
                         </label>
                         <input
                             type="number"
                             value={formData.mmid || ''}
                             onChange={(e) => handleChange('mmid', parseInt(e.target.value))}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            placeholder="Enter unique song ID"
-                            required
+                            className="w-full px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all cursor-pointer"
+                            placeholder={formData.mmid?.toString() || "Auto-generated"}
+                            readOnly
+
                         />
                     </div>
 
@@ -237,19 +255,6 @@ export default function SongForm({ mode, initialData, onCancel }: SongFormProps)
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Spotify Track ID
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.spotifyTrackId || ''}
-                            onChange={(e) => handleChange('spotifyTrackId', e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                            placeholder="Track ID from Spotify"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             Spotify Link
                         </label>
                         <input
@@ -333,20 +338,6 @@ export default function SongForm({ mode, initialData, onCancel }: SongFormProps)
                     <span className="text-2xl mr-2">🎵</span>
                     Lyrics
                 </h3>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Lyrics <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                        value={formData.lyrics || ''}
-                        onChange={(e) => handleChange('lyrics', e.target.value)}
-                        rows={6}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none font-mono text-sm"
-                        placeholder="Enter full lyrics..."
-                        required
-                    />
-                </div>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -484,16 +475,6 @@ export default function SongForm({ mode, initialData, onCancel }: SongFormProps)
                         mode === Action.ADD ? '✓ Add Song' : '✓ Update Song'
                     )}
                 </button>
-
-                {onCancel && (
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="px-6 py-3 rounded-lg font-medium bg-gray-200 hover:bg-gray-300 text-gray-700 transition-all duration-200"
-                    >
-                        Cancel
-                    </button>
-                )}
             </div>
         </form>
     );
