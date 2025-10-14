@@ -16,7 +16,6 @@ export async function GET(request: Request) {
             songName: { $regex: query, $options: "i" }
         })
             .sort({ songName: 1 })
-            .select("songName mmid -_id")
             .lean();
 
         return Response.json({ success: true, songs: songs });

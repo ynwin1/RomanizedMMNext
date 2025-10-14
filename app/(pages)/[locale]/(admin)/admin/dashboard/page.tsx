@@ -5,8 +5,9 @@ import ArtistForm from "@/app/components/admin/ArtistForm";
 import SongForm from "@/app/components/admin/SongForm";
 import {ISong} from "@/app/model/Song";
 import {IArtist} from "@/app/model/Artist";
+import DynamicSearchBar from "@/app/components/admin/DynamicSearchBar";
 
-enum Category {
+export enum Category {
     SONG = 'song',
     ARTIST = 'artist',
     REQUESTS = 'requests'
@@ -17,12 +18,10 @@ export enum Action {
     EDIT = 'edit'
 }
 
-type SelectedType = ISong | IArtist | null;
-
 export default function AdminDashboard() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-    const [selectedItem, setSelectedItem] = useState<SelectedType | null>(null);
+    const [selectedItem, setSelectedItem] = useState<Partial<ISong> | Partial<IArtist> | null | undefined>(null);
 
     const handleCategoryClick = (category: Category) => {
         setSelectedCategory(category);
@@ -36,7 +35,7 @@ export default function AdminDashboard() {
         setSelectedItem(null);
     };
 
-    const handleItemSelect = (item: SelectedType) => {
+    const handleItemSelect = (item: Partial<ISong> | Partial<IArtist>) => {
         setSelectedItem(item);
     };
 
@@ -64,12 +63,16 @@ export default function AdminDashboard() {
         if (selectedAction === Action.EDIT && selectedItem) {
             return (
                 <div className="bg-white rounded-lg shadow-md p-6 mt-6">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4 capitalize">
-                        <ArtistForm mode={Action.EDIT} />
-                    </h3>
-                    <div className="text-gray-600">
-                        <SongForm mode={Action.EDIT} />
-                    </div>
+                    {selectedCategory === Category.ARTIST && (
+                        <div className="text-gray-600">
+                            <ArtistForm mode={Action.EDIT} initialData={selectedItem as Partial<IArtist>}/>
+                        </div>
+                    )}
+                    {selectedCategory === Category.SONG && (
+                        <div className="text-gray-600">
+                            <SongForm mode={Action.EDIT} initialData={selectedItem as Partial<ISong> }/>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -82,16 +85,9 @@ export default function AdminDashboard() {
             return (
                 <div className="bg-white rounded-lg shadow-md p-6 mt-6">
                     <h3 className="text-lg font-medium text-gray-700 mb-3">
-                        Select a {selectedCategory} to edit
+                        {`Select a ${selectedCategory} to edit`}
                     </h3>
-                    <input
-                        type="text"
-                        placeholder={`Search ${selectedCategory}s...`}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    />
-                    <div className="mt-4 text-sm text-gray-500">
-                        Selection list will appear here
-                    </div>
+                    <DynamicSearchBar category={Category.SONG} onSelect={handleItemSelect} />
                 </div>
             );
         }

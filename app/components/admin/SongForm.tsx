@@ -1,11 +1,11 @@
 "use client"
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {ISong} from "@/app/model/Song";
 import {Action} from "@/app/(pages)/[locale]/(admin)/admin/dashboard/page";
 
 interface SongFormProps {
     mode: Action.ADD | Action.EDIT;
-    initialData?: Partial<ISong>;
+    initialData?: Partial<ISong> | null;
 }
 
 export default function SongForm({ mode, initialData }: SongFormProps) {
@@ -32,6 +32,35 @@ export default function SongForm({ mode, initialData }: SongFormProps) {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Add useEffect to sync formData when initialData changes
+    useEffect(() => {
+        if (initialData) {
+            setFormData(initialData);
+        } else {
+            // Reset to default empty form
+            setFormData({
+                songName: '',
+                artistName: [{ name: '', slug: '' }],
+                albumName: '',
+                genre: '',
+                spotifyTrackId: '',
+                spotifyLink: '',
+                appleMusicLink: '',
+                youtubeLink: [],
+                imageLink: '',
+                about: '',
+                whenToListen: '',
+                lyrics: '',
+                romanized: '',
+                burmese: '',
+                meaning: '',
+                isRequested: false,
+                requestedBy: '',
+                songStoryEn: '',
+                songStoryMy: '',
+            });
+        }
+    }, [initialData]);
     const handleChange = (field: keyof ISong, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
