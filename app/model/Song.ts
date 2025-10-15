@@ -34,7 +34,7 @@ const SongSchema: Schema<ISong> = new Schema({
     artistName: { type: [
             {
                 name: { type: String, required: true },
-                slug: { type: String, required: true, unique: true}
+                slug: { type: String, required: false, unique: true}
             },
         ]
     },
