@@ -7,9 +7,15 @@ import {
     SignedOut,
     SignUpButton,
     UserButton,
+    useUser
 } from '@clerk/nextjs';
+import { auth, currentUser } from '@clerk/nextjs/server'
 
-export const Navbar = () => {
+export const Navbar = async () => {
+    const user = await currentUser();
+
+    const isAdmin = user?.publicMetadata?.role === 'admin';
+
     return (
         <nav className="relative bg-transparent text-white p-4 flex justify-between items-center top-0 z-50">
             <Link href="/">
@@ -33,6 +39,11 @@ export const Navbar = () => {
                     </SignUpButton>
                 </SignedOut>
                 <SignedIn>
+                    {isAdmin && (
+                        <Link href="/en/admin/dashboard" className="bg-white text-black px-3 py-2 text-sm font-medium rounded-full hover:bg-opacity-90 hover:scale-105 transition-all duration-200 shadow-md mr-2">
+                            Dashboard
+                        </Link>
+                    )}
                     <UserButton
                         appearance={{
                             elements: {

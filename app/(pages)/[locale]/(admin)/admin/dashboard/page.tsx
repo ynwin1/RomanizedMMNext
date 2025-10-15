@@ -107,6 +107,16 @@ export default function AdminDashboard() {
                     <p className="text-gray-600">Manage your songs and artists</p>
                 </div>
 
+                {/* Back to Home Button */}
+                <button>
+                    <a
+                        href="/"
+                        className="inline-block mb-6 px-5 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                    >
+                        Back to Home
+                    </a>
+                </button>
+
                 {/* Category Selection */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h2 className="text-lg font-semibold text-gray-700 mb-4">Select Category</h2>
