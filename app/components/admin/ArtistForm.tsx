@@ -226,8 +226,8 @@ export default function ArtistForm({ mode, initialData, onCancel }: ArtistFormPr
                     </label>
                     <input
                         type="text"
-                        value={formData.musicGenre?.join(', ') || ''}
-                        onChange={(e) => handleArrayChange('musicGenre', e.target.value)}
+                        value={formData.musicGenre || ''}
+                        onChange={(e) => handleChange('musicGenre', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                         placeholder="Pop, Rock, R&B"
                         required
