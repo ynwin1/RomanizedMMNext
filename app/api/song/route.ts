@@ -35,9 +35,18 @@ export async function PUT(req: Request) {
         await connectDB();
         const formData = await req.json();
 
+        console.log('Received formData for update:', formData);
+
         if (!formData.mmid) {
+            console.log('MMID is required for update');
             return Response.json({ error: 'MMID is required for update' }, { status: 400 });
         }
+
+        if (formData._id) {
+            delete formData._id;
+        }
+
+        console.log('Updating song with MMID:', formData.mmid);
 
         // Extract Spotify TrackID
         if (formData.spotifyLink && formData.spotifyLink.trim() !== '') {
@@ -47,11 +56,17 @@ export async function PUT(req: Request) {
         // Set general lyrics
         formData.lyrics = formData.burmese;
 
-        const song = await Song.findByIdAndUpdate(formData.mmid, formData, { new: true });
+        const song = await Song.findOneAndUpdate(
+            { mmid: formData.mmid },
+            formData,
+            { new: true }
+        );
         if (!song) {
+            console.log('Failed to update song or song not found');
             return Response.json({ error: 'Failed to update song or song not found' }, { status: 500 });
         }
 
+        console.log('Song updated successfully:', song);
         return Response.json({ song }, { status: 200 });
     } catch (error) {
         return Response.json({ error: `Failed to update song with error - ${error}` }, { status: 500 });

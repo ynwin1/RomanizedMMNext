@@ -50,18 +50,27 @@ export default function ArtistForm({ mode, initialData, onCancel }: ArtistFormPr
     };
 
     const onSubmit = async (data: Partial<IArtist>) => {
-        console.log(`Submitting Artist Data for Action: ${data}`);
-        switch (mode) {
-            case Action.ADD:
-                // Call API to add artist
-                console.log('Adding artist:', data);
-                break;
-            case Action.EDIT:
-                // Call API to update artist
-                console.log('Updating artist:', data);
-                break;
-            default:
-                throw new Error('Invalid action');
+        try {
+            const isAddMode = mode === Action.ADD;
+            const response = await fetch('/api/artist', {
+                method: isAddMode ? 'POST' : 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Error:', error);
+                alert(`Failed to ${isAddMode ? 'add' : 'update'} artist. ${error.message || 'Please try again.'}`);
+                return;
+            }
+
+            const result = await response.json();
+            console.log(`Artist ${isAddMode ? 'added' : 'updated'}:`, result);
+            alert(`Artist ${isAddMode ? 'added' : 'updated'} successfully!`);
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            alert('An unexpected error occurred. Please try again.');
         }
     };
 

@@ -85,9 +85,13 @@ export default function AdminDashboard() {
             return (
                 <div className="bg-white rounded-lg shadow-md p-6 mt-6">
                     <h3 className="text-lg font-medium text-gray-700 mb-3">
-                        {`Select a ${selectedCategory} to edit`}
+                        {`Select ${selectedCategory} to edit`}
                     </h3>
-                    <DynamicSearchBar category={Category.SONG} onSelect={handleItemSelect} />
+                    {selectedCategory === Category.ARTIST ?
+                        <DynamicSearchBar category={Category.ARTIST} onSelect={handleItemSelect} />
+                        :
+                        <DynamicSearchBar category={Category.SONG} onSelect={handleItemSelect} />
+                    }
                 </div>
             );
         }
