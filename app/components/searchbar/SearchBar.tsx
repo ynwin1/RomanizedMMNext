@@ -8,6 +8,7 @@ import {useTranslations} from "next-intl";
 interface OptionType {
     value: string; // mmid
     label: string; // songName
+    artistName: string;
 }
 
 const colourStyles = {
@@ -57,6 +58,7 @@ const SearchBar = () => {
             return data.songs.map((song: any) => ({
                 value: song.mmid,
                 label: song.songName,
+                artistName: song.artistName[0]?.name || "Unknown Artist",
             }));
         }
 
@@ -95,6 +97,13 @@ const SearchBar = () => {
                 styles={colourStyles}
                 noOptionsMessage={() => "No songs found"}
                 components={{ DropdownIndicator:() => null, IndicatorSeparator:() => null }}
+                formatOptionLabel={(option: OptionType) => (
+                    <div>
+                        <span style={{ fontWeight: "bold" }}>{option.label}</span>
+                        <br />
+                        <span style={{ fontSize: "0.9rem", color: "gray" }}>{option.artistName}</span>
+                    </div>
+                )}
                 onChange={(selectedOption: OptionType | null) => handleChange(selectedOption)}
             />
         </div>
