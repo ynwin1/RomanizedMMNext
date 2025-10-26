@@ -205,6 +205,12 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     } catch (e) {
         console.error("Error fetching artist details:", e);
     }
+
+    // exclude _id from artistName
+    let cleanedArtistNames = song.artistName.map(artist => ({
+        name: artist.name,
+        slug: artist.slug,
+    }));
     
     
     return (
@@ -253,7 +259,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             <SyncedLyricsPlayer extLinks={{youtube: song.youtubeLink, spotify: song.spotifyLink, apple: song.appleMusicLink}} lyrics={{romanized: song.romanized, burmese: song.burmese, meaning: song.meaning, initialOption: option}} />
 
-            <MoreSongs artists={song.artistName} currentSongId={parseInt(id)} locale={locale}/>
+            <MoreSongs artists={cleanedArtistNames} currentSongId={parseInt(id)} locale={locale}/>
 
             <SocialShare url={`https://romanizedmm.com/song/${name}/${id}?option=${option}`} title={song.songName} />
         </main>
