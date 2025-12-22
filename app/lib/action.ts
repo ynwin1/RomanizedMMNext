@@ -276,6 +276,23 @@ export async function getAllSongs() {
     }
 }
 
+export async function fetchLastCreatedSongs(limit: number = 5) {
+    await connectDB();
+
+    try {
+        const songs = await Song.find()
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .select("mmid songName artistName createdAt -_id") // Change as needed
+            .lean();
+
+        return songs;
+    } catch (error) {
+        console.error("Error fetching last added songs:", error);
+        return [];
+    }
+}
+
 export async function saveScoreAction(userName: string, country: string, score: number) {
     try {
         await connectDB();

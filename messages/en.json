@@ -58,7 +58,8 @@
     "storyExample": "Check a sample here!",
     "notifyEmail": "Notify Me (Optional)",
     "songsInQueue": "Songs in Queue",
-    "submit": "Submit"
+    "submit": "Submit",
+    "lastCreatedSongs": "Songs Recently Added"
   },
   "SearchBar": {
     "search": "Type a song title..."
