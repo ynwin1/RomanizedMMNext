@@ -20,7 +20,7 @@
     "about": "အကြောင်း",
     "catalogue": "သီချင်းစာအုပ်",
     "songRequest": "သီချင်းတောင်းမယ်",
-    "guessTheLyrics": "Guess The Lyrics",
+    "gameModes": "ဂိမ်းများ",
     "artistCatalogue": "အဆိုတော်စာအုပ်"
   },
   "GuessTheLyrics" : {
@@ -75,5 +75,18 @@
   "ArtistCatalogue": {
     "title": "အဆိုတော်စာအုပ်",
     "description": "RomanizedMM မှာရှိသော အဆိုတော်များ"
+  },
+  "GameModes": {
+    "title": "ဂိမ်းများ",
+    "guessLyrics": {
+      "title": "သီချင်းစာသားများကို မှန်းကြည့်ပါ",
+      "description": "မြန်မာသီချင်းစာသားများကို သိရှိမှုကို စမ်းသပ်ပါ"
+    },
+    "guessSong": {
+      "title": "သီချင်းကို မှန်းကြည့်ပါ",
+      "description": "ဒီသီချင်းလေးက ဘာလဲ? နားထောင်ပြီး မှန်းကြည့်ပါ"
+    },
+    "play": "ကစားမယ်",
+    "comingSoon": "မကြာမြင့်မီရနိုင်ပါမည်"
   }
 }

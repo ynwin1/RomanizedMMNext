@@ -26,9 +26,9 @@ export default async function RootLayout({
                                        params
                                    }: {
     children: React.ReactNode;
-    params: Promise<{ locale: string}>;
+    params: { locale: string };
 }) {
-    const locale = (await params).locale;
+    const { locale } = params;
 
     const eqMsgs: string[] = [
         "URGENT: Support Myanmar Earthquake Relief",
@@ -53,7 +53,7 @@ export default async function RootLayout({
     const messages = await getMessages();
 
     return (
-        <html lang={locale}>
+        <html lang={locale} className="h-full">
         <head>
             <script
                 async
@@ -61,14 +61,15 @@ export default async function RootLayout({
                 crossOrigin="anonymous"
             ></script>
         </head>
-        <body className={`${lusitana.className} antialiased`}>
-        {/* <RotatingText messages={eqMsgs} link="https://rescuemyanmar.carrd.co/" /> */}
-        <CountryCounter />
-        <NextIntlClientProvider messages={messages}>
-            {children}
+        <body className={`${lusitana.className} antialiased flex flex-col min-h-screen`}>
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
-        </NextIntlClientProvider>
-        <Footer />
+            <NextIntlClientProvider messages={messages}>
+                <div className="flex-grow">
+                    {children}
+                </div>
+                <Footer />
+                <CountryCounter />
+            </NextIntlClientProvider>
         </body>
         </html>
     );

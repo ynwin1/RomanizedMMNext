@@ -20,7 +20,7 @@
     "about": "About",
     "catalogue": "Songs",
     "songRequest": "Song Request",
-    "guessTheLyrics": "Guess The Lyrics",
+    "gameModes": "Game Modes",
     "artistCatalogue": "Artists"
   },
   "GuessTheLyrics" : {
@@ -75,5 +75,18 @@
   "ArtistCatalogue": {
     "title": "Artist Catalogue",
     "description": "Discover all the artists available on RomanizedMM"
+  },
+  "GameModes": {
+    "title": "Game Modes",
+    "guessLyrics": {
+      "title": "Guess The Lyrics",
+      "description": "Test your knowledge of Myanmar song lyrics"
+    },
+    "guessSong": {
+      "title": "Guess The Song",
+      "description": "Can you name that tune? Listen and guess the song"
+    },
+    "play": "Play Now",
+    "comingSoon": "Coming Soon"
   }
 }
