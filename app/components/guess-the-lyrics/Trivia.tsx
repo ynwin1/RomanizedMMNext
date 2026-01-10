@@ -96,19 +96,16 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                 [lyricIndex - 1, lyricIndex + 1];
     const lyricToAskNeighbors: string[] = lyricToAskNeighborsIndexes.map(index => lyricLines[index]);
     // Select 3 other random lines (none other than selected lines)
-    const randomLyricIndexes: number[] = [];
-    let i = 0;
-    while (i < 3) {
+    const excludedLyrics = new Set<string>([lyricToAsk, ...lyricToAskNeighbors]);
+    const randomLyrics: string[] = [];
+    while (randomLyrics.length < 3) {
         const randomIndex = Math.floor(Math.random() * lyricLines.length);
-        if (randomIndex !== lyricIndex && !lyricToAskNeighborsIndexes.includes(randomIndex) &&
-            lyricLines[randomIndex] !== lyricToAsk && !lyricToAskNeighbors.includes(lyricLines[randomIndex])
-            && !randomLyricIndexes.includes(randomIndex)
-        ) {
-            randomLyricIndexes.push(randomIndex);
-            i++;
+        const randomLyric = lyricLines[randomIndex].replace(/^\[.*?\]/, "").trim();
+        if (!excludedLyrics.has(randomLyric)) {
+            randomLyrics.push(randomLyric);
+            excludedLyrics.add(randomLyric);
         }
     }
-    const randomLyrics: string[] = randomLyricIndexes.map(index => lyricLines[index]);
 
     // add lyric to ask to randomLyrics and shuffle
     randomLyrics.push(lyricToAsk);
