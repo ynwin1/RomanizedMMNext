@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react'
 import {fetchAllTriviaScores} from "@/app/lib/action";
 import {useTranslations} from "next-intl";
+import {GameMode} from "@/app/lib/constants";
 
-const Leaderboard = ({refresh}: {refresh: boolean}) => {
+const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}) => {
     const [allScores, setScores] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const translator = useTranslations("GuessTheLyrics");
@@ -10,7 +11,7 @@ const Leaderboard = ({refresh}: {refresh: boolean}) => {
     useEffect(() => {
         const loadScores = async () => {
             try {
-                const data = await fetchAllTriviaScores();
+                const data = await fetchAllTriviaScores(gameMode);
                 setScores(data);
             } catch (error) {
                 console.error('Failed to fetch scores:', error);

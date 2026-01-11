@@ -4,13 +4,15 @@ import React, {useActionState, useEffect} from "react";
 import {createTriviaScore, TriviaScoreState} from "@/app/lib/action";
 import {countryFlags} from "@/app/lib/utils";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
+import { GameMode } from "@/app/lib/constants";
 
 interface TriviaScoreFormProps {
     score: number;
+    gameMode: GameMode;
     setShowSaveCard: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) => {
+export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreFormProps) => {
     const initialState: TriviaScoreState = {message: "", errors: {}};
     const [state, formAction] = useActionState(createTriviaScore, initialState);
 
@@ -99,6 +101,8 @@ export const TriviaScoreForm = ({score, setShowSaveCard}: TriviaScoreFormProps) 
                             ))}
                     </div>
                 </div>
+                {/* Game Mode */}
+                <input type="hidden" name="gameMode" value={gameMode} />
                 <div className="flex justify-end">
                     <div className="mt-6 flex justify-end gap-4">
                         <Button type="submit">Save</Button>
