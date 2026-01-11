@@ -52,7 +52,7 @@ const Trivia = ({songs, minScore} : {songs: any[], minScore: number}) => {
                     :
                     <div className="flex flex-col justify-center items-center">
                         {showSaveCard && score > minScore ?
-                            <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard}/>
+                            <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard} gameMode={gameMode}/>
                             :
                             <h1 className="text-2xl text-white text-center max-md:text-base bg-black bg-opacity-80 p-4 rounded-xl max-md:w-[80vw]">
                                 Beat the lowest score to get featured on the leaderboard 🎉
@@ -86,7 +86,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
     // Select lyric type based on selected lyrics choice
     const lyrics: string = lyricsChoice === LyricsChoice.Burmese ? song.burmese : song.romanized;
     // Extract lyric line to be asked randomly (2 if start or end, 3 if middle)
-    const lyricLines: string[] = lyrics.split("\n").filter(line => line.trim() !== "");
+    const lyricLines: string[] = lyrics.split("\n").filter(line => line.trim() !== "").map(line => line.replace(/^\[.*?\]/, "").trim());
     const lyricIndex: number = Math.floor(Math.random() * lyricLines.length);
     const lyricToAsk: string = lyricLines[lyricIndex];
     const lyricToAskNeighborsIndexes: number[] =
@@ -103,7 +103,7 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
     const randomLyrics: string[] = [];
     while (randomLyrics.length < 3) {
         const randomIndex = Math.floor(Math.random() * lyricLines.length);
-        const randomLyric = lyricLines[randomIndex].replace(/^\[.*?\]/, "").trim();
+        const randomLyric = lyricLines[randomIndex];
         if (!excludedLyrics.has(randomLyric)) {
             randomLyrics.push(randomLyric);
             excludedLyrics.add(randomLyric);
