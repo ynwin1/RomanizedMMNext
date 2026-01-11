@@ -26,9 +26,9 @@ export default async function RootLayout({
                                        params
                                    }: {
     children: React.ReactNode;
-    params: { locale: string };
+    params: Promise<{ locale: string }>;
 }) {
-    const { locale } = params;
+    const { locale } = await params;
 
     const eqMsgs: string[] = [
         "URGENT: Support Myanmar Earthquake Relief",

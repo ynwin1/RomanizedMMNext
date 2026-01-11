@@ -1,5 +1,25 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Game Modes',
+  description: 'All the music games on RomanizedMM; whether it\'s Guess The Lyrics or Guess The Song',
+  openGraph: {
+      title: 'Guess The Lyrics',
+      description: 'Test your knowledge of Myanmar songs by guessing the lyrics of the songs!',
+      images: [
+          {
+              url: 'https://i.imgur.com/epALhvr.png',
+              width: 800,
+              height: 600,
+              alt: 'Guess The Lyrics',
+          }
+      ],
+      type: 'website',
+      siteName: 'RomanizedMM',
+  }
+};
 
 export default async function GameModesPage() {
   const t = await getTranslations('GameModes');
@@ -26,7 +46,7 @@ export default async function GameModesPage() {
     <div className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center mb-12">{t('title')}</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
         {gameModes.map((game) => (
           <div 
             key={game.id}
