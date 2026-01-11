@@ -4,6 +4,7 @@ import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
 import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
 import {useTimer} from "react-timer-hook";
+import {GameMode} from "@/app/lib/constants";
 
 enum TriviaState {
     Start = 'start',
@@ -24,6 +25,8 @@ const Trivia = ({songs, minScore} : {songs: any[], minScore: number}) => {
 
     const translator = useTranslations("GuessTheLyrics");
 
+    const gameMode = GameMode.GuessTheLyrics;
+
     return (
         <div className="z-10">
             {triviaState === TriviaState.Start ?
@@ -39,7 +42,7 @@ const Trivia = ({songs, minScore} : {songs: any[], minScore: number}) => {
                             {translator("start")}
                         </button>
                     </div>
-                    <Leaderboard refresh={showSaveCard} />
+                    <Leaderboard refresh={showSaveCard} gameMode={gameMode} />
                 </div>
                 :
                 triviaState === TriviaState.Playing ?
@@ -65,7 +68,7 @@ const Trivia = ({songs, minScore} : {songs: any[], minScore: number}) => {
                             Restart
                         </button>
                         {/* Leaderboard */}
-                        <Leaderboard refresh={showSaveCard}/>
+                        <Leaderboard refresh={showSaveCard} gameMode={gameMode}/>
                     </div>
             }
         </div>

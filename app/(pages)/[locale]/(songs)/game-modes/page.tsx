@@ -37,8 +37,7 @@ export default async function GameModesPage() {
       title: t('guessSong.title'),
       description: t('guessSong.description'),
       href: 'guess-the-song',
-      color: 'from-blue-500 to-cyan-600',
-      disabled: true,
+      color: 'from-blue-500 to-cyan-600'
     },
   ];
 
@@ -50,29 +49,18 @@ export default async function GameModesPage() {
         {gameModes.map((game) => (
           <div 
             key={game.id}
-            className={`bg-gradient-to-br ${game.color} rounded-xl p-8 text-white shadow-lg transform transition-all hover:scale-105 ${
-              game.disabled ? 'opacity-70' : 'hover:shadow-2xl'
-            }`}
+            className={`bg-gradient-to-br ${game.color} rounded-xl p-8 text-white shadow-lg transform transition-all hover:scale-105`}
           >
             <div className="flex flex-col items-center text-center">
               <h2 className="text-2xl font-bold mb-3">{game.title}</h2>
               <p className="mb-6 text-white/90">{game.description}</p>
               
-              {game.disabled ? (
-                <button 
-                  disabled
-                  className="px-6 py-2 bg-white/20 rounded-lg text-white/80 cursor-not-allowed"
-                >
-                  {t('comingSoon')}
-                </button>
-              ) : (
-                <Link 
+                <Link       
                   href={`./game-modes/${game.href}`}
                   className="px-6 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                 >
-                  {t('play')}
+                  {t('start')}
                 </Link>
-              )}
             </div>
           </div>
         ))}

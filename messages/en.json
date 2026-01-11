@@ -86,7 +86,7 @@
       "title": "Guess The Song",
       "description": "Can you name that tune? Listen and guess the song"
     },
-    "play": "Play Now",
+    "start": "Play Now",
     "comingSoon": "Coming Soon"
   }
 }

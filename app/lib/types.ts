@@ -11,3 +11,9 @@ export enum ArtistType {
     Band = "Band",
     Studio = "Studio"
 }
+
+export enum TriviaState {
+    Start = 'start',
+    Playing = 'playing',
+    End = 'end'
+}
