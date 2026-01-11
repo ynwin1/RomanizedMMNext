@@ -88,5 +88,12 @@
     },
     "start": "ကစားမယ်",
     "comingSoon": "မကြာမီ"
+  },
+  "GuessTheSong": {
+    "nextSnippet": "တခြားအပိုင်း နားထောင်မယ်",
+    "skip": "ကျော်နေသည်...",
+    "loading": "Loading...",
+    "playing": "Now playing...",
+    "tap": "သီချင်းစရန် နှိပ်ပါ"
   }
 }

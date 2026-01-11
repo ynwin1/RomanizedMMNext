@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import ReactPlayer from "react-player/youtube";
+import { useTranslations } from "next-intl";
 
 interface AudioOnlyPlayerProps {
   url: string;
@@ -13,6 +14,7 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
   const [hasError, setHasError] = useState(false);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  const translator = useTranslations('GuessTheSong');
   const playRandomSnippet = () => {
     const player = playerRef.current;
     if (!player || !isReady) {
@@ -121,10 +123,10 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
   };
 
   const getStatusText = () => {
-    if (hasError) return "❌ Skipping (embedding disabled)...";
-    if (!isReady) return "⏳ Loading...";
-    if (isPlaying) return "🎵 Now playing...";
-    return "▶ Tap to play preview";
+    if (hasError) return `❌ ${translator('skip')}`;
+    if (!isReady) return `⏳ ${translator('loading')}`;
+    if (isPlaying) return `🎵 ${translator('playing')}`;
+    return `▶ ${translator('tap')}`;
   };
 
   // Cleanup on unmount
@@ -178,7 +180,7 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
           className="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors"
           onClick={playRandomSnippet}
         >
-          🔄 Next 15s snippet
+          🔄 {translator('nextSnippet')}
         </button>
       )}
     </div>

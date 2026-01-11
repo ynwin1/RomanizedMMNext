@@ -88,5 +88,12 @@
     },
     "start": "Play Now",
     "comingSoon": "Coming Soon"
+  },
+  "GuessTheSong": {
+    "nextSnippet": "Another 15s snippet",
+    "skip": "Skipping...",
+    "loading": "Loading...",
+    "playing": "Now playing...",
+    "tap": "Tap to play music"
   }
 }
