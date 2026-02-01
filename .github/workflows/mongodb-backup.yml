@@ -1,0 +1,33 @@
+name: MongoDB Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Runs daily at 2 AM UTC
+  workflow_dispatch:     # "Run workflow" button for manual backups
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install MongoDB Database Tools
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+
+      - name: Create backup
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: |
+          mkdir -p backup
+          mongodump --uri="$MONGO_URI" --out=./backup
+          tar -czf mongodb-backup-$(date +%Y%m%d-%H%M%S).tar.gz backup/
+
+      - name: Upload backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: mongodb-backup-${{ github.run_number }}
+          path: mongodb-backup-*.tar.gz
+          retention-days: 30  # backups for 30 days
