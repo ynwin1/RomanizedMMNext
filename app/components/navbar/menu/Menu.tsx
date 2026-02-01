@@ -52,8 +52,8 @@ const MenuOverlay = ({ close, locale }: { close: React.Dispatch<React.SetStateAc
                 <Link href={`/${locale}/song-request`} onClick={() => close(false)}>
                     <p className="text-xl font-bold hover:opacity-60">{translator("songRequest")}</p>
                 </Link>
-                <Link href={`/${locale}/guess-the-lyrics`} onClick={() => close(false)}>
-                    <p className="text-xl font-bold hover:opacity-60">{translator("guessTheLyrics")}</p>
+                <Link href={`/${locale}/game-modes`} onClick={() => close(false)}>
+                    <p className="text-xl font-bold hover:opacity-60">🎮 {translator("gameModes")}</p>
                 </Link>
                 <LanguageSwitcher/>
             </div>

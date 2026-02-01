@@ -12,7 +12,7 @@ const Footer = () => {
             <Link href={`https://github.com/ynwin1/RomanizedMMNext`} target="_blank">
                 <Image src="/github-icon.png" alt="github-icon" width={30} height={30} />
             </Link>
-            <p className="text-lg font-semibold max-md:text-[12px]">© 2025 RomanizedMM</p>
+            <p className="text-lg font-semibold max-md:text-[12px]">© 2026 RomanizedMM</p>
         </footer>
     )
 }

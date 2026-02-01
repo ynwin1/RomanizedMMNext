@@ -5,6 +5,7 @@ import Player from "@/app/components/video-player/Player";
 import connectDB from "@/app/lib/mongodb";
 import {Metadata} from "next";
 import {findMinimumTriviaScore} from "@/app/lib/action";
+import { GameMode } from "@/app/lib/constants";
 
 export const metadata: Metadata = {
     title: 'Guess The Lyrics',
@@ -28,10 +29,11 @@ export const metadata: Metadata = {
 const Page = async () => {
     let allSongs = [];
     let minScore = 0;
+    const gameMode: GameMode = GameMode.GuessTheLyrics;
     try {
         await connectDB();
         allSongs = await Song.find({}).select("songName romanized burmese -_id").lean();
-        minScore = await findMinimumTriviaScore();
+        minScore = await findMinimumTriviaScore(gameMode);
     } catch (e) {
         console.error(e);
         throw new Error("Failed to fetch songs in GuessTheLyrics. Please try again later.");

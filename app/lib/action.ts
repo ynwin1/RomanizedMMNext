@@ -6,6 +6,7 @@ import connectDB from "@/app/lib/mongodb";
 import TriviaScore from "@/app/model/TriviaScore";
 import {countryFlags} from "@/app/lib/utils";
 import Song from "@/app/model/Song";
+import { GameMode } from "@/app/lib/constants";
 
 const SongRequestForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
@@ -65,7 +66,8 @@ export type TriviaScoreState = {
 const TriviaScoreForm = z.object({
     userName: z.string().min(1, { message: "Name is required." }).max(15, { message: "Max 15 characters."}),
     country: z.string().min(1, { message: "Country is required." }),
-    score: z.number().min(1, { message: "Score is required." })
+    score: z.number().min(1, { message: "Score is required." }),
+    gameMode: z.nativeEnum(GameMode, { message: "Game mode is required." })
 });
 
 async function sendToDiscord(webhookUrl: string, message: any) {
@@ -201,7 +203,8 @@ export async function createTriviaScore(prevState: TriviaScoreState, formData: F
     const validatedFields = TriviaScoreForm.safeParse({
         userName: formData.get("userName"),
         country: formData.get("country"),
-        score: parseInt(formData.get("score") as string)
+        score: parseInt(formData.get("score") as string),
+        gameMode: formData.get("gameMode") as GameMode
     });
 
     if (!validatedFields.success) {
@@ -210,9 +213,9 @@ export async function createTriviaScore(prevState: TriviaScoreState, formData: F
         };
     }
 
-    const { userName, country, score } = validatedFields.data;
+    const { userName, country, score, gameMode } = validatedFields.data;
     try {
-        await saveScoreAction(userName, country, score);
+        await saveScoreAction(userName, country, score, gameMode);
         const resp: TriviaScoreState = { message: "Score saved successfully" };
         return resp;
     } catch (error) {
@@ -232,10 +235,10 @@ export async function fetchSongRequests() {
     }
 }
 
-export async function findMinimumTriviaScore() {
+export async function findMinimumTriviaScore(gameMode: GameMode) {
     try {
         await connectDB();
-        const result = await TriviaScore.find().sort({ score: 1 }).limit(1).lean();
+        const result = await TriviaScore.find({ gameMode }).sort({ score: 1 }).limit(1).lean();
         if (result.length === 0) {
             return 0;
         }
@@ -246,10 +249,10 @@ export async function findMinimumTriviaScore() {
     }
 }
 
-export async function fetchAllTriviaScores() {
+export async function fetchAllTriviaScores(gameMode: GameMode) {
     try {
         await connectDB();
-        const scores = await TriviaScore.find().sort({ score: -1 }).lean(); // sort by score in descending order
+        const scores = await TriviaScore.find({ gameMode }).sort({ score: -1 }).lean(); // sort by score in descending order
         return scores.map(score => ({
             ...score,
             _id: score._id.toString(),
@@ -293,7 +296,12 @@ export async function fetchLastCreatedSongs(limit: number = 5) {
     }
 }
 
-export async function saveScoreAction(userName: string, country: string, score: number) {
+export async function saveScoreAction(
+    userName: string, 
+    country: string, 
+    score: number,
+    gameMode: GameMode
+) {
     try {
         await connectDB();
 
@@ -302,13 +310,14 @@ export async function saveScoreAction(userName: string, country: string, score: 
         await TriviaScore.create({
             userName: userName,
             country: emoji,
-            score: score
+            score: score,
+            gameMode: gameMode
         });
 
         // remove the lowest score if there are more than 10 scores
-        const allScores = await fetchAllTriviaScores();
+        const allScores = await fetchAllTriviaScores(gameMode);
         if (allScores.length > 10) {
-            await TriviaScore.deleteOne({ _id: allScores[allScores.length - 1]._id });
+            await TriviaScore.deleteOne({ _id: allScores[allScores.length - 1]._id, gameMode: gameMode });
         }
 
         return { success: true };
