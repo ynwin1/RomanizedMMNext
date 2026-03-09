@@ -59,7 +59,8 @@
     "notifyEmail": "Notify Me (Optional)",
     "songsInQueue": "Songs in Queue",
     "submit": "Submit",
-    "lastCreatedSongs": "Songs Recently Added"
+    "lastCreatedSongs": "Songs Recently Added",
+    "stopMessage": "Song requests are temporarily suspended while I clear the backlog from the past months. Thank you for your patience!"
   },
   "SearchBar": {
     "search": "Type a song title..."

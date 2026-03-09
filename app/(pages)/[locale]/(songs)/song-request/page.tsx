@@ -38,15 +38,18 @@ const Page = async ({params} : SongRequestPageProps) => {
             <p className="text-lg w-[80vw] text-center">
                 {translator("request-proccessing")}
             </p>
-            <SongRequestForm/>
+            {/*<SongRequestForm/>*/}
 
             {/* Status */}
             <div className="flex flex-row items-center justify-center border-2 border-white rounded-2xl">
                 <label className="text-lg font-bold p-3">Status:</label>
                 <div className="flex flex-row items-center gap-x-2 p-3">
-                    <p className="text-base">Available</p>
-                    <div className="w-4 h-4 bg-green-500 rounded-full"/>
+                    <h3 className="text-base">Stopped</h3>
+                    <div className="w-4 h-4 bg-red-800 rounded-full"/>
                 </div>
+            </div>
+            <div className="flex flex-row items-center justify-center gap-x-8 p-8">
+                <p className="text-base">**{translator("stopMessage")}</p>
             </div>
 
             {/* Song Queue */}
