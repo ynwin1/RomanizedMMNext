@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export interface ArtistFormState {
   message?: string;
   errors?: Record<string, string[]>;
@@ -46,13 +44,4 @@ export function artistFormInput(form: FormData, create: boolean): Record<string,
 
   if (create) input.slug = form.get("slug");
   return input;
-}
-
-export function artistValidationErrors(error: z.ZodError): ArtistFormState {
-  const errors: Record<string, string[]> = {};
-  for (const issue of error.issues) {
-    const field = String(issue.path[0] ?? "form");
-    (errors[field] ??= []).push(issue.message);
-  }
-  return { message: "Please correct the highlighted fields.", errors };
 }

@@ -1,9 +1,14 @@
 import { AdminRequestQuerySchema } from "./song-request.admin-query";
 import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRequestDetail, AdminSongRequestRecord, SongRequestQueueItem } from "./song-request.dto";
-import type { CreateSongRequestInput, SongRequestEntity, SongRequestStatus } from "../domain/song-request.types";
+import type { SongRequestEntity, SongRequestStatus } from "../domain/song-request.types";
 import { ISongRequestRepository } from "./song-request.repository";
-import { SongRequestIdSchema, SongRequestRevisionSchema, SongRequestStatusSchema } from "./song-request.validation";
+import {
+  SongRequestIdSchema,
+  SongRequestInputSchema,
+  SongRequestRevisionSchema,
+  SongRequestStatusSchema,
+} from "./song-request.validation";
 import { SongRequestConflictError } from "./song-request-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 
@@ -19,8 +24,8 @@ export class SongRequestService {
     return this.requests.countAdmin(status);
   }
 
-  async create(input: CreateSongRequestInput): Promise<SongRequestEntity> {
-    return this.requests.create(input);
+  async create(input: unknown): Promise<SongRequestEntity> {
+    return this.requests.create(SongRequestInputSchema.parse(input));
   }
 
   async getQueue(): Promise<SongRequestQueueItem[]> {

@@ -1,8 +1,9 @@
-import { z } from "zod";
 import type { SongService } from "@/modules/songs/application/song.service";
+import { CreateSongSchema, UpdateSongCommandSchema } from "@/modules/songs/application/song.validation";
 import { DuplicateSongError, SongConflictError } from "@/modules/songs/application/song-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
-import { songFormInput, songValidationErrors, type SongFormState } from "./song-form.data";
+import { prepareValidatedWrite } from "@/shared/write/validated-write";
+import { songFormInput, type SongFormState } from "./song-form.data";
 
 export function createSongActionHandler(dependencies: {
   authorize: () => Promise<unknown>;
@@ -11,25 +12,44 @@ export function createSongActionHandler(dependencies: {
   logFailure: (error: unknown) => void;
 }) {
   function failure(error: unknown): SongFormState {
-    if (error instanceof z.ZodError) return songValidationErrors(error);
     if (error instanceof DuplicateSongError || error instanceof SongConflictError || error instanceof NotFoundError)
       return { message: error.message };
     dependencies.logFailure(error);
     return { message: "Unable to save the song. Please try again." };
   }
+
   return {
     async create(_previous: SongFormState, form: FormData): Promise<SongFormState> {
-      await dependencies.authorize();
+      const prepared = await prepareValidatedWrite({
+        parse: () => songFormInput(form, true),
+        schema: CreateSongSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
+
       let id: number;
-      try { id = (await dependencies.songs.createSong(songFormInput(form, true))).mmid; }
-      catch (error) { return failure(error); }
+      try {
+        id = (await dependencies.songs.createSong(prepared.value)).mmid;
+      } catch (error) {
+        return failure(error);
+      }
       return dependencies.saved(id);
     },
+
     async update(id: number, revision: number, _previous: SongFormState, form: FormData): Promise<SongFormState> {
-      await dependencies.authorize();
-      try { await dependencies.songs.updateSong(id, revision, songFormInput(form, false)); }
-      catch (error) { return failure(error); }
-      return dependencies.saved(id);
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ id, revision, input: songFormInput(form, false) }),
+        schema: UpdateSongCommandSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
+
+      try {
+        await dependencies.songs.updateSong(prepared.value.id, prepared.value.revision, prepared.value.input);
+      } catch (error) {
+        return failure(error);
+      }
+      return dependencies.saved(prepared.value.id);
     },
   };
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 const text = z.string().trim().min(1).max(500);
 const optionalText = z.string().max(100000).optional();
 const slug = z.string().trim().min(1).max(200).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a lowercase artist slug");
@@ -47,5 +48,12 @@ export const CreateArtistSchema = ArtistContentSchema.extend({
   likes: z.coerce.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
 }).strict();
 
+export const UpdateArtistCommandSchema = z.object({
+  slug: ArtistSlugSchema,
+  revision: ArtistRevisionSchema,
+  input: ArtistContentSchema,
+}).strict();
+
 export type ArtistContentInput = z.infer<typeof ArtistContentSchema>;
 export type CreateArtistInput = z.infer<typeof CreateArtistSchema>;
+export type UpdateArtistCommand = z.infer<typeof UpdateArtistCommandSchema>;
