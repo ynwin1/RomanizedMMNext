@@ -2,9 +2,9 @@ import React from 'react';
 import Trivia from "@/app/components/guess-the-lyrics/Trivia";
 import Player from "@/app/components/video-player/Player";
 import {Metadata} from "next";
-import {findMinimumTriviaScore} from "@/app/lib/action";
 import { GameMode } from "@/app/lib/constants";
 import {songService} from "@/modules/songs";
+import {triviaService} from "@/modules/trivia";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ const Page = async () => {
     const gameMode: GameMode = GameMode.GuessTheLyrics;
     try {
         allSongs = await songService.getGuessLyricsSongs();
-        minScore = await findMinimumTriviaScore(gameMode);
+        minScore = await triviaService.getMinimumScore(gameMode);
     } catch (e) {
         console.error(e);
         throw new Error("Failed to fetch songs in GuessTheLyrics. Please try again later.");
