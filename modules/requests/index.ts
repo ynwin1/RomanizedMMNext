@@ -7,3 +7,5 @@ export const songRequestService = new SongRequestService(songRequestRepository);
 
 export * from "./domain/song-request.types";
 export * from "./application/song-request.dto";
+
+export * from "./application/song-request.validation";

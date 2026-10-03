@@ -1,9 +1,22 @@
-import { songRequestService, CreateSongRequestInput } from "@/modules/requests";
+import { songRequestService, SongRequestInputSchema } from "@/modules/requests";
 import { sendDiscordNotification } from "@/integrations/notifications/discord-notification.adapter";
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.json() as CreateSongRequestInput;
+    const payload = await req.json();
+    const validatedFields = SongRequestInputSchema.safeParse(payload);
+
+    if (!validatedFields.success) {
+      return Response.json(
+        {
+          error: "Invalid song request",
+          fields: validatedFields.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
+    }
+
+    const formData = validatedFields.data;
     const songRequest = await songRequestService.create(formData);
 
     const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
