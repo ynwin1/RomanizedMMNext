@@ -1,9 +1,8 @@
 "use server";
 
-import { z } from "zod";
 import { GameMode } from "@/app/lib/constants";
 import { countryFlags } from "@/app/lib/utils";
-import { triviaService } from "@/modules/trivia";
+import { triviaService, TriviaScoreInputSchema } from "@/modules/trivia";
 
 export type TriviaScoreState = {
   errors?: {
@@ -14,18 +13,11 @@ export type TriviaScoreState = {
   message?: string;
 };
 
-const TriviaScoreForm = z.object({
-  userName: z.string().min(1, { message: "Name is required." }).max(15, { message: "Max 15 characters." }),
-  country: z.string().min(1, { message: "Country is required." }),
-  score: z.number().min(1, { message: "Score is required." }),
-  gameMode: z.nativeEnum(GameMode, { message: "Game mode is required." }),
-});
-
 export async function createTriviaScore(
   prevState: TriviaScoreState,
   formData: FormData,
 ) {
-  const validatedFields = TriviaScoreForm.safeParse({
+  const validatedFields = TriviaScoreInputSchema.safeParse({
     userName: formData.get("userName"),
     country: formData.get("country"),
     score: parseInt(formData.get("score") as string),

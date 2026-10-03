@@ -127,3 +127,24 @@ test("song request action redirects to error when persistence fails", async (t) 
     }
   }
 });
+
+
+test("song request action uses shared validation for invalid email", async () => {
+  const formData = requestFormData();
+  formData.set("notifyEmail", "invalid-email");
+
+  const result = await createSongRequest("en", {}, formData);
+
+  assert.equal(result?.message, "Missing Fields, Failed to Create Song Request.");
+  assert.deepEqual(result?.errors?.notifyEmail, ["Invalid email address."]);
+});
+
+test("trivia action uses shared validation for invalid score", async () => {
+  const formData = triviaFormData();
+  formData.set("score", "0");
+
+  const result = await createTriviaScore({}, formData);
+
+  assert.equal(result.message, "Please fill out all the required fields. Try Again!");
+  assert.deepEqual(result.errors?.score, ["Score is required."]);
+});

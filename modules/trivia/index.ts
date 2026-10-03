@@ -6,3 +6,5 @@ const triviaRepository = new MongoTriviaRepository();
 export const triviaService = new TriviaService(triviaRepository);
 
 export * from "./domain/trivia.types";
+
+export * from "./application/trivia.validation";

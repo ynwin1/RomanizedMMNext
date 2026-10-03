@@ -1,26 +1,8 @@
 "use server";
 
-import { z } from "zod";
 import { redirect } from "next/navigation";
-import { songRequestService } from "@/modules/requests";
+import { songRequestService, SongRequestInputSchema } from "@/modules/requests";
 import { sendDiscordNotification } from "@/integrations/notifications/discord-notification.adapter";
-
-const SongRequestForm = z.object({
-  songName: z.string().min(1, { message: "Song Name is required." }),
-  artist: z.string().min(1, { message: "Artist is required." }),
-  youtubeLink: z.string().optional(),
-  details: z.string().optional(),
-  requestedBy: z.string().optional(),
-  songStory: z.string().optional().refine(
-    (value) => !value || value.trim().split(/\s+/).length <= 50,
-    { message: "50 words maximum" },
-  ),
-  notifyEmail: z
-    .string()
-    .optional()
-    .transform((val) => (val === "" ? undefined : val))
-    .pipe(z.string().email({ message: "Invalid email address." }).optional()),
-});
 
 export type SongRequestState = {
   errors?: {
@@ -40,7 +22,7 @@ export async function createSongRequest(
   prevState: SongRequestState,
   formData: FormData,
 ) {
-  const validatedFields = SongRequestForm.safeParse({
+  const validatedFields = SongRequestInputSchema.safeParse({
     songName: formData.get("songName") as string,
     artist: formData.get("artist") as string,
     youtubeLink: formData.get("youtubeLink") as string,

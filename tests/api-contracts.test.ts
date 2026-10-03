@@ -307,3 +307,57 @@ test("request API returns 500 when persistence fails", async (t) => {
     }
   }
 });
+
+
+test("request API rejects missing required fields before persistence", async (t) => {
+  let createCalls = 0;
+  t.mock.method(songRequestService, "create", async () => {
+    createCalls += 1;
+    throw new Error("should not be called");
+  });
+
+  const response = await requestPOST(new Request("https://example.com/api/song-request", {
+    method: "POST",
+    body: JSON.stringify({ artist: "Artist" }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.error, "Invalid song request");
+  assert.ok(Array.isArray(body.fields.songName));
+  assert.ok(body.fields.songName.length > 0);
+  assert.equal(createCalls, 0);
+});
+
+test("request API rejects invalid notification email", async () => {
+  const response = await requestPOST(new Request("https://example.com/api/song-request", {
+    method: "POST",
+    body: JSON.stringify({
+      songName: "Song",
+      artist: "Artist",
+      notifyEmail: "not-an-email",
+    }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.deepEqual(body.fields.notifyEmail, ["Invalid email address."]);
+});
+
+test("request API rejects song stories longer than 50 words", async () => {
+  const response = await requestPOST(new Request("https://example.com/api/song-request", {
+    method: "POST",
+    body: JSON.stringify({
+      songName: "Song",
+      artist: "Artist",
+      songStory: Array.from({ length: 51 }, () => "word").join(" "),
+    }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.deepEqual(body.fields.songStory, ["50 words maximum"]);
+});
