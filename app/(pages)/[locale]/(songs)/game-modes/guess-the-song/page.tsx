@@ -6,6 +6,8 @@ import {findMinimumTriviaScore} from "@/app/lib/action";
 import { GameMode } from "@/app/lib/constants";
 import {songService} from "@/modules/songs";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
     title: 'Guess The Song',
     description: 'Test your knowledge of Myanmar songs by guessing the songs!',
