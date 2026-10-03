@@ -34,6 +34,9 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
   return {
     listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
     countAdmin: async () => 0,
+    create: async input => ({ id: "song-1", ...input }),
+    update: async () => song,
+    findForEdit: async () => ({ ...song, revision: 0 }),
     findByMmid: async () => song,
     searchByTitle: async () => [],
     findRandom: async () => null,

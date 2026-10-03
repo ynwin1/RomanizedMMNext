@@ -1,3 +1,4 @@
+import type { SongEntity } from "../domain/song.types";
 import { SongArtist } from "../domain/song.types";
 
 export interface SongSearchResult {
@@ -49,4 +50,8 @@ export interface AdminSongRecord {
   artistName: SongArtist[];
   genre: string;
   createdAt?: Date;
+}
+
+export interface SongEditRecord extends SongEntity {
+  revision: number;
 }
