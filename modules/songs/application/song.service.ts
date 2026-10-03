@@ -1,3 +1,6 @@
+import { AdminListQuerySchema, type AdminListQuery } from "@/shared/admin-list";
+import type { AdminPage } from "@/shared/admin-list";
+import type { AdminSongRecord } from "./song.dto";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { SongEntity } from "../domain/song.types";
 import {
@@ -13,6 +16,16 @@ import { ISongRepository } from "./song.repository";
 
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}
+
+  async getAdminList(input: unknown = {}): Promise<AdminPage<AdminSongRecord>> {
+    const query = AdminListQuerySchema.parse(input);
+    return this.songs.listAdmin(query);
+  }
+
+  async getAdminCount(): Promise<number> {
+    
+    return this.songs.countAdmin();
+  }
 
   async getByMmid(mmid: number): Promise<SongEntity> {
     const song = await this.songs.findByMmid(mmid);

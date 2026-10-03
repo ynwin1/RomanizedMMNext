@@ -1,3 +1,6 @@
+import { adminPage, type AdminPage, type AdminListQuery } from "@/shared/admin-list";
+import { literalSearch } from "@/shared/literal-search";
+import type { AdminArtistRecord } from "../application/artist.dto";
 import connectDB from "@/infrastructure/database/mongodb";
 import Artist, { type IArtist } from "./artist.model";
 import { IArtistRepository } from "../application/artist.repository";
@@ -28,6 +31,22 @@ function toEntity(artist: ArtistPersistenceRecord): ArtistEntity {
 }
 
 export class MongoArtistRepository implements IArtistRepository {
+  async countAdmin(): Promise<number> {
+    await connectDB();
+    return Artist.countDocuments({});
+  }
+
+  async listAdmin(query: AdminListQuery): Promise<AdminPage<AdminArtistRecord>> {
+    await connectDB();
+    const filter = query.q ? { $or: [{ "name": literalSearch(query.q) }, { "slug": literalSearch(query.q) }] } : {};
+    const [rows, total] = await Promise.all([
+      Artist.find(filter).sort({ name: 1, _id: 1 }).skip((query.page - 1) * query.limit)
+        .limit(query.limit).select("name slug type musicGenre songs -_id").lean(),
+      Artist.countDocuments(filter),
+    ]);
+    return adminPage(rows.map(row => ({ name: row.name, slug: row.slug, type: row.type, musicGenre: row.musicGenre ?? [], songCount: row.songs?.length ?? 0 })), total, query);
+  }
+
   async findBySlug(slug: string): Promise<ArtistEntity | null> {
     await connectDB();
     const artist = await Artist.findOne({ slug }).lean();

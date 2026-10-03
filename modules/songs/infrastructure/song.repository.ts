@@ -1,3 +1,6 @@
+import { adminPage, type AdminPage, type AdminListQuery } from "@/shared/admin-list";
+import { literalSearch } from "@/shared/literal-search";
+import type { AdminSongRecord } from "../application/song.dto";
 import connectDB from "@/infrastructure/database/mongodb";
 import Song, { type ISong } from "./song.model";
 import { ISongRepository } from "../application/song.repository";
@@ -42,6 +45,22 @@ function toEntity(song: SongPersistenceRecord): SongEntity {
 }
 
 export class MongoSongRepository implements ISongRepository {
+  async countAdmin(): Promise<number> {
+    await connectDB();
+    return Song.countDocuments({});
+  }
+
+  async listAdmin(query: AdminListQuery): Promise<AdminPage<AdminSongRecord>> {
+    await connectDB();
+    const filter = query.q ? { $or: [{ "songName": literalSearch(query.q) }, { "artistName.name": literalSearch(query.q) }] } : {};
+    const [rows, total] = await Promise.all([
+      Song.find(filter).sort({ createdAt: -1, _id: -1 }).skip((query.page - 1) * query.limit)
+        .limit(query.limit).select("mmid songName artistName genre createdAt -_id").lean(),
+      Song.countDocuments(filter),
+    ]);
+    return adminPage(rows.map(row => ({ mmid: row.mmid, songName: row.songName, artistName: row.artistName ?? [], genre: row.genre, createdAt: row.createdAt })), total, query);
+  }
+
   async findByMmid(mmid: number): Promise<SongEntity | null> {
     await connectDB();
     const song = await Song.findOne({ mmid }).lean();

@@ -32,6 +32,8 @@ const song: SongEntity = {
 
 function songRepository(overrides: Partial<ISongRepository> = {}): ISongRepository {
   return {
+    listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
+    countAdmin: async () => 0,
     findByMmid: async () => song,
     searchByTitle: async () => [],
     findRandom: async () => null,
@@ -89,6 +91,8 @@ const artist: ArtistEntity = {
 
 function artistRepository(overrides: Partial<IArtistRepository> = {}): IArtistRepository {
   return {
+    listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
+    countAdmin: async () => 0,
     findBySlug: async () => artist,
     findFirstBySlugs: async () => artist,
     listCatalogue: async () => ({ artists: [], totalPages: 0 }),
@@ -131,6 +135,8 @@ test("request submission smoke: SongRequestService delegates creation", async ()
       return created;
     },
     listQueue: async () => [],
+    listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
+    countAdmin: async () => 0,
   };
 
   const service = new SongRequestService(repository);
@@ -258,4 +264,29 @@ test("analytics service requests the top 10 countries by default", async () => {
 
   assert.deepEqual(await service.getTopCountries(), expected);
   assert.equal(receivedLimit, 10);
+});
+
+test("admin module services validate queries before repository access", async () => {
+  let calls = 0;
+  const listAdmin = async () => { calls += 1; return { items: [], total: 0, page: 1, limit: 20, totalPages: 0 }; };
+  const services = [
+    new SongService(songRepository({ listAdmin })),
+    new ArtistService(artistRepository({ listAdmin })),
+    new SongRequestService({ create: async input => ({ id: "r", ...input }), listQueue: async () => [], listAdmin, countAdmin: async () => 0 }),
+  ];
+  for (const service of services) await assert.rejects(() => service.getAdminList({ page: -1 }));
+  assert.equal(calls, 0);
+  for (const service of services) await service.getAdminList({});
+  assert.equal(calls, 3);
+});
+
+test("request service rejects unsupported admin statuses before querying", async () => {
+  let calls = 0;
+  const service = new SongRequestService({
+    create: async input => ({ id: "r", ...input }), listQueue: async () => [],
+    listAdmin: async () => { calls += 1; return { items: [], total: 0, page: 1, limit: 20, totalPages: 0 }; },
+    countAdmin: async () => { calls += 1; return 0; },
+  });
+  await assert.rejects(() => service.getAdminList({ status: "reviewing" }));
+  assert.equal(calls, 0);
 });
