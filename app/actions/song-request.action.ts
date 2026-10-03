@@ -68,9 +68,6 @@ export async function createSongRequest(
   } = validatedFields.data;
 
   const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
-  if (!discordWebhook) {
-    return { message: "Discord webhook URL is not set" };
-  }
 
   let redirectPath: string | null = null;
   let message = "";
@@ -93,9 +90,15 @@ export async function createSongRequest(
       notifyEmail: email,
     });
 
-    await sendDiscordNotification(discordWebhook, {
-      content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nRequested By: ${reqBy}\nSong Story: ${songStr}\nNotify Email: ${email}`,
-    });
+    if (discordWebhook) {
+      try {
+        await sendDiscordNotification(discordWebhook, {
+          content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nRequested By: ${reqBy}\nSong Story: ${songStr}\nNotify Email: ${email}`,
+        });
+      } catch (error) {
+        console.error("Failed to send song request notification to Discord:", error);
+      }
+    }
 
     message = "Song request submitted successfully";
     redirectPath = `/${locale}/song-request/success`;

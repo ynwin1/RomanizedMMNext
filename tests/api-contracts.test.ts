@@ -84,9 +84,18 @@ test("artist API returns 404 for missing artist", async (t) => {
   assert.deepEqual(await response.json(), { error: "Artist not found" });
 });
 
-test("request API returns 500 when Discord webhook is not configured", async () => {
+test("request API succeeds when Discord webhook is not configured after persistence", async (t) => {
   const previous = process.env.DISCORD_SONG_REQ_WEBHOOK;
   delete process.env.DISCORD_SONG_REQ_WEBHOOK;
+
+  const created = {
+    id: "request-id",
+    songName: "Song",
+    artist: "Artist",
+    status: "pending" as const,
+  };
+
+  t.mock.method(songRequestService, "create", async () => created);
 
   try {
     const response = await requestPOST(new Request("https://example.com/api/song-request", {
@@ -95,8 +104,15 @@ test("request API returns 500 when Discord webhook is not configured", async () 
       headers: { "Content-Type": "application/json" },
     }));
 
-    assert.equal(response.status, 500);
-    assert.deepEqual(await response.json(), { error: "Discord webhook URL is not set" });
+    assert.equal(response.status, 201);
+    assert.deepEqual(await response.json(), {
+      songRequest: {
+        _id: "request-id",
+        songName: "Song",
+        artist: "Artist",
+        status: "pending",
+      },
+    });
   } finally {
     if (previous === undefined) {
       delete process.env.DISCORD_SONG_REQ_WEBHOOK;
@@ -221,4 +237,73 @@ test("track-country API keeps the existing failure response shape on service err
   assert.deepEqual(await response.json(), {
     error: "Failed to create country stat with error - Error: database unavailable",
   });
+});
+
+
+test("request API succeeds when Discord notification fails after persistence", async (t) => {
+  const previous = process.env.DISCORD_SONG_REQ_WEBHOOK;
+  process.env.DISCORD_SONG_REQ_WEBHOOK = "https://discord.example/webhook";
+
+  const created = {
+    id: "request-id",
+    songName: "Song",
+    artist: "Artist",
+    status: "pending" as const,
+  };
+
+  t.mock.method(songRequestService, "create", async () => created);
+  t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 500 }));
+
+  try {
+    const response = await requestPOST(new Request("https://example.com/api/song-request", {
+      method: "POST",
+      body: JSON.stringify({ songName: "Song", artist: "Artist" }),
+      headers: { "Content-Type": "application/json" },
+    }));
+
+    assert.equal(response.status, 201);
+    assert.deepEqual(await response.json(), {
+      songRequest: {
+        _id: "request-id",
+        songName: "Song",
+        artist: "Artist",
+        status: "pending",
+      },
+    });
+  } finally {
+    if (previous === undefined) {
+      delete process.env.DISCORD_SONG_REQ_WEBHOOK;
+    } else {
+      process.env.DISCORD_SONG_REQ_WEBHOOK = previous;
+    }
+  }
+});
+
+
+test("request API returns 500 when persistence fails", async (t) => {
+  const previous = process.env.DISCORD_SONG_REQ_WEBHOOK;
+  delete process.env.DISCORD_SONG_REQ_WEBHOOK;
+
+  t.mock.method(songRequestService, "create", async () => {
+    throw new Error("database unavailable");
+  });
+
+  try {
+    const response = await requestPOST(new Request("https://example.com/api/song-request", {
+      method: "POST",
+      body: JSON.stringify({ songName: "Song", artist: "Artist" }),
+      headers: { "Content-Type": "application/json" },
+    }));
+
+    assert.equal(response.status, 500);
+    assert.deepEqual(await response.json(), {
+      error: "Failed to create song request with error - Error: database unavailable",
+    });
+  } finally {
+    if (previous === undefined) {
+      delete process.env.DISCORD_SONG_REQ_WEBHOOK;
+    } else {
+      process.env.DISCORD_SONG_REQ_WEBHOOK = previous;
+    }
+  }
 });
