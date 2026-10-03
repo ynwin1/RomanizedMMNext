@@ -1,8 +1,9 @@
-import { z } from "zod";
 import type { ArtistService } from "@/modules/artists/application/artist.service";
+import { CreateArtistSchema, UpdateArtistCommandSchema } from "@/modules/artists/application/artist.validation";
 import { ArtistConflictError, DuplicateArtistError } from "@/modules/artists/application/artist-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
-import { artistFormInput, artistValidationErrors, type ArtistFormState } from "./artist-form.data";
+import { prepareValidatedWrite } from "@/shared/write/validated-write";
+import { artistFormInput, type ArtistFormState } from "./artist-form.data";
 
 export function createArtistActionHandler(dependencies: {
   authorize: () => Promise<unknown>;
@@ -11,7 +12,6 @@ export function createArtistActionHandler(dependencies: {
   logFailure: (error: unknown) => void;
 }) {
   function failure(error: unknown): ArtistFormState {
-    if (error instanceof z.ZodError) return artistValidationErrors(error);
     if (error instanceof DuplicateArtistError || error instanceof ArtistConflictError || error instanceof NotFoundError) {
       return { message: error.message };
     }
@@ -21,18 +21,36 @@ export function createArtistActionHandler(dependencies: {
 
   return {
     async create(_previous: ArtistFormState, form: FormData): Promise<ArtistFormState> {
-      await dependencies.authorize();
+      const prepared = await prepareValidatedWrite({
+        parse: () => artistFormInput(form, true),
+        schema: CreateArtistSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
+
       let slug: string;
-      try { slug = (await dependencies.artists.createArtist(artistFormInput(form, true))).slug; }
-      catch (error) { return failure(error); }
+      try {
+        slug = (await dependencies.artists.createArtist(prepared.value)).slug;
+      } catch (error) {
+        return failure(error);
+      }
       return dependencies.saved(slug);
     },
 
     async update(slug: string, revision: number, _previous: ArtistFormState, form: FormData): Promise<ArtistFormState> {
-      await dependencies.authorize();
-      try { await dependencies.artists.updateArtist(slug, revision, artistFormInput(form, false)); }
-      catch (error) { return failure(error); }
-      return dependencies.saved(slug);
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ slug, revision, input: artistFormInput(form, false) }),
+        schema: UpdateArtistCommandSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
+
+      try {
+        await dependencies.artists.updateArtist(prepared.value.slug, prepared.value.revision, prepared.value.input);
+      } catch (error) {
+        return failure(error);
+      }
+      return dependencies.saved(prepared.value.slug);
     },
   };
 }

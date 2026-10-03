@@ -12,9 +12,17 @@ export const SongRequestInputSchema = z.object({
   ),
   notifyEmail: z.string().optional().transform(val => val === "" ? undefined : val)
     .pipe(z.string().email({ message: "Invalid email address." }).optional()),
-});
+}).strict();
 
 export const SongRequestIdSchema = z.string().regex(/^[a-f\d]{24}$/i, "Invalid request id");
 export const SongRequestRevisionSchema = z.coerce.number().int().min(0).max(Number.MAX_SAFE_INTEGER);
 export const SongRequestStatusSchema = z.enum(["pending", "reviewing", "accepted", "rejected", "completed"]);
+
+export const UpdateSongRequestStatusCommandSchema = z.object({
+  id: SongRequestIdSchema,
+  revision: SongRequestRevisionSchema,
+  status: SongRequestStatusSchema,
+}).strict();
+
 export type ManagedSongRequestStatus = z.infer<typeof SongRequestStatusSchema>;
+export type UpdateSongRequestStatusCommand = z.infer<typeof UpdateSongRequestStatusCommandSchema>;
