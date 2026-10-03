@@ -72,19 +72,12 @@ async function saveScoreAction(
   score: number,
   gameMode: GameMode,
 ) {
-  try {
-    const emoji = countryFlags[country] || "🌎";
+  const emoji = countryFlags[country] || "🌎";
 
-    await triviaService.saveScore({
-      userName,
-      country: emoji,
-      score,
-      gameMode,
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Failed to save score:", error);
-    return { success: false };
-  }
+  await triviaService.saveScore({
+    userName,
+    country: emoji,
+    score,
+    gameMode,
+  });
 }
