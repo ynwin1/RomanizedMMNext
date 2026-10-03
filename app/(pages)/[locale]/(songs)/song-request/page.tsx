@@ -1,10 +1,11 @@
 import React from 'react'
 import SongRequestForm from "@/app/components/forms/SongRequestForm";
-import {fetchSongRequests, fetchLastCreatedSongs} from "@/app/lib/action";
 import {Metadata} from "next";
 import {getTranslations} from "next-intl/server";
 import Link from "next/link";
 import {extractSongName, formatSongNameForURL} from "@/app/lib/utils";
+import {songRequestService} from "@/modules/requests";
+import {songService} from "@/modules/songs";
 
 export const metadata: Metadata = {
     title: 'Song Request',
@@ -19,8 +20,8 @@ export const revalidate = 0;
 
 const Page = async ({params} : SongRequestPageProps) => {
     const { locale } = await params;
-    const songRequests = await fetchSongRequests();
-    const lastAddedSongs = await fetchLastCreatedSongs();
+    const songRequests = await songRequestService.getQueue();
+    const lastAddedSongs = await songService.getLatestSongs(5);
     const translator = await getTranslations("SongRequestPage");
 
     function buildSongNameForURL(songName: string) {

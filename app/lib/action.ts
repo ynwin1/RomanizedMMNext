@@ -1,12 +1,13 @@
 "use server";
 import { z } from "zod";
 import {redirect} from "next/navigation";
-import SongRequest from "@/app/model/SongRequest";
 import connectDB from "@/app/lib/mongodb";
 import TriviaScore from "@/app/model/TriviaScore";
 import {countryFlags} from "@/app/lib/utils";
 import {songService} from "@/modules/songs";
 import { GameMode } from "@/app/lib/constants";
+import {songRequestService} from "@/modules/requests";
+import {sendDiscordNotification} from "@/integrations/notifications/discord-notification.adapter";
 
 const SongRequestForm = z.object({
     songName: z.string().min(1, { message: "Song Name is required." }),
@@ -70,20 +71,6 @@ const TriviaScoreForm = z.object({
     gameMode: z.nativeEnum(GameMode, { message: "Game mode is required." })
 });
 
-async function sendToDiscord(webhookUrl: string, message: any) {
-    const resp = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(message)
-    });
-
-    if (!resp.ok) {
-        throw new Error('Failed to send song request/report to Discord!');
-    }
-}
-
 export async function createSongRequest(locale: string, prevState: State, formData: FormData) {
     const validatedFields = SongRequestForm.safeParse({
         songName: formData.get("songName") as string,
@@ -132,8 +119,7 @@ export async function createSongRequest(locale: string, prevState: State, formDa
     const songStr = songStory ? songStory : notProvided;
 
     try {
-        await connectDB();
-        await SongRequest.create({
+        await songRequestService.create({
             songName,
             artist,
             youtubeLink: ytLink,
@@ -146,7 +132,7 @@ export async function createSongRequest(locale: string, prevState: State, formDa
         const discordMessage = {
             content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nRequested By: ${reqBy}\nSong Story: ${songStr}\nNotify Email: ${email}`
         };
-        await sendToDiscord(discordWebhook, discordMessage);
+        await sendDiscordNotification(discordWebhook, discordMessage);
         message = "Song request submitted successfully";
         redirectPath = `/${locale}/song-request/success`;
     } catch (error) {
@@ -189,7 +175,7 @@ export async function createSongReport(prevState: ReportState, formData: FormDat
         const discordMessage = {
             content: `Song Name: ${songName}\nArtist: ${artist}\nDetails: ${details}`
         };
-        await sendToDiscord(discordWebhook, discordMessage);
+        await sendDiscordNotification(discordWebhook, discordMessage);
 
         // return success message no redirect
         return { message: "Report submitted successfully ✅" };
@@ -222,16 +208,6 @@ export async function createTriviaScore(prevState: TriviaScoreState, formData: F
         console.error(`Error when saving score - ${(error as Error).message}`);
         const resp: TriviaScoreState = { message: "Failed to save score. Please try again!", errors: {} };
         return resp;
-    }
-}
-
-export async function fetchSongRequests() {
-    try {
-        await connectDB();
-        return await SongRequest.find().select("songName artist -_id").lean();
-    } catch (error) {
-        console.error(error);
-        return [];
     }
 }
 
