@@ -1,19 +1,5 @@
-import SongRequest from "@/app/model/SongRequest";
-import connectDB from "@/app/lib/mongodb";
-
-async function sendToDiscord(webhookUrl: string, message: any) {
-    const resp = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(message)
-    });
-
-    if (!resp.ok) {
-        throw new Error('Failed to send song request to Discord!');
-    }
-}
+import {songRequestService, CreateSongRequestInput} from "@/modules/requests";
+import {sendDiscordNotification} from "@/integrations/notifications/discord-notification.adapter";
 
 export async function POST(req: Request) {
     const discordWebhook = process.env.DISCORD_SONG_REQ_WEBHOOK;
@@ -23,16 +9,16 @@ export async function POST(req: Request) {
     }
 
     try {
-        await connectDB();
-        const formData = await req.json();
+        const formData = await req.json() as CreateSongRequestInput;
         const discordMessage = {
             content: `Song Name: ${formData.songName}\nArtist: ${formData.artist}\nYouTube Link: ${formData.youtubeLink}\nDetails: ${formData.details}`
         };
 
-        const songRequest = await SongRequest.create(formData);
-        await sendToDiscord(discordWebhook, discordMessage);
+        const songRequest = await songRequestService.create(formData);
+        await sendDiscordNotification(discordWebhook, discordMessage);
 
-        return Response.json({ songRequest }, { status: 201 });
+        const { id, ...requestData } = songRequest;
+        return Response.json({ songRequest: { _id: id, ...requestData } }, { status: 201 });
     } catch (error) {
         return Response.json({ error: `Failed to create song request with error - ${error}` }, { status: 500 });
     }
