@@ -5,11 +5,13 @@ import { songService } from "@/modules/songs";
 import { artistService } from "@/modules/artists";
 import { songRequestService } from "@/modules/requests";
 import { NotFoundError } from "@/shared/errors/not-found.error";
+import { analyticsService } from "@/modules/analytics";
 
 import { GET as searchGET } from "@/app/api/song/search/route";
 import { GET as randomGET } from "@/app/api/song/random/route";
 import { GET as artistGET } from "@/app/api/artist/[slug]/route";
 import { POST as requestPOST } from "@/app/api/song-request/route";
+import { POST as trackCountryPOST } from "@/app/api/track-country/route";
 
 test("search API returns 400 when query is missing", async () => {
   const response = await searchGET(new Request("https://example.com/api/song/search"));
@@ -150,4 +152,73 @@ test("request submission API preserves create + Discord success contract", async
       process.env.DISCORD_SONG_REQ_WEBHOOK = previous;
     }
   }
+});
+
+
+test("track-country API rejects missing or unknown country", async () => {
+  const response = await trackCountryPOST(new Request("https://example.com/api/track-country", {
+    method: "POST",
+    body: JSON.stringify({ country: "Unknown", country_code: "XX" }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "Invalid country name" });
+});
+
+test("track-country API preserves its success response contract", async (t) => {
+  t.mock.method(analyticsService, "trackCountry", async () => ({
+    id: "mongo-id",
+    country: "Canada",
+    code: "CA",
+    count: 9,
+  }));
+
+  const response = await trackCountryPOST(new Request("https://example.com/api/track-country", {
+    method: "POST",
+    body: JSON.stringify({ country: "Canada", country_code: "CA" }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 201);
+  assert.deepEqual(await response.json(), {
+    countryStat: {
+      _id: "mongo-id",
+      country: "Canada",
+      code: "CA",
+      count: 9,
+    },
+  });
+});
+
+test("track-country API returns 500 when repository returns no stat", async (t) => {
+  t.mock.method(analyticsService, "trackCountry", async () => null);
+
+  const response = await trackCountryPOST(new Request("https://example.com/api/track-country", {
+    method: "POST",
+    body: JSON.stringify({ country: "Canada", country_code: "CA" }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    error: "Failed to create country stat with db error",
+  });
+});
+
+test("track-country API keeps the existing failure response shape on service errors", async (t) => {
+  t.mock.method(analyticsService, "trackCountry", async () => {
+    throw new Error("database unavailable");
+  });
+
+  const response = await trackCountryPOST(new Request("https://example.com/api/track-country", {
+    method: "POST",
+    body: JSON.stringify({ country: "Canada", country_code: "CA" }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(await response.json(), {
+    error: "Failed to create country stat with error - Error: database unavailable",
+  });
 });
