@@ -1,13 +1,13 @@
 "use client";
 import React, { useActionState, useState } from 'react';
-import { createSongRequest, State } from "@/app/lib/action";
+import { createSongRequest, SongRequestState } from "@/app/actions/song-request.action";
 import { MusicalNoteIcon, UserIcon, PlayIcon, PencilIcon, EnvelopeIcon } from "@heroicons/react/16/solid";
 import { Button } from '@/app/components/buttons/FormSubmitButton';
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 
 const SongRequestForm = () => {
-    const initialState: State = { message: "", errors: {} };
+    const initialState: SongRequestState = { message: "", errors: {} };
 
     const actionWithLocale = createSongRequest.bind(null, useLocale());
     const [state, formAction] = useActionState(actionWithLocale, initialState);

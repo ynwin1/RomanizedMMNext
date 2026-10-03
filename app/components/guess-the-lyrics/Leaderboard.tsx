@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import {fetchAllTriviaScores} from "@/app/lib/action";
+import {fetchAllTriviaScores} from "@/app/actions/trivia.action";
 import {useTranslations} from "next-intl";
 import {GameMode} from "@/app/lib/constants";
 

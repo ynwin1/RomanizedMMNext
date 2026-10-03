@@ -1,7 +1,7 @@
 "use client";
 
 import React, {useActionState, useEffect} from "react";
-import {createTriviaScore, TriviaScoreState} from "@/app/lib/action";
+import {createTriviaScore, TriviaScoreState} from "@/app/actions/trivia.action";
 import {countryFlags} from "@/app/lib/utils";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
 import { GameMode } from "@/app/lib/constants";
