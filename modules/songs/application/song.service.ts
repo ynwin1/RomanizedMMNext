@@ -1,3 +1,6 @@
+import { CreateSongSchema, SongContentSchema, SongIdSchema, SongRevisionSchema } from "./song.validation";
+import { SongConflictError } from "./song-write.error";
+import type { SongEditRecord } from "./song.dto";
 import { AdminListQuerySchema, type AdminListQuery } from "@/shared/admin-list";
 import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRecord } from "./song.dto";
@@ -16,6 +19,26 @@ import { ISongRepository } from "./song.repository";
 
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}
+
+  async createSong(input: unknown): Promise<SongEntity> {
+    return this.songs.create(CreateSongSchema.parse(input));
+  }
+
+  async getSongForEdit(id: unknown): Promise<SongEditRecord> {
+    const song = await this.songs.findForEdit(SongIdSchema.parse(id));
+    if (!song) throw new NotFoundError("Song not found", "SONG_NOT_FOUND");
+    return song;
+  }
+
+  async updateSong(id: unknown, revision: unknown, input: unknown): Promise<SongEntity> {
+    const mmid = SongIdSchema.parse(id);
+    const expectedRevision = SongRevisionSchema.parse(revision);
+    const content = SongContentSchema.parse(input);
+    const song = await this.songs.update(mmid, expectedRevision, content);
+    if (song) return song;
+    if (!(await this.songs.findByMmid(mmid))) throw new NotFoundError("Song not found", "SONG_NOT_FOUND");
+    throw new SongConflictError();
+  }
 
   async getAdminList(input: unknown = {}): Promise<AdminPage<AdminSongRecord>> {
     const query = AdminListQuerySchema.parse(input);

@@ -1,3 +1,6 @@
+import type { CreateSongInput, SongContentInput } from "../application/song.validation";
+import type { SongEditRecord } from "../application/song.dto";
+import { DuplicateSongError } from "../application/song-write.error";
 import { adminPage, type AdminPage, type AdminListQuery } from "@/shared/admin-list";
 import { literalSearch } from "@/shared/literal-search";
 import type { AdminSongRecord } from "../application/song.dto";
@@ -45,6 +48,42 @@ function toEntity(song: SongPersistenceRecord): SongEntity {
 }
 
 export class MongoSongRepository implements ISongRepository {
+  async create(input: CreateSongInput): Promise<SongEntity> {
+    await connectDB();
+    try {
+      const song = await Song.create(input);
+      return toEntity(song.toObject());
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "code" in error && error.code === 11000 &&
+          "keyPattern" in error && typeof error.keyPattern === "object" && error.keyPattern !== null && "mmid" in error.keyPattern) {
+        throw new DuplicateSongError();
+      }
+      throw error;
+    }
+  }
+
+  async findForEdit(mmid: number): Promise<SongEditRecord | null> {
+    await connectDB();
+    const song = await Song.findOne({ mmid }).lean();
+    return song ? { ...toEntity(song), revision: song.__v ?? 0 } : null;
+  }
+
+  async update(mmid: number, revision: number, input: SongContentInput): Promise<SongEntity | null> {
+    await connectDB();
+    const optionalFields = ["albumName", "spotifyTrackId", "spotifyLink", "appleMusicLink", "youtubeLink", "imageLink", "requestedBy", "songStoryEn", "songStoryMy"] as const;
+    const unset: Record<string, 1> = {};
+    const set: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(input)) if (value !== undefined) set[key] = value;
+    for (const key of optionalFields) if (input[key] === undefined) unset[key] = 1;
+    const versionFilter = revision === 0 ? { $or: [{ __v: 0 }, { __v: { $exists: false } }] } : { __v: revision };
+    const song = await Song.findOneAndUpdate(
+      { mmid, ...versionFilter },
+      { $set: set, ...(Object.keys(unset).length ? { $unset: unset } : {}), $inc: { __v: 1 } },
+      { new: true, runValidators: true, upsert: false },
+    ).lean();
+    return song ? toEntity(song) : null;
+  }
+
   async countAdmin(): Promise<number> {
     await connectDB();
     return Song.countDocuments({});
