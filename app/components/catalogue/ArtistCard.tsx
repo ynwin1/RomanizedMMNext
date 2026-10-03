@@ -1,20 +1,20 @@
 "use client";
 import React, { useState } from "react";
-import { IArtist } from "@/app/model/Artist";
-import { ISong } from "@/app/model/Song";
+import type { ArtistCatalogueRecord } from "@/modules/artists";
+import type { SongEntity } from "@/modules/songs";
 import { useRouter } from "next/navigation";
 import { extractSongName, formatSongNameForURL } from "@/app/lib/utils";
 import { ChevronDownIcon, ChevronRightIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface ArtistCardProps {
   locale: string;
-  artist: IArtist;
+  artist: ArtistCatalogueRecord;
 }
 
 const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
   const router = useRouter();
   const [songsExpanded, setSongsExpanded] = useState(false);
-  const [songs, setSongs] = useState<ISong[]>([]);
+  const [songs, setSongs] = useState<SongEntity[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +63,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
     setSongsExpanded(!songsExpanded);
   };
 
-  const handleSongClick = (song: ISong) => {
+  const handleSongClick = (song: SongEntity) => {
     // Build song URL using the song ID
     const {engName} = extractSongName(song.songName);
     const songNameFormatted = formatSongNameForURL(engName);
@@ -266,7 +266,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
           {/* Songs List */}
           {!loading && !error && songs.length > 0 && (
             <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-              {songs.map((song: ISong) => (
+              {songs.map((song: SongEntity) => (
                 <button
                   key={song.mmid}
                   onClick={() => handleSongClick(song)}
