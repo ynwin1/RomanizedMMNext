@@ -1,11 +1,10 @@
 import React from 'react';
-import Song from "@/app/model/Song";
 import Trivia from "@/app/components/guess-the-song/Trivia";
 import Player from "@/app/components/video-player/Player";
-import connectDB from "@/app/lib/mongodb";
 import {Metadata} from "next";
 import {findMinimumTriviaScore} from "@/app/lib/action";
 import { GameMode } from "@/app/lib/constants";
+import {songService} from "@/modules/songs";
 
 export const metadata: Metadata = {
     title: 'Guess The Song',
@@ -31,8 +30,7 @@ const Page = async () => {
     let minScore = 0;
     const gameMode: GameMode = GameMode.GuessTheSong;
     try {
-        await connectDB();
-        allSongs = await Song.find({}).select("songName youtubeLink mmid -_id").lean();
+        allSongs = await songService.getGuessSongRecords();
         minScore = await findMinimumTriviaScore(gameMode);
     } catch (e) {
         console.error(e);

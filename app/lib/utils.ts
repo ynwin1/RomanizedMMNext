@@ -43,7 +43,7 @@ export function formatSongNameForURL(songName: string): string {
     return songName.replace(/\s/g, '');
 }
 
-export function buildArtistNames(artists: [SongPageArtist]): string {
+export function buildArtistNames(artists: SongPageArtist[]): string {
     return artists.map(artist => artist.name).join(", ");
 }
 

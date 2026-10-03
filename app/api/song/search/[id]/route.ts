@@ -1,6 +1,6 @@
-import connectDB from "@/app/lib/mongodb";
-import Song from "@/app/model/Song";
 import {NextRequest} from "next/server";
+import { songService } from "@/modules/songs";
+import { NotFoundError } from "@/shared/errors/not-found.error";
 
 type Props = {
     params: Promise<{ id: string }>
@@ -11,19 +11,14 @@ export async function GET(
     props: Props
 ) {
     const { id } = await props.params;
-    await connectDB();
 
     try {
-        const song = await Song.findOne({
-            mmid: id
-        }).lean();
-
-        if (!song) {
+        const { id: songId, ...song } = await songService.getByMmid(Number(id));
+        return Response.json({ success: true, data: { _id: songId, ...song } });
+    } catch (error) {
+        if (error instanceof NotFoundError) {
             return Response.json({ error: "Song not found" }, { status: 404 });
         }
-
-        return Response.json({ success: true, data: song });
-    } catch (error) {
         return Response.json({ error: (error as Error).message }, { status: 500 });
     }
 }
