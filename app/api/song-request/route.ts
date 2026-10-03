@@ -2,20 +2,27 @@ import { songRequestService, SongRequestInputSchema } from "@/modules/requests";
 import { sendDiscordNotification } from "@/integrations/notifications/discord-notification.adapter";
 
 export async function POST(req: Request) {
+  let payload: unknown;
+
   try {
-    const payload = await req.json();
-    const validatedFields = SongRequestInputSchema.safeParse(payload);
+    payload = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid JSON payload" }, { status: 400 });
+  }
 
-    if (!validatedFields.success) {
-      return Response.json(
-        {
-          error: "Invalid song request",
-          fields: validatedFields.error.flatten().fieldErrors,
-        },
-        { status: 400 },
-      );
-    }
+  const validatedFields = SongRequestInputSchema.safeParse(payload);
 
+  if (!validatedFields.success) {
+    return Response.json(
+      {
+        error: "Invalid song request",
+        fields: validatedFields.error.flatten().fieldErrors,
+      },
+      { status: 400 },
+    );
+  }
+
+  try {
     const formData = validatedFields.data;
     const songRequest = await songRequestService.create(formData);
 
@@ -36,8 +43,9 @@ export async function POST(req: Request) {
       { status: 201 },
     );
   } catch (error) {
+    console.error("Failed to create song request:", error);
     return Response.json(
-      { error: `Failed to create song request with error - ${error}` },
+      { error: "Failed to create song request" },
       { status: 500 },
     );
   }
