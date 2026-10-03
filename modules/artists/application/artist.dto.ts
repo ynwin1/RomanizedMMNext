@@ -1,4 +1,4 @@
-import { ArtistMember, ArtistSocials } from "../domain/artist.types";
+import type { ArtistEntity, ArtistMember, ArtistSocials } from "../domain/artist.types";
 
 export interface ArtistCatalogueRecord {
   name: string;
@@ -40,4 +40,8 @@ export interface AdminArtistRecord {
   type: string;
   musicGenre: string[];
   songCount: number;
+}
+
+export interface ArtistEditRecord extends ArtistEntity {
+  revision: number;
 }

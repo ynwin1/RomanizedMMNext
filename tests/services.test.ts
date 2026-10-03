@@ -97,9 +97,11 @@ function artistRepository(overrides: Partial<IArtistRepository> = {}): IArtistRe
     listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
     countAdmin: async () => 0,
     findBySlug: async () => artist,
+    findForEdit: async () => ({ ...artist, revision: 0 }),
     findFirstBySlugs: async () => artist,
     listCatalogue: async () => ({ artists: [], totalPages: 0 }),
     create: async () => artist,
+    update: async () => artist,
     ...overrides,
   };
 }
