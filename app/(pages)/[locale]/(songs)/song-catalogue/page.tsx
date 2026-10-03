@@ -1,12 +1,11 @@
 import React from 'react'
-import Song from "@/app/model/Song";
 import Link from "next/link";
 import {Metadata} from "next";
 import Pagination from "@/app/components/catalogue/Pagination";
 import SongCard from "@/app/components/catalogue/SongCard";
-import connectDB from "@/app/lib/mongodb";
 import {getTranslations} from 'next-intl/server';
 import ItemsPerPageSelector from "@/app/components/items-selector/ItemsSelector";
+import {songService} from "@/modules/songs";
 
 export const metadata: Metadata = {
     title: 'Song Catalogue',
@@ -26,8 +25,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
 
     const translator = await getTranslations("SongCatalogue");
 
-    await connectDB();
-    const allSongs = await Song.find({}).select("songName artistName mmid imageLink -_id").lean();
+    const allSongs = await songService.getCatalogueSongs();
 
     // sort songs by songName
     const sortedSongs = allSongs

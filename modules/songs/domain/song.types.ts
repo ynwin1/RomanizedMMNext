@@ -1,0 +1,29 @@
+export interface SongArtist {
+  name: string;
+  slug?: string;
+}
+
+export interface SongEntity {
+  id: string;
+  mmid: number;
+  songName: string;
+  artistName: SongArtist[];
+  albumName?: string;
+  genre: string;
+  spotifyTrackId?: string;
+  spotifyLink?: string;
+  appleMusicLink?: string;
+  youtubeLink?: string[];
+  imageLink?: string;
+  about: string;
+  whenToListen: string;
+  lyrics: string;
+  romanized: string;
+  burmese: string;
+  meaning: string;
+  createdAt?: Date;
+  isRequested?: boolean;
+  requestedBy?: string;
+  songStoryEn?: string;
+  songStoryMy?: string;
+}

@@ -5,7 +5,7 @@ import SongRequest from "@/app/model/SongRequest";
 import connectDB from "@/app/lib/mongodb";
 import TriviaScore from "@/app/model/TriviaScore";
 import {countryFlags} from "@/app/lib/utils";
-import Song from "@/app/model/Song";
+import {songService} from "@/modules/songs";
 import { GameMode } from "@/app/lib/constants";
 
 const SongRequestForm = z.object({
@@ -266,13 +266,7 @@ export async function fetchAllTriviaScores(gameMode: GameMode) {
 // for usage in sitemap.ts
 export async function getAllSongs() {
     try {
-        await connectDB();
-        const songs = await Song.find().select("mmid songName -_id").lean();
-        const songList = songs.map(song => ({
-            mmid: song.mmid,
-            songName: song.songName.split("(")[0].trim().replace(/\s/g, "")
-        }))
-        return songList;
+        return await songService.getSitemapSongs();
     } catch (e) {
         console.error("Error getting all songs - ", e);
         return null;
@@ -280,16 +274,8 @@ export async function getAllSongs() {
 }
 
 export async function fetchLastCreatedSongs(limit: number = 5) {
-    await connectDB();
-
     try {
-        const songs = await Song.find()
-            .sort({ createdAt: -1 })
-            .limit(limit)
-            .select("mmid songName artistName createdAt -_id") // Change as needed
-            .lean();
-
-        return songs;
+        return await songService.getLatestSongs(limit);
     } catch (error) {
         console.error("Error fetching last added songs:", error);
         return [];

@@ -1,11 +1,18 @@
-import {getAllSongs} from "@/app/lib/action";
+import {songService} from "@/modules/songs";
 import {MetadataRoute} from "next";
 
 const WEBSITE_URL = 'https://www.romanizedmm.com'
 const LOCALES = ['en', 'my']
 const SONG_OPTIONS = ['english', 'burmese', 'meaning'] // Added 'meaning' option
 
-const songs = await getAllSongs();
+const songs = await (async () => {
+    try {
+        return await songService.getSitemapSongs();
+    } catch (error) {
+        console.error("Error getting songs for sitemap - ", error);
+        return [];
+    }
+})();
 export default function sitemap(): MetadataRoute.Sitemap {
     const routes: MetadataRoute.Sitemap = [];
     // Home Pages for each locale
@@ -47,10 +54,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         })
     });
-
-    if (songs === null) {
-        return routes;
-    }
 
     // Add main song pages and their variations
     songs.forEach((song)  => {

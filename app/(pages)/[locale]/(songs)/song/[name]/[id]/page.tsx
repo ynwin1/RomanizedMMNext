@@ -1,7 +1,5 @@
 import React from 'react';
 import {Metadata, ResolvingMetadata} from "next";
-import connectDB from "@/app/lib/mongodb";
-import Song from "@/app/model/Song";
 import {notFound} from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import SyncedLyricsPlayer from "@/app/components/sync-lyrics/SyncedLyricsPlayer";
@@ -17,6 +15,7 @@ import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
 import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
+import {songService} from "@/modules/songs";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -35,11 +34,7 @@ export async function generateMetadata(
             throw new Error("Missing required parameters: id or locale");
         }
 
-        const songQ = await Song.findOne({ mmid: id }).lean();
-
-        if (!songQ) {
-            throw new Error("Song not found when generating metadata");
-        }
+        const songQ = await songService.getByMmid(Number(id));
 
         const { engName, mmName } = extractSongName(songQ.songName);
 
@@ -166,11 +161,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
     let song;
     try {
-        await connectDB();
-        song = await Song.findOne({ mmid: id }).lean();
-        if (!song) {
-            return notFound();
-        }
+        song = await songService.getSongPage(Number(id));
     } catch (error) {
         console.error("Error fetching song:", error);
         return notFound();
