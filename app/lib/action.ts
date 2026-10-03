@@ -39,21 +39,6 @@ export type State = {
     message?: string;
 }
 
-export type ReportState = {
-    errors? : {
-        songName?: string[];
-        artist?: string[];
-        details?: string[];
-    };
-    message?: string;
-}
-
-const SongReportForm = z.object({
-    songName: z.string().min(1, { message: "Song Name is required." }),
-    artist: z.string().min(1, { message: "Artist is required." }),
-    details: z.string().min(1, { message: "Details required." })
-});
-
 export type TriviaScoreState = {
     errors? : {
         userName?: string[];
@@ -146,42 +131,6 @@ export async function createSongRequest(locale: string, prevState: State, formDa
 
     const resp: State = { message, errors: {} };
     return resp;
-}
-
-export async function createSongReport(prevState: ReportState, formData: FormData) {
-    const validatedFields = SongReportForm.safeParse({
-        songName: formData.get("songName"),
-        artist: formData.get("artist"),
-        details: formData.get("details")
-    })
-
-    if (!validatedFields.success) {
-        return { errors: validatedFields.error.flatten().fieldErrors,
-            message: "Please fill out all the required fields. Try Again!"
-        };
-    }
-
-    const { songName, artist, details } = validatedFields.data;
-
-    const discordWebhook = process.env.DISCORD_SONG_REPORT_WEBHOOK;
-    if (!discordWebhook) {
-        return {
-            message: "Discord webhook URL is not set"
-        };
-    }
-
-    try {
-        const discordMessage = {
-            content: `Song Name: ${songName}\nArtist: ${artist}\nDetails: ${details}`
-        };
-        await sendDiscordNotification(discordWebhook, discordMessage);
-
-        // return success message no redirect
-        return { message: "Report submitted successfully ✅" };
-    } catch (error) {
-        console.log(`Error when submitting report - ${(error as Error).message}`);
-        return { message: "Failed to submit report ❌. Please try again later!" };
-    }
 }
 
 export async function createTriviaScore(prevState: TriviaScoreState, formData: FormData) {

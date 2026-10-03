@@ -1,7 +1,7 @@
 "use client";
 import React, {useActionState, useEffect} from 'react'
 import {MusicalNoteIcon, UserIcon, PencilIcon} from "@heroicons/react/16/solid";
-import {createSongReport, ReportState} from "@/app/lib/action";
+import {createSongReport, ReportState} from "@/app/actions/song-report.action";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
 import {useTranslations} from "next-intl";
 
