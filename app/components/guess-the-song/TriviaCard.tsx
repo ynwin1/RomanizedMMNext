@@ -3,16 +3,17 @@ import { useTimer } from "react-timer-hook";
 import {TriviaState} from "@/app/lib/types";
 import AudioPlayer from "./AudioPlayer";
 import { useEffect } from "react";
+import type { GuessSongRecord } from "@/modules/songs";
 
 export function TriviaCard({songs, score, setScore, setTriviaState}:
-                        {songs: any[],
+                        {songs: GuessSongRecord[],
                         score: number,
                         setScore: React.Dispatch<React.SetStateAction<number>>,
                         setTriviaState: React.Dispatch<React.SetStateAction<TriviaState>>}) {
     
     const [currentSongIndex, setCurrentSongIndex] = useState(0);
-    const [selectedSongs, setSelectedSongs] = useState<any[]>([]);
-    const [correctSong, setCorrectSong] = useState<any>(null);
+    const [selectedSongs, setSelectedSongs] = useState<GuessSongRecord[]>([]);
+    const [correctSong, setCorrectSong] = useState<GuessSongRecord | null>(null);
     const [isSkipping, setIsSkipping] = useState(false);
 
     // Initialize songs on mount
@@ -21,10 +22,10 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
     }, [currentSongIndex]);
 
     const selectNewSongs = () => {
-        let newSelectedSongs: any[] = [];
+        const newSelectedSongs: GuessSongRecord[] = [];
         
         // Select a random song and mark it as correct
-        const newCorrectSong: any = songs[Math.floor(Math.random() * songs.length)];
+        const newCorrectSong = songs[Math.floor(Math.random() * songs.length)];
         newSelectedSongs.push(newCorrectSong);
 
         // Select 3 other random songs
@@ -73,6 +74,10 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
     }
 
     function checkCorrectSong(id: number) {
+        if (!correctSong) {
+            return;
+        }
+
         if (id === correctSong.mmid) {
             setScore((score: number) => score + 1);
         } else {
@@ -80,7 +85,7 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
         }
     }
 
-    if (selectedSongs.length === 0) {
+    if (selectedSongs.length === 0 || !correctSong) {
         return <div>Loading...</div>;
     }
 
@@ -107,7 +112,7 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
 
             {/* Music Player */}
             <AudioPlayer 
-                url={correctSong.youtubeLink[0]} 
+                url={correctSong.youtubeLink![0]} 
                 onEmbeddingError={handleEmbeddingError}
             />
 

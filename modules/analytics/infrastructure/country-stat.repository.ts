@@ -1,11 +1,13 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import { CountryStatEntity } from "../domain/country-stat.types";
-import CountryStat from "./country-stat.model";
+import CountryStat, { type ICountryStat } from "./country-stat.model";
 import { ICountryStatRepository } from "../application/country-stat.repository";
 
-function toEntity(stat: any): CountryStatEntity {
+type CountryStatPersistenceRecord = ICountryStat & { _id?: unknown };
+
+function toEntity(stat: CountryStatPersistenceRecord): CountryStatEntity {
   return {
-    id: stat._id?.toString?.() ?? "",
+    id: stat._id == null ? "" : String(stat._id),
     country: stat.country,
     code: stat.code,
     count: stat.count,

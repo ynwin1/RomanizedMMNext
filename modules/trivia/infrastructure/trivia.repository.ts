@@ -1,12 +1,14 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import { GameMode } from "@/app/lib/constants";
 import { CreateTriviaScoreInput, TriviaScoreEntity } from "../domain/trivia.types";
-import TriviaScore from "./trivia-score.model";
+import TriviaScore, { type ITriviaScore } from "./trivia-score.model";
 import { ITriviaRepository } from "../application/trivia.repository";
 
-function toEntity(score: any): TriviaScoreEntity {
+type TriviaScorePersistenceRecord = Pick<ITriviaScore, Exclude<keyof TriviaScoreEntity, "id">> & { _id?: unknown };
+
+function toEntity(score: TriviaScorePersistenceRecord): TriviaScoreEntity {
   return {
-    id: score._id?.toString?.() ?? "",
+    id: score._id == null ? "" : String(score._id),
     userName: score.userName,
     score: score.score,
     country: score.country,

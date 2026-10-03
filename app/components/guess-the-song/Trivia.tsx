@@ -6,8 +6,9 @@ import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
 import {TriviaState} from "@/app/lib/types";
 import {GameMode} from "@/app/lib/constants";
 import {TriviaCard} from "./TriviaCard";
+import type { GuessSongRecord } from "@/modules/songs";
 
-const Trivia = ({songs, minScore} : {songs: any[], minScore: number}) => {
+const Trivia = ({songs, minScore} : {songs: GuessSongRecord[], minScore: number}) => {
     const [triviaState, setTriviaState] = useState<TriviaState>(TriviaState.Start);
     const [score, setScore] = useState<number>(0);
     const [showSaveCard, setShowSaveCard] = useState<boolean>(true);

@@ -1,12 +1,14 @@
 import connectDB from "@/infrastructure/database/mongodb";
-import Artist from "./artist.model";
+import Artist, { type IArtist } from "./artist.model";
 import { IArtistRepository } from "../application/artist.repository";
 import { ArtistEntity, CreateArtistInput } from "../domain/artist.types";
 import { ArtistCataloguePage, ArtistCatalogueRecord } from "../application/artist.dto";
 
-function toEntity(artist: any): ArtistEntity {
+type ArtistPersistenceRecord = Pick<IArtist, Exclude<keyof ArtistEntity, "id">> & { _id?: unknown };
+
+function toEntity(artist: ArtistPersistenceRecord): ArtistEntity {
   return {
-    id: artist._id?.toString?.() ?? "",
+    id: artist._id == null ? "" : String(artist._id),
     name: artist.name,
     slug: artist.slug,
     imageLink: artist.imageLink,

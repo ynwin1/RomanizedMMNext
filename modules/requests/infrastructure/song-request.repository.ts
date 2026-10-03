@@ -1,12 +1,14 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import { CreateSongRequestInput, SongRequestEntity } from "../domain/song-request.types";
 import { SongRequestQueueItem } from "../application/song-request.dto";
-import SongRequest from "./song-request.model";
+import SongRequest, { type ISongRequest } from "./song-request.model";
 import { ISongRequestRepository } from "../application/song-request.repository";
 
-function toEntity(request: any): SongRequestEntity {
+type SongRequestPersistenceRecord = Pick<ISongRequest, Exclude<keyof SongRequestEntity, "id">> & { _id?: unknown };
+
+function toEntity(request: SongRequestPersistenceRecord): SongRequestEntity {
   return {
-    id: request._id?.toString?.() ?? "",
+    id: request._id == null ? "" : String(request._id),
     songName: request.songName,
     artist: request.artist,
     youtubeLink: request.youtubeLink,
