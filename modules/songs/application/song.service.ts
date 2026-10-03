@@ -9,7 +9,7 @@ import {
   SongSearchResult,
   SongSummary,
 } from "./song.dto";
-import { ISongRepository } from "../infrastructure/song.repository";
+import { ISongRepository } from "./song.repository";
 
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}

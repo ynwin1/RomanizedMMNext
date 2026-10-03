@@ -2,6 +2,7 @@ import connectDB from "@/infrastructure/database/mongodb";
 import { GameMode } from "@/app/lib/constants";
 import { CreateTriviaScoreInput, TriviaScoreEntity } from "../domain/trivia.types";
 import TriviaScore from "./trivia-score.model";
+import { ITriviaRepository } from "../application/trivia.repository";
 
 function toEntity(score: any): TriviaScoreEntity {
   return {
@@ -12,13 +13,6 @@ function toEntity(score: any): TriviaScoreEntity {
     date: score.date,
     gameMode: score.gameMode,
   };
-}
-
-export interface ITriviaRepository {
-  create(input: CreateTriviaScoreInput): Promise<TriviaScoreEntity>;
-  listByGameMode(gameMode: GameMode): Promise<TriviaScoreEntity[]>;
-  findMinimumScore(gameMode: GameMode): Promise<number | null>;
-  deleteById(id: string, gameMode: GameMode): Promise<void>;
 }
 
 export class MongoTriviaRepository implements ITriviaRepository {

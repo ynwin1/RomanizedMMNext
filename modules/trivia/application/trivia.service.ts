@@ -1,6 +1,6 @@
 import { GameMode } from "@/app/lib/constants";
 import { CreateTriviaScoreInput, TriviaScoreEntity } from "../domain/trivia.types";
-import { ITriviaRepository } from "../infrastructure/trivia.repository";
+import { ITriviaRepository } from "./trivia.repository";
 
 export class TriviaService {
   constructor(private readonly scores: ITriviaRepository) {}

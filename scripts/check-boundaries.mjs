@@ -35,6 +35,21 @@ async function walk(directory) {
 
 const violations = [];
 
+for (const moduleName of ["songs", "artists", "requests", "trivia", "analytics"]) {
+  const applicationDir = join(ROOT, "modules", moduleName, "application");
+
+  for (const file of await walk(applicationDir)) {
+    const source = await readFile(file, "utf8");
+
+    if (/from\s+["'](?:\.\.\/infrastructure\/|@\/modules\/[^"']+\/infrastructure\/)/.test(source)) {
+      violations.push({
+        file: relative(ROOT, file),
+        message: "Application code must depend on application/domain contracts, not infrastructure.",
+      });
+    }
+  }
+}
+
 for (const directory of SOURCE_DIRS) {
   for (const file of await walk(directory)) {
     const source = await readFile(file, "utf8");

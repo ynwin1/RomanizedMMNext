@@ -1,5 +1,6 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import Artist from "./artist.model";
+import { IArtistRepository } from "../application/artist.repository";
 import { ArtistEntity, CreateArtistInput } from "../domain/artist.types";
 import { ArtistCataloguePage, ArtistCatalogueRecord } from "../application/artist.dto";
 
@@ -22,13 +23,6 @@ function toEntity(artist: any): ArtistEntity {
     socials: artist.socials,
     likes: artist.likes ?? 0,
   };
-}
-
-export interface IArtistRepository {
-  findBySlug(slug: string): Promise<ArtistEntity | null>;
-  findFirstBySlugs(slugs: string[]): Promise<ArtistEntity | null>;
-  listCatalogue(page: number, limit: number): Promise<ArtistCataloguePage>;
-  create(input: CreateArtistInput): Promise<ArtistEntity>;
 }
 
 export class MongoArtistRepository implements IArtistRepository {

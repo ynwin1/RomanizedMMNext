@@ -1,6 +1,7 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import { CountryStatEntity } from "../domain/country-stat.types";
 import CountryStat from "./country-stat.model";
+import { ICountryStatRepository } from "../application/country-stat.repository";
 
 function toEntity(stat: any): CountryStatEntity {
   return {
@@ -9,11 +10,6 @@ function toEntity(stat: any): CountryStatEntity {
     code: stat.code,
     count: stat.count,
   };
-}
-
-export interface ICountryStatRepository {
-  increment(country: string, code: string): Promise<CountryStatEntity | null>;
-  listTop(limit: number): Promise<CountryStatEntity[]>;
 }
 
 export class MongoCountryStatRepository implements ICountryStatRepository {

@@ -2,19 +2,19 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { SongService } from "@/modules/songs/application/song.service";
-import type { ISongRepository } from "@/modules/songs/infrastructure/song.repository";
+import type { ISongRepository } from "@/modules/songs/application/song.repository";
 import type { SongEntity } from "@/modules/songs/domain/song.types";
 import { ArtistService } from "@/modules/artists/application/artist.service";
-import type { IArtistRepository } from "@/modules/artists/infrastructure/artist.repository";
+import type { IArtistRepository } from "@/modules/artists/application/artist.repository";
 import type { ArtistEntity } from "@/modules/artists/domain/artist.types";
 import { SongRequestService } from "@/modules/requests/application/song-request.service";
-import type { ISongRequestRepository } from "@/modules/requests/infrastructure/song-request.repository";
+import type { ISongRequestRepository } from "@/modules/requests/application/song-request.repository";
 import { TriviaService } from "@/modules/trivia/application/trivia.service";
-import type { ITriviaRepository } from "@/modules/trivia/infrastructure/trivia.repository";
+import type { ITriviaRepository } from "@/modules/trivia/application/trivia.repository";
 import { GameMode } from "@/app/lib/constants";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { AnalyticsService } from "@/modules/analytics/application/analytics.service";
-import type { ICountryStatRepository } from "@/modules/analytics/infrastructure/country-stat.repository";
+import type { ICountryStatRepository } from "@/modules/analytics/application/country-stat.repository";
 
 const song: SongEntity = {
   id: "song-1",
