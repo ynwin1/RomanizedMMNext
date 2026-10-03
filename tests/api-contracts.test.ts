@@ -518,3 +518,28 @@ test("artist creation API rejects malformed JSON as a client error", async () =>
   assert.equal(response.status, 400);
   assert.deepEqual(await response.json(), { error: "Invalid JSON payload" });
 });
+
+
+test("artist creation API rejects invalid payloads before persistence", async () => {
+  const response = await artistPOST(new Request("https://example.com/api/artist", {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Artist",
+      slug: "Invalid Slug",
+      imageLink: "javascript:alert(1)",
+      type: "",
+      musicGenre: [],
+      songs: [-1],
+    }),
+    headers: { "Content-Type": "application/json" },
+  }));
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.error, "Invalid artist");
+  assert.ok(body.fields.slug);
+  assert.ok(body.fields.imageLink);
+  assert.ok(body.fields.type);
+  assert.ok(body.fields.musicGenre);
+  assert.ok(body.fields.songs);
+});

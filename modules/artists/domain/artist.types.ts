@@ -38,7 +38,3 @@ export interface ArtistEntity {
   socials?: ArtistSocials;
   likes: number;
 }
-
-export type CreateArtistInput = Omit<ArtistEntity, "id" | "likes"> & {
-  likes?: number;
-};
