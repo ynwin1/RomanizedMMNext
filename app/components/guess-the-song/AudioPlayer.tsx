@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import ReactPlayer from "react-player/youtube";
 import { useTranslations } from "next-intl";
+import { logger } from "@/infrastructure/logging/logger";
 
 interface AudioOnlyPlayerProps {
   url: string;
@@ -18,21 +19,17 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
   const playRandomSnippet = () => {
     const player = playerRef.current;
     if (!player || !isReady) {
-      console.log('Player not ready yet');
       return;
     }
 
     const duration = player.getDuration();
     if (!duration || duration < 15) {
-      console.log('Duration not available or too short:', duration);
       return;
     }
 
     const maxStart = duration - 15;
     const start = Math.random() * maxStart;
 
-    console.log(`Playing from ${start.toFixed(2)}s to ${(start + 15).toFixed(2)}s`);
-    
     // Clear any existing timer
     if (stopTimerRef.current) {
       clearTimeout(stopTimerRef.current);
@@ -47,7 +44,6 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
       if (internalPlayer && typeof internalPlayer.playVideo === 'function') {
         internalPlayer.playVideo();
         setIsPlaying(true);
-        console.log('Started playback');
       }
     }, 300);
 
@@ -59,18 +55,15 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
       }
       player.seekTo(0);
       setIsPlaying(false);
-      console.log('Stopped playback');
     }, 15_300);
   };
 
   const handleClick = () => {
     if (hasError) {
-      console.log('Cannot play: video has embedding restrictions or error');
       return;
     }
 
     if (!isReady) {
-      console.log('Player not ready yet, please wait...');
       return;
     }
 
@@ -82,8 +75,6 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
     if (!player) return;
 
     const duration = player.getDuration();
-    console.log('Player ready, duration:', duration);
-    
     // Set ready state
     setIsReady(true);
     setHasError(false);
@@ -95,23 +86,19 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
   };
 
   const handlePlay = () => {
-    console.log('onPlay event fired');
     setIsPlaying(true);
   };
 
   const handlePause = () => {
-    console.log('onPause event fired');
     setIsPlaying(false);
   };
 
   const handleError = (error: any) => {
-    console.error('Player error:', error);
+    logger.warn("Guess The Song player error", { playerCode: typeof error === "number" ? error : undefined });
     
     // Error 150 and 101 mean video cannot be embedded
     if (error === 150 || error === 101 || error === 100) {
       setHasError(true);
-      console.log('This video cannot be embedded or played outside YouTube');
-      
       // Call the callback to notify parent component
       if (onEmbeddingError) {
         onEmbeddingError();

@@ -2,6 +2,7 @@
 import React from 'react';
 import {useRouter} from "next/navigation";
 import { extractSongName, formatSongNameForURL } from '@/app/lib/utils';
+import { logger } from '@/infrastructure/logging/logger';
 
 const RandomSongButton = ({ locale }: { locale: string }) => {
     const router = useRouter();
@@ -20,7 +21,7 @@ const RandomSongButton = ({ locale }: { locale: string }) => {
             // Use router.push for client-side navigation
             router.push(`/${locale}/song/${urlName}/${mmid}`);
         } catch (error) {
-            console.error('Error fetching random song:', error);
+            logger.error("Failed to fetch random song from client", error);
         }
     };
 

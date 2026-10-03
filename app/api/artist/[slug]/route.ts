@@ -1,5 +1,6 @@
 import { artistService } from "@/modules/artists";
 import { NotFoundError } from "@/shared/errors/not-found.error";
+import { logger } from "@/infrastructure/logging/logger";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -18,7 +19,7 @@ export async function GET(
       return Response.json({ error: "Artist not found" }, { status: 404 });
     }
 
-    console.error("Failed to fetch artist:", error);
+    logger.error("Failed to fetch artist", error);
     return Response.json({ error: "Failed to fetch artist" }, { status: 500 });
   }
 }

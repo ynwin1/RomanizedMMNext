@@ -53,11 +53,19 @@ for (const moduleName of ["songs", "artists", "requests", "trivia", "analytics"]
 for (const directory of SOURCE_DIRS) {
   for (const file of await walk(directory)) {
     const source = await readFile(file, "utf8");
+    const filePath = relative(ROOT, file);
 
     if (/@\/app\/lib\/mongodb(?:["'])/.test(source)) {
       violations.push({
-        file: relative(ROOT, file),
+        file: filePath,
         message: "Use infrastructure/database/mongodb directly; the legacy app/lib database shim is removed.",
+      });
+    }
+
+    if (filePath !== "infrastructure/logging/logger.ts" && /\bconsole\.(?:log|info|warn|error|debug)\s*\(/.test(source)) {
+      violations.push({
+        file: filePath,
+        message: "Use infrastructure/logging/logger instead of console.*.",
       });
     }
   }

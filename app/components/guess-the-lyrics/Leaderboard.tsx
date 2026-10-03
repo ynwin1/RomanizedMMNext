@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react'
 import {fetchAllTriviaScores} from "@/app/actions/trivia.action";
 import {useTranslations} from "next-intl";
 import {GameMode} from "@/app/lib/constants";
+import { logger } from "@/infrastructure/logging/logger";
 
 const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}) => {
     const [allScores, setScores] = useState<any[]>([]);
@@ -14,7 +15,7 @@ const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}
                 const data = await fetchAllTriviaScores(gameMode);
                 setScores(data);
             } catch (error) {
-                console.error('Failed to fetch scores:', error);
+                logger.error("Failed to fetch leaderboard scores", error);
             } finally {
                 setLoading(false);
             }

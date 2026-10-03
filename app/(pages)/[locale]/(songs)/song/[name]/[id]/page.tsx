@@ -16,6 +16,7 @@ import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService} from "@/modules/songs";
 import {artistService} from "@/modules/artists";
+import { logger } from "@/infrastructure/logging/logger";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -28,8 +29,6 @@ export async function generateMetadata(
 ): Promise<Metadata> {
     try {
         const { id, locale } = await params;
-        console.log("Song page for id:", id, "locale:", locale);
-
         if (!id || !locale) {
             throw new Error("Missing required parameters: id or locale");
         }
@@ -104,7 +103,7 @@ export async function generateMetadata(
             },
         };
     } catch (error) {
-        console.error("Error generating metadata:", error);
+        logger.error("Failed to generate song metadata", error);
         return {
             title: "Song",
         };
@@ -163,7 +162,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     try {
         song = await songService.getSongPage(Number(id));
     } catch (error) {
-        console.error("Error fetching song:", error);
+        logger.error("Failed to fetch song page data", error);
         return notFound();
     }
 
@@ -193,7 +192,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             firstArtist.biography = artistDetails.biography || "";
         }
     } catch (e) {
-        console.error("Error fetching artist details:", e);
+        logger.error("Failed to fetch song artist details", e);
     }
 
     // exclude _id from artistName

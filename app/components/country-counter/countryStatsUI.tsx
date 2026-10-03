@@ -1,6 +1,7 @@
 import React from "react";
 import { countryFlags } from "@/app/lib/utils";
 import { analyticsService } from "@/modules/analytics";
+import { logger } from "@/infrastructure/logging/logger";
 
 export const revalidate = 60;
 
@@ -45,7 +46,7 @@ const CountryStatsUi = async () => {
       </div>
     );
   } catch (error) {
-    console.error("Error fetching country stats: ", error);
+    logger.error("Failed to fetch country stats", error);
     return <div>Error fetching country stats</div>;
   }
 };

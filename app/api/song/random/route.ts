@@ -1,4 +1,5 @@
 import { songService } from "@/modules/songs";
+import { logger } from "@/infrastructure/logging/logger";
 
 export async function GET() {
   try {
@@ -10,7 +11,7 @@ export async function GET() {
 
     return Response.json({ success: true, data: song });
   } catch (error) {
-    console.error("Failed to fetch random song:", error);
+    logger.error("Failed to fetch random song", error);
     return Response.json({ error: "Failed to fetch random song" }, { status: 500 });
   }
 }

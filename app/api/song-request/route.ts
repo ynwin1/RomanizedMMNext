@@ -1,5 +1,6 @@
 import { songRequestService, SongRequestInputSchema } from "@/modules/requests";
 import { sendDiscordNotification } from "@/integrations/notifications/discord-notification.adapter";
+import { logger } from "@/infrastructure/logging/logger";
 
 export async function POST(req: Request) {
   let payload: unknown;
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
           content: `Song Name: ${formData.songName}\nArtist: ${formData.artist}\nYouTube Link: ${formData.youtubeLink}\nDetails: ${formData.details}`,
         });
       } catch (error) {
-        console.error("Failed to send song request notification to Discord:", error);
+        logger.warn("Song request persisted but Discord notification failed");
       }
     }
 
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Failed to create song request:", error);
+    logger.error("Failed to create song request", error);
     return Response.json(
       { error: "Failed to create song request" },
       { status: 500 },

@@ -1,5 +1,6 @@
 import { songService } from "@/modules/songs";
 import { NotFoundError } from "@/shared/errors/not-found.error";
+import { logger } from "@/infrastructure/logging/logger";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -24,7 +25,7 @@ export async function GET(
       return Response.json({ error: "Song not found" }, { status: 404 });
     }
 
-    console.error("Failed to fetch song by id:", error);
+    logger.error("Failed to fetch song by id", error);
     return Response.json({ error: "Failed to fetch song" }, { status: 500 });
   }
 }

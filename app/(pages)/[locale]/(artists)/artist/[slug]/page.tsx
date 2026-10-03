@@ -9,6 +9,7 @@ import {getTranslations} from "next-intl/server";
 import {Metadata} from "next";
 import {artistService, ArtistEntity} from "@/modules/artists";
 import {songService, SongEntity} from "@/modules/songs";
+import { logger } from "@/infrastructure/logging/logger";
 
 type Props = {
     params: Promise<{ locale: string, slug: string }>
@@ -77,7 +78,7 @@ export async function generateMetadata(
             },
         };
     } catch (error) {
-        console.error("Error generating metadata:", error);
+        logger.error("Failed to generate artist metadata", error);
         return {
             title: "Song",
         };
@@ -123,7 +124,7 @@ const Page = async ({ params }: ArtistPageProps) => {
         artistSongs = await songService.getSongsByMmids(artist.songs);
         artistSongs.sort((a, b) => a.songName.localeCompare(b.songName));
     } catch (e) {
-        console.error("Error fetching artist page data:", e);
+        logger.error("Failed to fetch artist page data", e);
         return notFound();
     }
 

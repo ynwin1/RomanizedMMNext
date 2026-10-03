@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { logger } from "@/infrastructure/logging/logger";
 
 interface ConnectOptions {
     retries?: number;
@@ -12,14 +13,14 @@ const connectDB = async ({retries = 5, delay = 2000}: ConnectOptions = {}): Prom
     }
 
     await mongoose.connect(process.env.MONGODB_URI as string);
-    console.log("MongoDB connected successfully!");
+    logger.info("MongoDB connected");
   } catch (err) {
-    console.error(`MongoDB connection error: ${(err as Error).message}`);
+    logger.error("MongoDB connection failed", err, { retriesRemaining: retries });
     if (retries === 0) {
-      console.log("Failed to connect to MongoDB after multiple attempts.");
+      logger.error("MongoDB connection retries exhausted");
       throw new Error("Failed to connect to MongoDB");
     } else {
-      console.log(`Retrying to connect to MongoDB (${retries - 1} retries left)...`);
+      logger.warn("Retrying MongoDB connection", { retriesRemaining: retries - 1 });
       await new Promise((resolve) => setTimeout(resolve, delay));
       return connectDB({ retries: retries - 1, delay: delay});
     }

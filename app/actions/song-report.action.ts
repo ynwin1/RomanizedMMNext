@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { reportService } from "@/modules/reports";
+import { logger } from "@/infrastructure/logging/logger";
 
 const SongReportForm = z.object({
   songName: z.string().min(1, { message: "Song Name is required." }),
@@ -39,7 +40,7 @@ export async function createSongReport(
     await reportService.submit(validatedFields.data);
     return { message: "Report submitted successfully ✅" };
   } catch (error) {
-    console.log(`Error when submitting report - ${(error as Error).message}`);
+    logger.error("Failed to submit song report", error);
     return { message: "Failed to submit report ❌. Please try again later!" };
   }
 }
