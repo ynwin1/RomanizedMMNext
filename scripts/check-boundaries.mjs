@@ -11,10 +11,6 @@ const forbidden = [
     pattern: /@\/app\/model\/(Song|Artist|SongRequest|TriviaScore|CountryStat)(?:["'])/,
     message: "Use the domain module service instead of a legacy app/model import.",
   },
-  {
-    pattern: /@\/modules\/[^/"']+\/infrastructure\//,
-    message: "App code must not import module infrastructure directly; use the module public API.",
-  },
 ];
 
 async function walk(directory) {
@@ -64,6 +60,37 @@ for (const directory of SOURCE_DIRS) {
       violations.push({
         file: filePath,
         message: "Application code must depend on application/domain contracts, not infrastructure.",
+      });
+    }
+
+    for (const match of source.matchAll(/@\/modules\/([^/"']+)\/infrastructure\//g)) {
+      const importedModule = match[1];
+      if (!filePath.startsWith(`modules/${importedModule}/infrastructure/`)) {
+        violations.push({
+          file: filePath,
+          message: `Do not import ${importedModule} infrastructure outside that module; use its public/application contract.`,
+        });
+      }
+    }
+
+    if (
+      filePath.startsWith("app/admin/") &&
+      /^\s*["']use server["'];/m.test(source) &&
+      !/(?:await\s+requireAdmin\s*\(|authorize\s*:\s*requireAdmin\b)/.test(source)
+    ) {
+      violations.push({
+        file: filePath,
+        message: "Admin server actions must explicitly authorize with requireAdmin; layout protection is not sufficient for callable actions.",
+      });
+    }
+
+    if (
+      /^app\/admin\/.*\/route\.(?:ts|js)$/.test(filePath) &&
+      !/requireAdmin\s*\(/.test(source)
+    ) {
+      violations.push({
+        file: filePath,
+        message: "Admin route handlers must explicitly call requireAdmin.",
       });
     }
 
