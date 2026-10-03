@@ -20,8 +20,8 @@ import { ISongRepository } from "./song.repository";
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}
 
-  async createSong(input: unknown): Promise<SongEntity> {
-    return this.songs.create(CreateSongSchema.parse(input));
+  async createSong(input: unknown, updatedBy?: string): Promise<SongEntity> {
+    return this.songs.create(CreateSongSchema.parse(input), updatedBy);
   }
 
   async getSongForEdit(id: unknown): Promise<SongEditRecord> {
@@ -30,11 +30,11 @@ export class SongService {
     return song;
   }
 
-  async updateSong(id: unknown, revision: unknown, input: unknown): Promise<SongEntity> {
+  async updateSong(id: unknown, revision: unknown, input: unknown, updatedBy?: string): Promise<SongEntity> {
     const mmid = SongIdSchema.parse(id);
     const expectedRevision = SongRevisionSchema.parse(revision);
     const content = SongContentSchema.parse(input);
-    const song = await this.songs.update(mmid, expectedRevision, content);
+    const song = await this.songs.update(mmid, expectedRevision, content, updatedBy);
     if (song) return song;
     if (!(await this.songs.findByMmid(mmid))) throw new NotFoundError("Song not found", "SONG_NOT_FOUND");
     throw new SongConflictError();

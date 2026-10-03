@@ -23,6 +23,8 @@ export interface AdminSongRequestDetail {
   requestedBy?: string;
   songStory?: string;
   createdAt?: Date;
+  updatedAt?: Date;
+  updatedBy?: string;
   status: SongRequestStatus;
   revision: number;
 }

@@ -27,6 +27,9 @@ export interface IArtist extends mongoose.Document {
         appleMusic?: string;
     },
     likes: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+    updatedBy?: string;
 }
 
 const ArtistSchema: Schema<IArtist> = new Schema({
@@ -58,7 +61,8 @@ const ArtistSchema: Schema<IArtist> = new Schema({
         appleMusic: { type: String },
     },
     likes: { type: Number, default: 0 },
-});
+    updatedBy: { type: String },
+}, { timestamps: true });
 
 const Artist: Model<IArtist> = models.Artist || mongoose.model("Artist", ArtistSchema);
 

@@ -28,14 +28,17 @@ function toEntity(artist: ArtistPersistenceRecord): ArtistEntity {
     songs: artist.songs ?? [],
     socials: artist.socials,
     likes: artist.likes ?? 0,
+    createdAt: artist.createdAt,
+    updatedAt: artist.updatedAt,
+    updatedBy: artist.updatedBy,
   };
 }
 
 export class MongoArtistRepository implements IArtistRepository {
-  async create(input: CreateArtistInput): Promise<ArtistEntity> {
+  async create(input: CreateArtistInput, updatedBy?: string): Promise<ArtistEntity> {
     await connectDB();
     try {
-      const artist = await Artist.create(input);
+      const artist = await Artist.create({ ...input, ...(updatedBy ? { updatedBy } : {}) });
       return toEntity(artist.toObject());
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && error.code === 11000 &&
@@ -52,7 +55,7 @@ export class MongoArtistRepository implements IArtistRepository {
     return artist ? { ...toEntity(artist), revision: artist.__v ?? 0 } : null;
   }
 
-  async update(slug: string, revision: number, input: ArtistContentInput): Promise<ArtistEntity | null> {
+  async update(slug: string, revision: number, input: ArtistContentInput, updatedBy?: string): Promise<ArtistEntity | null> {
     await connectDB();
     const optionalFields = ["bannerLink", "biography", "biographyMy", "unknownFact", "members", "origin", "labels", "socials"] as const;
     const unset: Record<string, 1> = {};
@@ -60,6 +63,7 @@ export class MongoArtistRepository implements IArtistRepository {
 
     for (const [key, value] of Object.entries(input)) if (value !== undefined) set[key] = value;
     for (const key of optionalFields) if (input[key] === undefined) unset[key] = 1;
+    if (updatedBy) set.updatedBy = updatedBy;
 
     const versionFilter = revision === 0 ? { $or: [{ __v: 0 }, { __v: { $exists: false } }] } : { __v: revision };
     const artist = await Artist.findOneAndUpdate(

@@ -21,9 +21,10 @@ test("song repository create maps the canonical entity and translates duplicate 
   t.mock.method(database, "default", async () => {});
   t.mock.method(model, "create", async (input: unknown) => ({ toObject: () => ({ _id: "s1", ...(input as object) }) }));
   const repo = new MongoSongRepository();
-  const created = await repo.create({ mmid: 17, ...content });
+  const created = await repo.create({ mmid: 17, ...content }, "admin-1");
   assert.equal(created.id, "s1");
   assert.equal(created.mmid, 17);
+  assert.equal(created.updatedBy, "admin-1");
   t.mock.method(model, "create", async () => { throw { code: 11000, keyPattern: { mmid: 1 } }; });
   await assert.rejects(() => repo.create({ mmid: 17, ...content }), DuplicateSongError);
 });
@@ -51,12 +52,12 @@ test("song update is atomic, never upserts, validates, clears optional fields an
     return { lean: async () => ({ _id: "s1", mmid: 17, ...content }) };
   });
   const repo = new MongoSongRepository();
-  const saved = await repo.update(17, 2, content);
+  const saved = await repo.update(17, 2, content, "admin-1");
   assert.equal(saved?.mmid, 17);
   assert.deepEqual(filter, { mmid: 17, __v: 2 });
   assert.deepEqual(options, { new: true, runValidators: true, upsert: false });
   const mutation = update as { $set: Record<string, unknown>; $unset: Record<string, number>; $inc: object };
-  assert.deepEqual(mutation.$set, content);
+  assert.deepEqual(mutation.$set, { ...content, updatedBy: "admin-1" });
   assert.equal(mutation.$unset.imageLink, 1);
   assert.equal(mutation.$unset.songStoryMy, 1);
   assert.deepEqual(mutation.$inc, { __v: 1 });

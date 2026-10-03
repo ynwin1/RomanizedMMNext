@@ -39,11 +39,11 @@ export class SongRequestService {
     return request;
   }
 
-  async updateStatus(id: unknown, revision: unknown, status: unknown): Promise<SongRequestEntity> {
+  async updateStatus(id: unknown, revision: unknown, status: unknown, updatedBy?: string): Promise<SongRequestEntity> {
     const requestId = SongRequestIdSchema.parse(id);
     const expectedRevision = SongRequestRevisionSchema.parse(revision);
     const nextStatus = SongRequestStatusSchema.parse(status);
-    const request = await this.requests.updateStatus(requestId, expectedRevision, nextStatus);
+    const request = await this.requests.updateStatus(requestId, expectedRevision, nextStatus, updatedBy);
     if (request) return request;
     if (!(await this.requests.findById(requestId))) throw new NotFoundError("Song request not found", "SONG_REQUEST_NOT_FOUND");
     throw new SongRequestConflictError();

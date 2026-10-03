@@ -25,6 +25,8 @@ function toEntity(request: SongRequestPersistenceRecord): SongRequestEntity {
     requestedBy: request.requestedBy,
     songStory: request.songStory,
     createdAt: request.createdAt,
+    updatedAt: request.updatedAt,
+    updatedBy: request.updatedBy,
     status: request.status,
   };
 }
@@ -69,12 +71,12 @@ export class MongoSongRequestRepository implements ISongRequestRepository {
     return request ? { ...toEntity(request), status: managedStatus(request.status), revision: request.__v ?? 0 } : null;
   }
 
-  async updateStatus(id: string, revision: number, status: SongRequestStatus): Promise<SongRequestEntity | null> {
+  async updateStatus(id: string, revision: number, status: SongRequestStatus, updatedBy?: string): Promise<SongRequestEntity | null> {
     await connectDB();
     const versionFilter = revision === 0 ? { $or: [{ __v: 0 }, { __v: { $exists: false } }] } : { __v: revision };
     const request = await SongRequest.findOneAndUpdate(
       { _id: id, ...versionFilter },
-      { $set: { status }, $inc: { __v: 1 } },
+      { $set: { status, ...(updatedBy ? { updatedBy } : {}) }, $inc: { __v: 1 } },
       { new: true, runValidators: true, upsert: false },
     ).lean();
     return request ? toEntity(request) : null;

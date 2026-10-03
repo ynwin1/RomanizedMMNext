@@ -54,3 +54,12 @@ export function EmptyAdminRow({ columns }: { columns: number }) {
 export function adminDate(value?: Date): string {
   return value ? new Intl.DateTimeFormat("en-CA", { timeZone: "UTC", dateStyle: "medium" }).format(value) : "Unknown";
 }
+
+
+export function adminTimestamp(value?: Date): string {
+  return value ? new Intl.DateTimeFormat("en-CA", {
+    timeZone: "UTC",
+    dateStyle: "medium",
+    timeStyle: "medium",
+  }).format(value) + " UTC" : "Unknown";
+}

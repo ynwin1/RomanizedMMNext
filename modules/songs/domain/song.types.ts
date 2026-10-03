@@ -22,6 +22,8 @@ export interface SongEntity {
   burmese: string;
   meaning: string;
   createdAt?: Date;
+  updatedAt?: Date;
+  updatedBy?: string;
   isRequested?: boolean;
   requestedBy?: string;
   songStoryEn?: string;

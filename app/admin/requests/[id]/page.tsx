@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/infrastructure/auth";
 import { songRequestService, SongRequestIdSchema } from "@/modules/requests";
 import { NotFoundError } from "@/shared/errors/not-found.error";
-import { adminDate } from "../../admin-list-view";
 import RequestStatusForm from "../request-status-form";
 
 export default async function RequestPage({ params, searchParams }: {
@@ -20,7 +19,7 @@ export default async function RequestPage({ params, searchParams }: {
   const rows = [
     ["Song", request.songName], ["Artist", request.artist], ["YouTube", request.youtubeLink],
     ["Details", request.details], ["Requested by", request.requestedBy], ["Notify email", request.notifyEmail],
-    ["Song story", request.songStory], ["Requested", adminDate(request.createdAt)],
+    ["Song story", request.songStory],
   ];
   return <section>
     <Link href="/admin/requests" className="underline">Back to requests</Link>

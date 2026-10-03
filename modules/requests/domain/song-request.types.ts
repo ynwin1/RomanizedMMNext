@@ -11,7 +11,12 @@ export interface SongRequestEntity {
   requestedBy?: string;
   songStory?: string;
   createdAt?: Date;
+  updatedAt?: Date;
+  updatedBy?: string;
   status?: StoredSongRequestStatus;
 }
 
-export type CreateSongRequestInput = Omit<SongRequestEntity, "id" | "createdAt" | "status">;
+export type CreateSongRequestInput = Omit<
+  SongRequestEntity,
+  "id" | "createdAt" | "updatedAt" | "updatedBy" | "status"
+>;

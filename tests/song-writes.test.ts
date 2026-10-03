@@ -65,11 +65,15 @@ test("form decoding handles blank optional fields, YouTube lines, and malformed 
 
 test("song service validates before write and delegates validated full content", async () => {
   let received: unknown;
-  const service = new SongService(repository({ create: async input => { received = input; return { id: "s1", ...input }; } }));
+  let actor: string | undefined;
+  const service = new SongService(repository({ create: async (input, updatedBy) => {
+    received = input; actor = updatedBy; return { id: "s1", ...input };
+  } }));
   await assert.rejects(() => service.createSong({ ...content, mmid: 0 }));
   assert.equal(received, undefined);
-  assert.equal((await service.createSong({ ...content, mmid: "17" })).mmid, 17);
+  assert.equal((await service.createSong({ ...content, mmid: "17" }, "admin-1")).mmid, 17);
   assert.deepEqual(received, { ...content, mmid: 17 });
+  assert.equal(actor, "admin-1");
 });
 
 test("song update distinguishes a missing record from a stale revision", async () => {
@@ -110,9 +114,9 @@ test("successful song actions invalidate/redirect only after persistence", async
   for (const mode of ["create", "update"] as const) {
     const calls: string[] = [];
     const handler = createSongActionHandler({
-      authorize: async () => { calls.push("auth"); },
-      songs: { createSong: async () => { calls.push("write"); return song; }, updateSong: async (id, revision, input) => {
-        assert.equal(id, 17); assert.equal(revision, 2); assert.equal((input as Record<string, unknown>).mmid, undefined);
+      authorize: async () => { calls.push("auth"); return { userId: "admin-1" }; },
+      songs: { createSong: async (_input, updatedBy) => { assert.equal(updatedBy, "admin-1"); calls.push("write"); return song; }, updateSong: async (id, revision, input, updatedBy) => {
+        assert.equal(id, 17); assert.equal(revision, 2); assert.equal((input as Record<string, unknown>).mmid, undefined); assert.equal(updatedBy, "admin-1");
         calls.push("write"); return song;
       } },
       saved: id => { calls.push("saved:" + id); throw new Error("success redirect"); }, logFailure: () => {},
@@ -126,7 +130,7 @@ test("song action failures surface validation and conflicts without success redi
   for (const error of [new DuplicateSongError(), new SongConflictError(), new NotFoundError("Song not found"), new Error("mongodb://secret")]) {
     let saved = false;
     const handler = createSongActionHandler({
-      authorize: async () => {}, songs: { createSong: async () => { throw error; }, updateSong: async () => { throw error; } },
+      authorize: async () => ({ userId: "admin-1" }), songs: { createSong: async () => { throw error; }, updateSong: async () => { throw error; } },
       saved: () => { saved = true; throw new Error("redirect"); }, logFailure: () => {},
     });
     const result = await handler.create({}, form());
@@ -135,7 +139,7 @@ test("song action failures surface validation and conflicts without success redi
     if (!(error.constructor === Error)) assert.equal(result.message, error.message);
   }
   const handler = createSongActionHandler({
-    authorize: async () => {}, songs: new SongService(repository()),
+    authorize: async () => ({ userId: "admin-1" }), songs: new SongService(repository()),
     saved: () => { throw new Error("unexpected redirect"); }, logFailure: () => {},
   });
   const invalid = form(); invalid.set("songName", "");

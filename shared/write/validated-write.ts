@@ -6,12 +6,19 @@ export interface WriteValidationFailure {
   errors: Record<string, string[]>;
 }
 
-export interface WriteValidationSuccess<T> {
+export interface WriteValidationSuccess<T, TPrincipal> {
   ok: true;
   value: T;
+  principal: TPrincipal;
 }
 
-export type ValidatedWriteResult<T> = WriteValidationSuccess<T> | WriteValidationFailure;
+export type ValidatedWriteResult<T, TPrincipal> =
+  | WriteValidationSuccess<T, TPrincipal>
+  | WriteValidationFailure;
+
+export interface AdminWritePrincipal {
+  userId: string;
+}
 
 export function zodFieldErrors(error: z.ZodError): Record<string, string[]> {
   const fields: Record<string, string[]> = {};
@@ -22,16 +29,19 @@ export function zodFieldErrors(error: z.ZodError): Record<string, string[]> {
   return fields;
 }
 
-export async function prepareValidatedWrite<TSchema extends z.ZodTypeAny>(options: {
+export async function prepareValidatedWrite<
+  TSchema extends z.ZodTypeAny,
+  TPrincipal,
+>(options: {
   parse: () => unknown;
   schema: TSchema;
-  authorize: () => Promise<unknown>;
-}): Promise<ValidatedWriteResult<z.infer<TSchema>>> {
+  authorize: () => Promise<TPrincipal>;
+}): Promise<ValidatedWriteResult<z.infer<TSchema>, TPrincipal>> {
   const parsed = options.schema.safeParse(options.parse());
   if (!parsed.success) {
     return { ok: false, kind: "validation", errors: zodFieldErrors(parsed.error) };
   }
 
-  await options.authorize();
-  return { ok: true, value: parsed.data };
+  const principal = await options.authorize();
+  return { ok: true, value: parsed.data, principal };
 }
