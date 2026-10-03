@@ -27,9 +27,9 @@ test("request status update is atomic, validates, increments revision and never 
     return { lean: async () => ({ _id: id, songName: "Song", artist: "Artist", status: "reviewing" }) };
   });
   const repo = new MongoSongRequestRepository();
-  await repo.updateStatus(id, 2, "reviewing");
+  await repo.updateStatus(id, 2, "reviewing", "admin-1");
   assert.deepEqual(filter, { _id: id, __v: 2 });
-  assert.deepEqual(update, { $set: { status: "reviewing" }, $inc: { __v: 1 } });
+  assert.deepEqual(update, { $set: { status: "reviewing", updatedBy: "admin-1" }, $inc: { __v: 1 } });
   assert.deepEqual(options, { new: true, runValidators: true, upsert: false });
 
   await repo.updateStatus(id, 0, "completed");

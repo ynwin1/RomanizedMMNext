@@ -2,7 +2,7 @@ import type { SongRequestService } from "@/modules/requests/application/song-req
 import { UpdateSongRequestStatusCommandSchema } from "@/modules/requests/application/song-request.validation";
 import { SongRequestConflictError } from "@/modules/requests/application/song-request-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
-import { prepareValidatedWrite } from "@/shared/write/validated-write";
+import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 
 export interface RequestActionState {
   message?: string;
@@ -10,7 +10,7 @@ export interface RequestActionState {
 }
 
 export function createRequestActionHandler(dependencies: {
-  authorize: () => Promise<unknown>;
+  authorize: () => Promise<AdminWritePrincipal>;
   requests: Pick<SongRequestService, "updateStatus">;
   saved: (id: string) => never;
   logFailure: (error: unknown) => void;
@@ -25,7 +25,7 @@ export function createRequestActionHandler(dependencies: {
       if (!prepared.ok) return { message: "Choose a valid request status.", errors: prepared.errors };
 
       try {
-        await dependencies.requests.updateStatus(prepared.value.id, prepared.value.revision, prepared.value.status);
+        await dependencies.requests.updateStatus(prepared.value.id, prepared.value.revision, prepared.value.status, prepared.principal.userId);
       } catch (error) {
         if (error instanceof SongRequestConflictError || error instanceof NotFoundError) return { message: error.message };
         dependencies.logFailure(error);

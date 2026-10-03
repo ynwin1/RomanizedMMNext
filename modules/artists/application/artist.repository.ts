@@ -11,6 +11,6 @@ export interface IArtistRepository {
   findForEdit(slug: string): Promise<ArtistEditRecord | null>;
   findFirstBySlugs(slugs: string[]): Promise<ArtistEntity | null>;
   listCatalogue(page: number, limit: number): Promise<ArtistCataloguePage>;
-  create(input: CreateArtistInput): Promise<ArtistEntity>;
-  update(slug: string, revision: number, input: ArtistContentInput): Promise<ArtistEntity | null>;
+  create(input: CreateArtistInput, updatedBy?: string): Promise<ArtistEntity>;
+  update(slug: string, revision: number, input: ArtistContentInput, updatedBy?: string): Promise<ArtistEntity | null>;
 }

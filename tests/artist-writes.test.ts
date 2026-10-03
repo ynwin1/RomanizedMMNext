@@ -89,17 +89,20 @@ test("artist form decoding clears optional values and parses lists, members and 
 
 test("artist service validates before create and delegates normalized input", async () => {
   let received: unknown;
+  let actor: string | undefined;
   const service = new ArtistService(repository({
-    create: async input => {
+    create: async (input, updatedBy) => {
       received = input;
+      actor = updatedBy;
       return { id: "a1", likes: input.likes ?? 0, ...input };
     },
   }));
   await assert.rejects(() => service.createArtist({ ...content, slug: "Invalid Slug" }));
   assert.equal(received, undefined);
-  const created = await service.createArtist({ ...content, slug: "artist", songs: ["17", "22"] });
+  const created = await service.createArtist({ ...content, slug: "artist", songs: ["17", "22"] }, "admin-1");
   assert.equal(created.slug, "artist");
   assert.deepEqual(received, { ...content, slug: "artist" });
+  assert.equal(actor, "admin-1");
 });
 
 test("artist update distinguishes missing records from stale revisions", async () => {
@@ -150,13 +153,14 @@ test("successful artist actions redirect only after persistence", async () => {
   for (const mode of ["create", "update"] as const) {
     const calls: string[] = [];
     const handler = createArtistActionHandler({
-      authorize: async () => { calls.push("auth"); },
+      authorize: async () => { calls.push("auth"); return { userId: "admin-1" }; },
       artists: {
-        createArtist: async () => { calls.push("write"); return artist; },
-        updateArtist: async (slug, revision, input) => {
+        createArtist: async (_input, updatedBy) => { assert.equal(updatedBy, "admin-1"); calls.push("write"); return artist; },
+        updateArtist: async (slug, revision, input, updatedBy) => {
           assert.equal(slug, "artist");
           assert.equal(revision, 2);
           assert.equal((input as Record<string, unknown>).slug, undefined);
+          assert.equal(updatedBy, "admin-1");
           calls.push("write");
           return artist;
         },
@@ -181,7 +185,7 @@ test("artist action failures surface validation/conflicts without leaking intern
   ]) {
     let saved = false;
     const handler = createArtistActionHandler({
-      authorize: async () => {},
+      authorize: async () => ({ userId: "admin-1" }),
       artists: {
         createArtist: async () => { throw error; },
         updateArtist: async () => { throw error; },
@@ -196,7 +200,7 @@ test("artist action failures surface validation/conflicts without leaking intern
   }
 
   const handler = createArtistActionHandler({
-    authorize: async () => {},
+    authorize: async () => ({ userId: "admin-1" }),
     artists: new ArtistService(repository()),
     saved: () => { throw new Error("unexpected redirect"); },
     logFailure: () => {},

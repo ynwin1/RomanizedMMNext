@@ -24,13 +24,17 @@ function repository(overrides: Partial<ISongRequestRepository> = {}): ISongReque
 
 test("request status update validates id, revision and lifecycle status before persistence", async () => {
   let calls = 0;
-  const service = new SongRequestService(repository({ updateStatus: async () => { calls++; return entity; } }));
+  let actor: string | undefined;
+  const service = new SongRequestService(repository({ updateStatus: async (_id, _revision, _status, updatedBy) => {
+    calls++; actor = updatedBy; return entity;
+  } }));
   await assert.rejects(() => service.updateStatus("bad", 0, "reviewing"));
   await assert.rejects(() => service.updateStatus(id, -1, "reviewing"));
   await assert.rejects(() => service.updateStatus(id, 0, "added"));
   assert.equal(calls, 0);
-  assert.equal((await service.updateStatus(id, 0, "accepted")).status, "pending");
+  assert.equal((await service.updateStatus(id, 0, "accepted", "admin-1")).status, "pending");
   assert.equal(calls, 1);
+  assert.equal(actor, "admin-1");
 });
 
 test("request status update distinguishes missing request from stale revision", async () => {
@@ -62,7 +66,7 @@ test("request action authorizes before write and handles status errors", async (
   assert.equal(writes, 0);
 
   const validating = createRequestActionHandler({
-    authorize: async () => {},
+    authorize: async () => ({ userId: "admin-1" }),
     requests: new SongRequestService(repository()),
     saved: () => { throw new Error("unexpected redirect"); },
     logFailure: () => {},
@@ -75,8 +79,8 @@ test("request action redirects only after successful persistence and hides inter
   const calls: string[] = [];
   const form = new FormData(); form.set("status", "completed");
   const handler = createRequestActionHandler({
-    authorize: async () => { calls.push("auth"); },
-    requests: { updateStatus: async () => { calls.push("write"); return entity; } },
+    authorize: async () => { calls.push("auth"); return { userId: "admin-1" }; },
+    requests: { updateStatus: async (_id, _revision, _status, updatedBy) => { assert.equal(updatedBy, "admin-1"); calls.push("write"); return entity; } },
     saved: savedId => { calls.push("saved:" + savedId); throw new Error("success redirect"); },
     logFailure: () => {},
   });
@@ -85,7 +89,7 @@ test("request action redirects only after successful persistence and hides inter
 
   for (const error of [new SongRequestConflictError(), new NotFoundError("missing"), new Error("mongodb://secret")]) {
     const failing = createRequestActionHandler({
-      authorize: async () => {},
+      authorize: async () => ({ userId: "admin-1" }),
       requests: { updateStatus: async () => { throw error; } },
       saved: () => { throw new Error("unexpected"); },
       logFailure: () => {},

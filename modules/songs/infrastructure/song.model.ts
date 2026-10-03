@@ -21,6 +21,8 @@ export interface ISong extends mongoose.Document {
     burmese: string;
     meaning: string;
     createdAt?: Date;
+    updatedAt?: Date;
+    updatedBy?: string;
     isRequested?: boolean;
     requestedBy?: string;
     songStoryEn?: string;
@@ -51,11 +53,12 @@ const SongSchema: Schema<ISong> = new Schema({
     burmese: { type: String, required: true },
     meaning: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
+    updatedBy: { type: String },
     isRequested: { type: Boolean, default: false },
     requestedBy: { type: String },
     songStoryEn: { type: String },
     songStoryMy: { type: String },
-});
+}, { timestamps: true });
 
 const Song: Model<ISong> = models.Song || mongoose.model("Song", SongSchema);
 export default Song;

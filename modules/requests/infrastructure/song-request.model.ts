@@ -10,6 +10,8 @@ export interface ISongRequest extends mongoose.Document {
   requestedBy?: string;
   songStory?: string;
   createdAt?: Date;
+  updatedAt?: Date;
+  updatedBy?: string;
   status?: StoredSongRequestStatus;
 }
 
@@ -22,8 +24,9 @@ const SongRequestSchema: Schema<ISongRequest> = new Schema({
   requestedBy: { type: String },
   songStory: { type: String },
   createdAt: { type: Date, default: Date.now },
+  updatedBy: { type: String },
   status: { type: String, enum: ["pending", "reviewing", "accepted", "rejected", "completed", "added"], default: "pending" },
-});
+}, { timestamps: true });
 
 const SongRequest: Model<ISongRequest> = models.SongRequest || mongoose.model("SongRequest", SongRequestSchema);
 export default SongRequest;

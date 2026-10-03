@@ -9,6 +9,6 @@ export interface ISongRequestRepository {
   create(input: CreateSongRequestInput): Promise<SongRequestEntity>;
   listQueue(): Promise<SongRequestQueueItem[]>;
   findAdminDetail(id: string): Promise<AdminSongRequestDetail | null>;
-  updateStatus(id: string, revision: number, status: SongRequestStatus): Promise<SongRequestEntity | null>;
+  updateStatus(id: string, revision: number, status: SongRequestStatus, updatedBy?: string): Promise<SongRequestEntity | null>;
   findById(id: string): Promise<SongRequestEntity | null>;
 }

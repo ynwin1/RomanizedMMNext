@@ -2,11 +2,11 @@ import type { SongService } from "@/modules/songs/application/song.service";
 import { CreateSongSchema, UpdateSongCommandSchema } from "@/modules/songs/application/song.validation";
 import { DuplicateSongError, SongConflictError } from "@/modules/songs/application/song-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
-import { prepareValidatedWrite } from "@/shared/write/validated-write";
+import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 import { songFormInput, type SongFormState } from "./song-form.data";
 
 export function createSongActionHandler(dependencies: {
-  authorize: () => Promise<unknown>;
+  authorize: () => Promise<AdminWritePrincipal>;
   songs: Pick<SongService, "createSong" | "updateSong">;
   saved: (id: number) => never;
   logFailure: (error: unknown) => void;
@@ -29,7 +29,7 @@ export function createSongActionHandler(dependencies: {
 
       let id: number;
       try {
-        id = (await dependencies.songs.createSong(prepared.value)).mmid;
+        id = (await dependencies.songs.createSong(prepared.value, prepared.principal.userId)).mmid;
       } catch (error) {
         return failure(error);
       }
@@ -45,7 +45,7 @@ export function createSongActionHandler(dependencies: {
       if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
 
       try {
-        await dependencies.songs.updateSong(prepared.value.id, prepared.value.revision, prepared.value.input);
+        await dependencies.songs.updateSong(prepared.value.id, prepared.value.revision, prepared.value.input, prepared.principal.userId);
       } catch (error) {
         return failure(error);
       }

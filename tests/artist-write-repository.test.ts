@@ -26,9 +26,10 @@ test("artist repository create maps canonical entity and translates duplicate sl
     toObject: () => ({ _id: "a1", likes: 0, ...(input as object) }),
   }));
   const repo = new MongoArtistRepository();
-  const created = await repo.create({ slug: "artist", ...content });
+  const created = await repo.create({ slug: "artist", ...content }, "admin-1");
   assert.equal(created.id, "a1");
   assert.equal(created.slug, "artist");
+  assert.equal(created.updatedBy, "admin-1");
 
   t.mock.method(model, "create", async () => { throw { code: 11000, keyPattern: { slug: 1 } }; });
   await assert.rejects(() => repo.create({ slug: "artist", ...content }), DuplicateArtistError);
@@ -63,13 +64,13 @@ test("artist update is atomic, validates, never upserts, clears optional fields 
   });
 
   const repo = new MongoArtistRepository();
-  const saved = await repo.update("artist", 2, content);
+  const saved = await repo.update("artist", 2, content, "admin-1");
   assert.equal(saved?.slug, "artist");
   assert.deepEqual(filter, { slug: "artist", __v: 2 });
   assert.deepEqual(options, { new: true, runValidators: true, upsert: false });
 
   const mutation = update as { $set: Record<string, unknown>; $unset: Record<string, number>; $inc: object };
-  assert.deepEqual(mutation.$set, content);
+  assert.deepEqual(mutation.$set, { ...content, updatedBy: "admin-1" });
   assert.equal(mutation.$unset.bannerLink, 1);
   assert.equal(mutation.$unset.socials, 1);
   assert.deepEqual(mutation.$inc, { __v: 1 });

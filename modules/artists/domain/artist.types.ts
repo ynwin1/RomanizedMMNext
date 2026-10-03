@@ -37,4 +37,7 @@ export interface ArtistEntity {
   songs: number[];
   socials?: ArtistSocials;
   likes: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  updatedBy?: string;
 }

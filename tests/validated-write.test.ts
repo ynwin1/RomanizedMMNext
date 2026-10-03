@@ -12,12 +12,15 @@ test("validated write pipeline parses, validates, authorizes, and returns typed 
   const result = await prepareValidatedWrite({
     parse: () => { calls.push("parse"); return { id: "17", name: "  Song  " }; },
     schema,
-    authorize: async () => { calls.push("authorize"); },
+    authorize: async () => { calls.push("authorize"); return { userId: "admin-1" }; },
   });
 
   assert.deepEqual(calls, ["parse", "authorize"]);
   assert.equal(result.ok, true);
-  if (result.ok) assert.deepEqual(result.value, { id: 17, name: "Song" });
+  if (result.ok) {
+    assert.deepEqual(result.value, { id: 17, name: "Song" });
+    assert.deepEqual(result.principal, { userId: "admin-1" });
+  }
 });
 
 test("validated write pipeline does not authorize or reach a write when validation fails", async () => {

@@ -10,8 +10,8 @@ import { ArtistConflictError } from "./artist-write.error";
 export class ArtistService {
   constructor(private readonly artists: IArtistRepository) {}
 
-  async createArtist(input: unknown): Promise<ArtistEntity> {
-    return this.artists.create(CreateArtistSchema.parse(input));
+  async createArtist(input: unknown, updatedBy?: string): Promise<ArtistEntity> {
+    return this.artists.create(CreateArtistSchema.parse(input), updatedBy);
   }
 
   async getArtistForEdit(slug: unknown): Promise<ArtistEditRecord> {
@@ -20,11 +20,11 @@ export class ArtistService {
     return artist;
   }
 
-  async updateArtist(slug: unknown, revision: unknown, input: unknown): Promise<ArtistEntity> {
+  async updateArtist(slug: unknown, revision: unknown, input: unknown, updatedBy?: string): Promise<ArtistEntity> {
     const artistSlug = ArtistSlugSchema.parse(slug);
     const expectedRevision = ArtistRevisionSchema.parse(revision);
     const content = ArtistContentSchema.parse(input);
-    const artist = await this.artists.update(artistSlug, expectedRevision, content);
+    const artist = await this.artists.update(artistSlug, expectedRevision, content, updatedBy);
     if (artist) return artist;
     if (!(await this.artists.findBySlug(artistSlug))) throw new NotFoundError("Artist not found", "ARTIST_NOT_FOUND");
     throw new ArtistConflictError();

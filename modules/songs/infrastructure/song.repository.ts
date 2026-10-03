@@ -40,6 +40,8 @@ function toEntity(song: SongPersistenceRecord): SongEntity {
     burmese: song.burmese,
     meaning: song.meaning,
     createdAt: song.createdAt,
+    updatedAt: song.updatedAt,
+    updatedBy: song.updatedBy,
     isRequested: song.isRequested,
     requestedBy: song.requestedBy,
     songStoryEn: song.songStoryEn,
@@ -48,10 +50,10 @@ function toEntity(song: SongPersistenceRecord): SongEntity {
 }
 
 export class MongoSongRepository implements ISongRepository {
-  async create(input: CreateSongInput): Promise<SongEntity> {
+  async create(input: CreateSongInput, updatedBy?: string): Promise<SongEntity> {
     await connectDB();
     try {
-      const song = await Song.create(input);
+      const song = await Song.create({ ...input, ...(updatedBy ? { updatedBy } : {}) });
       return toEntity(song.toObject());
     } catch (error) {
       if (typeof error === "object" && error !== null && "code" in error && error.code === 11000 &&
@@ -68,13 +70,14 @@ export class MongoSongRepository implements ISongRepository {
     return song ? { ...toEntity(song), revision: song.__v ?? 0 } : null;
   }
 
-  async update(mmid: number, revision: number, input: SongContentInput): Promise<SongEntity | null> {
+  async update(mmid: number, revision: number, input: SongContentInput, updatedBy?: string): Promise<SongEntity | null> {
     await connectDB();
     const optionalFields = ["albumName", "spotifyTrackId", "spotifyLink", "appleMusicLink", "youtubeLink", "imageLink", "requestedBy", "songStoryEn", "songStoryMy"] as const;
     const unset: Record<string, 1> = {};
     const set: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(input)) if (value !== undefined) set[key] = value;
     for (const key of optionalFields) if (input[key] === undefined) unset[key] = 1;
+    if (updatedBy) set.updatedBy = updatedBy;
     const versionFilter = revision === 0 ? { $or: [{ __v: 0 }, { __v: { $exists: false } }] } : { __v: revision };
     const song = await Song.findOneAndUpdate(
       { mmid, ...versionFilter },

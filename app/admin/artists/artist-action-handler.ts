@@ -2,11 +2,11 @@ import type { ArtistService } from "@/modules/artists/application/artist.service
 import { CreateArtistSchema, UpdateArtistCommandSchema } from "@/modules/artists/application/artist.validation";
 import { ArtistConflictError, DuplicateArtistError } from "@/modules/artists/application/artist-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
-import { prepareValidatedWrite } from "@/shared/write/validated-write";
+import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 import { artistFormInput, type ArtistFormState } from "./artist-form.data";
 
 export function createArtistActionHandler(dependencies: {
-  authorize: () => Promise<unknown>;
+  authorize: () => Promise<AdminWritePrincipal>;
   artists: Pick<ArtistService, "createArtist" | "updateArtist">;
   saved: (slug: string) => never;
   logFailure: (error: unknown) => void;
@@ -30,7 +30,7 @@ export function createArtistActionHandler(dependencies: {
 
       let slug: string;
       try {
-        slug = (await dependencies.artists.createArtist(prepared.value)).slug;
+        slug = (await dependencies.artists.createArtist(prepared.value, prepared.principal.userId)).slug;
       } catch (error) {
         return failure(error);
       }
@@ -46,7 +46,7 @@ export function createArtistActionHandler(dependencies: {
       if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
 
       try {
-        await dependencies.artists.updateArtist(prepared.value.slug, prepared.value.revision, prepared.value.input);
+        await dependencies.artists.updateArtist(prepared.value.slug, prepared.value.revision, prepared.value.input, prepared.principal.userId);
       } catch (error) {
         return failure(error);
       }
