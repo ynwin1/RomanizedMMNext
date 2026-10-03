@@ -9,57 +9,16 @@ import { ChevronDownIcon, ChevronRightIcon, XMarkIcon } from "@heroicons/react/2
 interface ArtistCardProps {
   locale: string;
   artist: ArtistCatalogueRecord;
+  songs: SongEntity[];
 }
 
-const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
+const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist, songs }) => {
   const router = useRouter();
   const [songsExpanded, setSongsExpanded] = useState(false);
-  const [songs, setSongs] = useState<SongEntity[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const artistURL: string = `/${locale}/artist/${artist.slug}`;
-  console.log(`Artist has biography: ${artist.biography}`);
 
-  const fetchSongs = async () => {
-    if (!artist.songs?.length) {
-      setError("No songs available for this artist");
-      console.log("No songs available for this artist");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Fetch all songs concurrently
-      const songPromises = artist.songs.map(async (songId: number) => {
-        const response = await fetch(`/api/song/search/${songId}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch song ${songId}`);
-        }
-        const result = await response.json();
-        return result.data;
-      });
-
-      const songResults = await Promise.all(songPromises);
-      setSongs(songResults);
-      
-      if (songResults.length === 0) {
-        setError("No songs found for this artist");
-      }
-    } catch (err) {
-      console.error('Error fetching songs:', err);
-      setError("Failed to load songs");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleSongs = async () => {
-    if (!songsExpanded && songs.length === 0 && !loading) {
-      await fetchSongs();
-    }
+  const toggleSongs = () => {
     setSongsExpanded(!songsExpanded);
   };
 
@@ -243,28 +202,8 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
             </button>
           </div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex items-center gap-2 text-gray-400">
-                <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                Loading songs...
-              </div>
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && !loading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-red-400 text-sm flex items-center gap-2">
-                <span className="w-4 h-4 text-red-500">⚠</span>
-                {error}
-              </div>
-            </div>
-          )}
-
           {/* Songs List */}
-          {!loading && !error && songs.length > 0 && (
+          {songs.length > 0 && (
             <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
               {songs.map((song: SongEntity) => (
                 <button
@@ -286,7 +225,7 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ locale, artist }) => {
           )}
 
           {/* Empty State */}
-          {!loading && !error && songs.length === 0 && (
+          {songs.length === 0 && (
             <div className="flex items-center justify-center py-8">
               <div className="text-gray-500 text-sm">
                 No songs available
