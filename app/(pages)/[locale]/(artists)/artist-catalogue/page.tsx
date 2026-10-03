@@ -1,11 +1,10 @@
 import React from "react";
-import Artist from "@/app/model/Artist";
 import { getTranslations } from "next-intl/server";
 import { Metadata } from "next";
-import connectDB from "@/app/lib/mongodb";
 import ArtistCard from "@/app/components/catalogue/ArtistCard";
 import Pagination from "@/app/components/catalogue/Pagination";
 import ItemsPerPageSelector from "@/app/components/items-selector/ItemsSelector";
+import {artistService} from "@/modules/artists";
 
 export const metadata: Metadata = {
   title: "Artist Catalogue",
@@ -23,17 +22,7 @@ const Page = async ({ params, searchParams }: ArtistCataloguePageProps) => {
   const currentPage: number = Number(page) || 1;
   const limitPerPage: number = limit || 10;
 
-  await connectDB();
-  const allArtists = await Artist
-    .find({})
-    .sort({ name: 1 })
-    .skip((currentPage - 1) * limitPerPage)
-    .limit(limitPerPage)
-    .select("name slug imageLink musicGenre type songs biography -_id")
-    .lean();
-
-  const totalArtistCount = await Artist.countDocuments({});
-  const totalPages = Math.ceil(totalArtistCount / limitPerPage);  
+  const { artists: allArtists, totalPages } = await artistService.getCatalogue(currentPage, limitPerPage);
 
   const translator = await getTranslations("ArtistCatalogue");
 
