@@ -1,5 +1,5 @@
 import connectDB from "@/infrastructure/database/mongodb";
-import Song from "./song.model";
+import Song, { type ISong } from "./song.model";
 import { ISongRepository } from "../application/song.repository";
 import { SongEntity } from "../domain/song.types";
 import {
@@ -12,9 +12,11 @@ import {
   SongSummary,
 } from "../application/song.dto";
 
-function toEntity(song: any): SongEntity {
+type SongPersistenceRecord = Pick<ISong, Exclude<keyof SongEntity, "id">> & { _id?: unknown };
+
+function toEntity(song: SongPersistenceRecord): SongEntity {
   return {
-    id: song._id?.toString?.() ?? "",
+    id: song._id == null ? "" : String(song._id),
     mmid: song.mmid,
     songName: song.songName,
     artistName: song.artistName ?? [],
