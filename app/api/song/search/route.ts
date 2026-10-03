@@ -1,4 +1,5 @@
 import { songService } from "@/modules/songs";
+import { logger } from "@/infrastructure/logging/logger";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
     const songs = await songService.search(query);
     return Response.json({ success: true, songs });
   } catch (error) {
-    console.error("Failed to search songs:", error);
+    logger.error("Failed to search songs", error);
     return Response.json({ error: "Failed to search songs" }, { status: 500 });
   }
 }

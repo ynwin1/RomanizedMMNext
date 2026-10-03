@@ -1,4 +1,5 @@
 import { analyticsService } from "@/modules/analytics";
+import { logger } from "@/infrastructure/logging/logger";
 
 export async function POST(req: Request) {
   let payload: unknown;
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Failed to create country stat:", error);
+    logger.error("Failed to create country stat", error);
     return Response.json(
       { error: "Failed to create country stat" },
       { status: 500 },

@@ -1,5 +1,6 @@
 import {songService, SitemapSongRecord} from "@/modules/songs";
 import {MetadataRoute} from "next";
+import { logger } from "@/infrastructure/logging/logger";
 
 const WEBSITE_URL = 'https://www.romanizedmm.com'
 const LOCALES = ['en', 'my']
@@ -12,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
         songs = await songService.getSitemapSongs();
     } catch (error) {
-        console.error("Error getting songs for sitemap - ", error);
+        logger.error("Failed to fetch songs for sitemap", error);
     }
     const routes: MetadataRoute.Sitemap = [];
     // Home Pages for each locale

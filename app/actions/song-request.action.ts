@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { songRequestService, SongRequestInputSchema } from "@/modules/requests";
 import { sendDiscordNotification } from "@/integrations/notifications/discord-notification.adapter";
+import { logger } from "@/infrastructure/logging/logger";
 
 export type SongRequestState = {
   errors?: {
@@ -78,14 +79,14 @@ export async function createSongRequest(
           content: `Song Name: ${songName}\nArtist: ${artist}\nYouTube Link: ${ytLink}\nDetails: ${detailsText}\nRequested By: ${reqBy}\nSong Story: ${songStr}\nNotify Email: ${email}`,
         });
       } catch (error) {
-        console.error("Failed to send song request notification to Discord:", error);
+        logger.warn("Song request persisted but Discord notification failed");
       }
     }
 
     message = "Song request submitted successfully";
     redirectPath = `/${locale}/song-request/success`;
   } catch (error) {
-    console.error(`Error is = ${error}`);
+    logger.error("Failed to persist song request", error);
     message = "Failed to submit song request. Please try again!";
     redirectPath = `/${locale}/song-request/error`;
   } finally {

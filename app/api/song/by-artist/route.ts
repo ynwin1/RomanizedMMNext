@@ -1,4 +1,5 @@
 import { songService } from "@/modules/songs";
+import { logger } from "@/infrastructure/logging/logger";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
 
     return Response.json({ success: true, songs });
   } catch (error) {
-    console.error("Failed to fetch songs by artist:", error);
+    logger.error("Failed to fetch songs by artist", error);
     return Response.json({ error: "Failed to fetch songs by artist" }, { status: 500 });
   }
 }

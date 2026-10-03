@@ -5,6 +5,7 @@ import {Metadata} from "next";
 import { GameMode } from "@/app/lib/constants";
 import {songService} from "@/modules/songs";
 import {triviaService} from "@/modules/trivia";
+import { logger } from "@/infrastructure/logging/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ const Page = async () => {
         allSongs = await songService.getGuessLyricsSongs();
         minScore = await triviaService.getMinimumScore(gameMode);
     } catch (e) {
-        console.error(e);
+        logger.error("Failed to load Guess The Lyrics data", e);
         throw new Error("Failed to fetch songs in GuessTheLyrics. Please try again later.");
     }
 

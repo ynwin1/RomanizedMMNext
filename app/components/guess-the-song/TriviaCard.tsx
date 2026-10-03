@@ -45,7 +45,6 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
     };
 
     const handleEmbeddingError = () => {
-        console.log('Song cannot be played, Skipping...');
         setIsSkipping(true);
         // Wait 3 seconds then select new songs
         setTimeout(() => {

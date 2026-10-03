@@ -1,4 +1,5 @@
 import { artistService, CreateArtistInput } from "@/modules/artists";
+import { logger } from "@/infrastructure/logging/logger";
 
 export async function POST(req: Request) {
   let formData: CreateArtistInput;
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
       },
     }, { status: 201 });
   } catch (error) {
-    console.error("Failed to create artist:", error);
+    logger.error("Failed to create artist", error);
     return Response.json({ error: "Failed to create artist" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 import React from 'react'
 import { useEffect} from "react";
+import { logger } from "@/infrastructure/logging/logger";
 
 const CountryCounter = () => {
     useEffect(() => {
@@ -24,7 +25,7 @@ const CountryCounter = () => {
 
                 document.cookie = "countryTracked=true; max-age=3600; path=/";
             } catch (error) {
-                console.error("Error tracking country: ", error);
+                logger.error("Failed to track country", error);
             }
         };
         trackCountry();

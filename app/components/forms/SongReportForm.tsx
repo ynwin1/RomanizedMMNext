@@ -4,6 +4,7 @@ import {MusicalNoteIcon, UserIcon, PencilIcon} from "@heroicons/react/16/solid";
 import {createSongReport, ReportState} from "@/app/actions/song-report.action";
 import {Button} from "@/app/components/buttons/FormSubmitButton";
 import {useTranslations} from "next-intl";
+import { logger } from "@/infrastructure/logging/logger";
 
 const SongReportForm = ({songName, artist, renderReport, renderMessage, setResponse}:
                             {   songName: string,
@@ -28,7 +29,7 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
         try {
             await formAction(formData);
         } catch (error) {
-            console.error('Error submitting form:', error);
+            logger.error("Failed to submit song report form", error);
         }
     };
 

@@ -9,7 +9,6 @@ interface YoutubePlayerProps {
 }
 
 const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
-    console.log(`links: ${links}`);
     const [isFixed, setIsFixed] = useState(false);
     const [currentLinkIdx, setCurrentLinkIdx] = useState(0);
     const { ref, inView } = useInView({

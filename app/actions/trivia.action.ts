@@ -3,6 +3,7 @@
 import { GameMode } from "@/app/lib/constants";
 import { countryFlags } from "@/app/lib/utils";
 import { triviaService, TriviaScoreInputSchema } from "@/modules/trivia";
+import { logger } from "@/infrastructure/logging/logger";
 
 export type TriviaScoreState = {
   errors?: {
@@ -37,7 +38,7 @@ export async function createTriviaScore(
     await saveScoreAction(userName, country, score, gameMode);
     return { message: "Score saved successfully" };
   } catch (error) {
-    console.error(`Error when saving score - ${(error as Error).message}`);
+    logger.error("Failed to save trivia score", error);
     return {
       message: "Failed to save score. Please try again!",
       errors: {},
@@ -53,7 +54,7 @@ export async function fetchAllTriviaScores(gameMode: GameMode) {
       _id: id,
     }));
   } catch (error) {
-    console.error("Error fetching Trivia Scores - " + error);
+    logger.error("Failed to fetch trivia scores", error);
     return [];
   }
 }
