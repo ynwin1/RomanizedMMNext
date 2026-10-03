@@ -1,4 +1,4 @@
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "./game-mode";
 
 export interface TriviaScoreEntity {
   id: string;

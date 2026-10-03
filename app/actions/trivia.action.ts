@@ -1,8 +1,8 @@
 "use server";
 
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "@/modules/trivia/domain/game-mode";
 import { countryFlags } from "@/app/lib/utils";
-import { triviaService, TriviaScoreInputSchema } from "@/modules/trivia";
+import { triviaService, TriviaScoreInputSchema, type TriviaLeaderboardRecord } from "@/modules/trivia";
 import { logger } from "@/infrastructure/logging/logger";
 
 export type TriviaScoreState = {
@@ -46,7 +46,7 @@ export async function createTriviaScore(
   }
 }
 
-export async function fetchAllTriviaScores(gameMode: GameMode) {
+export async function fetchAllTriviaScores(gameMode: GameMode): Promise<TriviaLeaderboardRecord[]> {
   try {
     const scores = await triviaService.getLeaderboard(gameMode);
     return scores.map(({ id, ...score }) => ({

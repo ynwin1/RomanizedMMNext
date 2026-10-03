@@ -1,3 +1,11 @@
+export enum ArtistType {
+  Singer = "Singer",
+  Duo = "Duo",
+  Trio = "Trio",
+  Band = "Band",
+  Studio = "Studio",
+}
+
 export interface ArtistMember {
   name: string;
   imageLink?: string;

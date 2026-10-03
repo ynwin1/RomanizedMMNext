@@ -1,5 +1,5 @@
 import connectDB from "@/infrastructure/database/mongodb";
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "../domain/game-mode";
 import { CreateTriviaScoreInput, TriviaScoreEntity } from "../domain/trivia.types";
 import TriviaScore, { type ITriviaScore } from "./trivia-score.model";
 import { ITriviaRepository } from "../application/trivia.repository";

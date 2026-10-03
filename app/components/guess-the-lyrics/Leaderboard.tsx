@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react'
 import {fetchAllTriviaScores} from "@/app/actions/trivia.action";
 import {useTranslations} from "next-intl";
-import {GameMode} from "@/app/lib/constants";
+import {GameMode} from "@/modules/trivia/domain/game-mode";
 import { logger } from "@/infrastructure/logging/logger";
+import type { TriviaLeaderboardRecord } from "@/modules/trivia";
 
 const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}) => {
-    const [allScores, setScores] = useState<any[]>([]);
+    const [allScores, setScores] = useState<TriviaLeaderboardRecord[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const translator = useTranslations("GuessTheLyrics");
 

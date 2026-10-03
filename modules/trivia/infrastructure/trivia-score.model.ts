@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model, models } from "mongoose";
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "../domain/game-mode";
 
 export interface ITriviaScore extends mongoose.Document {
     userName: string,

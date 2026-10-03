@@ -4,7 +4,7 @@ import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
 import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
 import {useTimer} from "react-timer-hook";
-import {GameMode} from "@/app/lib/constants";
+import {GameMode} from "@/modules/trivia/domain/game-mode";
 import type { GuessLyricsSong } from "@/modules/songs";
 
 enum TriviaState {

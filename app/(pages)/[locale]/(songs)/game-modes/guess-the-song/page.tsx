@@ -2,7 +2,7 @@ import React from 'react';
 import Trivia from "@/app/components/guess-the-song/Trivia";
 import Player from "@/app/components/video-player/Player";
 import {Metadata} from "next";
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "@/modules/trivia/domain/game-mode";
 import {songService} from "@/modules/songs";
 import {triviaService} from "@/modules/trivia";
 import { logger } from "@/infrastructure/logging/logger";
