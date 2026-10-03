@@ -6,11 +6,11 @@ const APP_DIR = join(ROOT, "app");
 
 const forbidden = [
   {
-    pattern: /@\/app\/model\/(Song|Artist|SongRequest|TriviaScore)(?:["'])/,
+    pattern: /@\/app\/model\/(Song|Artist|SongRequest|TriviaScore|CountryStat)(?:["'])/,
     message: "Use the domain module service instead of a legacy app/model import.",
   },
   {
-    pattern: /@\/modules\/(songs|artists|requests|trivia)\/infrastructure\//,
+    pattern: /@\/modules\/(songs|artists|requests|trivia|analytics)\/infrastructure\//,
     message: "App code must not import module infrastructure directly; use the module public API.",
   },
 ];

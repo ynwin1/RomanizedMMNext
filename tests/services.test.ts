@@ -13,6 +13,8 @@ import { TriviaService } from "@/modules/trivia/application/trivia.service";
 import type { ITriviaRepository } from "@/modules/trivia/infrastructure/trivia.repository";
 import { GameMode } from "@/app/lib/constants";
 import { NotFoundError } from "@/shared/errors/not-found.error";
+import { AnalyticsService } from "@/modules/analytics/application/analytics.service";
+import type { ICountryStatRepository } from "@/modules/analytics/infrastructure/country-stat.repository";
 
 const song: SongEntity = {
   id: "song-1",
@@ -210,4 +212,50 @@ test("TriviaService does not trim a leaderboard with 10 or fewer scores", async 
   });
 
   assert.equal(deleteCalls, 0);
+});
+
+
+test("analytics service delegates country tracking to the repository", async () => {
+  let received: { country: string; code: string } | null = null;
+  const expected = {
+    id: "country-1",
+    country: "Canada",
+    code: "CA",
+    count: 12,
+  };
+
+  const repository: ICountryStatRepository = {
+    increment: async (country, code) => {
+      received = { country, code };
+      return expected;
+    },
+    listTop: async () => [],
+  };
+
+  const service = new AnalyticsService(repository);
+
+  assert.deepEqual(await service.trackCountry("Canada", "CA"), expected);
+  assert.deepEqual(received, { country: "Canada", code: "CA" });
+});
+
+
+test("analytics service requests the top 10 countries by default", async () => {
+  let receivedLimit = 0;
+  const expected = [
+    { id: "ca", country: "Canada", code: "CA", count: 20 },
+    { id: "us", country: "United States", code: "US", count: 15 },
+  ];
+
+  const repository: ICountryStatRepository = {
+    increment: async () => null,
+    listTop: async (limit) => {
+      receivedLimit = limit;
+      return expected;
+    },
+  };
+
+  const service = new AnalyticsService(repository);
+
+  assert.deepEqual(await service.getTopCountries(), expected);
+  assert.equal(receivedLimit, 10);
 });
