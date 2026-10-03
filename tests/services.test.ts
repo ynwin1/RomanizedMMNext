@@ -1,0 +1,213 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import { SongService } from "@/modules/songs/application/song.service";
+import type { ISongRepository } from "@/modules/songs/infrastructure/song.repository";
+import type { SongEntity } from "@/modules/songs/domain/song.types";
+import { ArtistService } from "@/modules/artists/application/artist.service";
+import type { IArtistRepository } from "@/modules/artists/infrastructure/artist.repository";
+import type { ArtistEntity } from "@/modules/artists/domain/artist.types";
+import { SongRequestService } from "@/modules/requests/application/song-request.service";
+import type { ISongRequestRepository } from "@/modules/requests/infrastructure/song-request.repository";
+import { TriviaService } from "@/modules/trivia/application/trivia.service";
+import type { ITriviaRepository } from "@/modules/trivia/infrastructure/trivia.repository";
+import { GameMode } from "@/app/lib/constants";
+import { NotFoundError } from "@/shared/errors/not-found.error";
+
+const song: SongEntity = {
+  id: "song-1",
+  mmid: 17,
+  songName: "Test Song",
+  artistName: [{ name: "Test Artist", slug: "test-artist" }],
+  genre: "Pop",
+  about: "About",
+  whenToListen: "Anytime",
+  lyrics: "lyrics",
+  romanized: "romanized",
+  burmese: "burmese",
+  meaning: "meaning",
+};
+
+function songRepository(overrides: Partial<ISongRepository> = {}): ISongRepository {
+  return {
+    findByMmid: async () => song,
+    searchByTitle: async () => [],
+    findRandom: async () => null,
+    findLatest: async () => [],
+    findByMmids: async () => [],
+    listForSitemap: async () => [],
+    listCatalogue: async () => [],
+    listGuessLyricsSongs: async () => [],
+    listGuessSongRecords: async () => [],
+    findByArtistName: async () => [],
+    ...overrides,
+  };
+}
+
+test("song page smoke: SongService returns the canonical song", async () => {
+  const service = new SongService(songRepository());
+  assert.deepEqual(await service.getSongPage(17), song);
+});
+
+test("SongService throws NotFoundError for a missing song", async () => {
+  const service = new SongService(songRepository({ findByMmid: async () => null }));
+  await assert.rejects(() => service.getByMmid(999), NotFoundError);
+});
+
+test("search smoke: SongService delegates the query unchanged", async () => {
+  let received = "";
+  const expected = [{ songName: "Hello", mmid: 1, artistName: [{ name: "A" }] }];
+  const service = new SongService(songRepository({
+    searchByTitle: async (query) => {
+      received = query;
+      return expected;
+    },
+  }));
+
+  assert.deepEqual(await service.search("hello"), expected);
+  assert.equal(received, "hello");
+});
+
+test("random song smoke: SongService returns repository result", async () => {
+  const expected = { songName: "Random", mmid: 42 };
+  const service = new SongService(songRepository({ findRandom: async () => expected }));
+  assert.deepEqual(await service.getRandomSong(), expected);
+});
+
+const artist: ArtistEntity = {
+  id: "artist-1",
+  name: "Test Artist",
+  slug: "test-artist",
+  imageLink: "https://example.com/a.jpg",
+  type: "solo",
+  musicGenre: ["Pop"],
+  songs: [17, 22],
+  likes: 0,
+};
+
+function artistRepository(overrides: Partial<IArtistRepository> = {}): IArtistRepository {
+  return {
+    findBySlug: async () => artist,
+    findFirstBySlugs: async () => artist,
+    listCatalogue: async () => ({ artists: [], totalPages: 0 }),
+    create: async () => artist,
+    ...overrides,
+  };
+}
+
+test("artist page smoke: ArtistService returns profile by slug", async () => {
+  const service = new ArtistService(artistRepository());
+  assert.deepEqual(await service.getBySlug("test-artist"), artist);
+});
+
+test("ArtistService throws NotFoundError for a missing artist", async () => {
+  const service = new ArtistService(artistRepository({ findBySlug: async () => null }));
+  await assert.rejects(() => service.getBySlug("missing"), NotFoundError);
+});
+
+test("ArtistService preserves requested artist priority when repository resolves a profile", async () => {
+  let slugsReceived: string[] = [];
+  const service = new ArtistService(artistRepository({
+    findFirstBySlugs: async (slugs) => {
+      slugsReceived = slugs;
+      return artist;
+    },
+  }));
+
+  assert.deepEqual(await service.getFirstProfileBySlugs(["first", "second"]), artist);
+  assert.deepEqual(slugsReceived, ["first", "second"]);
+});
+
+test("request submission smoke: SongRequestService delegates creation", async () => {
+  const input = { songName: "Requested Song", artist: "Artist" };
+  const created = { id: "request-1", ...input, status: "pending" as const };
+  let received: unknown;
+
+  const repository: ISongRequestRepository = {
+    create: async (value) => {
+      received = value;
+      return created;
+    },
+    listQueue: async () => [],
+  };
+
+  const service = new SongRequestService(repository);
+  assert.deepEqual(await service.create(input), created);
+  assert.deepEqual(received, input);
+});
+
+function triviaRepository(overrides: Partial<ITriviaRepository> = {}): ITriviaRepository {
+  return {
+    create: async (input) => ({
+      id: "new-score",
+      date: new Date("2026-01-01"),
+      ...input,
+    }),
+    listByGameMode: async () => [],
+    findMinimumScore: async () => null,
+    deleteById: async () => {},
+    ...overrides,
+  };
+}
+
+test("trivia smoke: empty leaderboard has minimum score 0", async () => {
+  const service = new TriviaService(triviaRepository());
+  assert.equal(await service.getMinimumScore(GameMode.GuessTheLyrics), 0);
+});
+
+test("TriviaService trims the lowest score when leaderboard exceeds 10", async () => {
+  const deleted: Array<{ id: string; gameMode: GameMode }> = [];
+  const scores = Array.from({ length: 11 }, (_, index) => ({
+    id: `score-${index}`,
+    userName: `Player ${index}`,
+    score: 100 - index,
+    country: "🇨🇦",
+    date: new Date("2026-01-01"),
+    gameMode: GameMode.GuessTheSong,
+  }));
+
+  const service = new TriviaService(triviaRepository({
+    listByGameMode: async () => scores,
+    deleteById: async (id, gameMode) => {
+      deleted.push({ id, gameMode });
+    },
+  }));
+
+  await service.saveScore({
+    userName: "New Player",
+    score: 50,
+    country: "🇨🇦",
+    gameMode: GameMode.GuessTheSong,
+  });
+
+  assert.deepEqual(deleted, [{
+    id: "score-10",
+    gameMode: GameMode.GuessTheSong,
+  }]);
+});
+
+test("TriviaService does not trim a leaderboard with 10 or fewer scores", async () => {
+  let deleteCalls = 0;
+  const scores = Array.from({ length: 10 }, (_, index) => ({
+    id: `score-${index}`,
+    userName: `Player ${index}`,
+    score: 10 - index,
+    country: "🇨🇦",
+    date: new Date("2026-01-01"),
+    gameMode: GameMode.GuessTheLyrics,
+  }));
+
+  const service = new TriviaService(triviaRepository({
+    listByGameMode: async () => scores,
+    deleteById: async () => { deleteCalls += 1; },
+  }));
+
+  await service.saveScore({
+    userName: "Player",
+    score: 5,
+    country: "🇨🇦",
+    gameMode: GameMode.GuessTheLyrics,
+  });
+
+  assert.equal(deleteCalls, 0);
+});
