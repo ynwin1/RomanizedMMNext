@@ -1,3 +1,5 @@
+import type { SongRequestStatus } from "../domain/song-request.types";
+
 export interface SongRequestQueueItem {
   songName: string;
   artist: string;
@@ -7,6 +9,20 @@ export interface AdminSongRequestRecord {
   id: string;
   songName: string;
   artist: string;
-  status: "pending" | "added";
+  status: SongRequestStatus;
   createdAt?: Date;
+}
+
+export interface AdminSongRequestDetail {
+  id: string;
+  songName: string;
+  artist: string;
+  youtubeLink?: string;
+  details?: string;
+  notifyEmail?: string;
+  requestedBy?: string;
+  songStory?: string;
+  createdAt?: Date;
+  status: SongRequestStatus;
+  revision: number;
 }

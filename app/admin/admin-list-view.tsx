@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 import type { AdminPage } from "@/shared/admin-list";
 import { adminPageHref } from "./admin-query";
 
+const requestStatuses = [
+  ["pending", "Pending"], ["reviewing", "Reviewing"], ["accepted", "Accepted"],
+  ["rejected", "Rejected"], ["completed", "Completed"],
+] as const;
+
 export function AdminListView({ title, base, query, page, headers, rows, requestStatus = false }: {
   title: string; base: string; query: { q: string; status?: string };
   page: Pick<AdminPage<unknown>, "total" | "page" | "totalPages">;
@@ -17,7 +22,8 @@ export function AdminListView({ title, base, query, page, headers, rows, request
         </label>
         {requestStatus && <label className="flex flex-col gap-1 text-sm">Status
           <select name="status" defaultValue={query.status ?? ""} className="rounded border border-zinc-700 bg-zinc-900 p-2">
-            <option value="">All statuses</option><option value="pending">Pending</option><option value="added">Added</option>
+            <option value="">All statuses</option>
+            {requestStatuses.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>}
         <button className="rounded bg-indigo-600 px-4 py-2 hover:bg-indigo-500" type="submit">Apply filters</button>

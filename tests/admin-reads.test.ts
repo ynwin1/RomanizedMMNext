@@ -15,8 +15,9 @@ test("admin queries default, trim, and reject unsafe pagination or oversized sea
   for (const limit of [0, -1, 101, 1.5])
     assert.equal(AdminListQuerySchema.safeParse({ limit }).success, false);
   assert.equal(AdminListQuerySchema.safeParse({ q: "a".repeat(101) }).success, false);
-  assert.equal(AdminRequestQuerySchema.safeParse({ status: "reviewing" }).success, false);
-  assert.equal(AdminRequestQuerySchema.parse({ status: "added" }).status, "added");
+  assert.equal(AdminRequestQuerySchema.safeParse({ status: "added" }).success, false);
+  assert.equal(AdminRequestQuerySchema.parse({ status: "reviewing" }).status, "reviewing");
+  assert.equal(AdminRequestQuerySchema.parse({ status: "completed" }).status, "completed");
 });
 
 test("search metacharacters are literal and matching is case insensitive", () => {
@@ -30,7 +31,8 @@ test("search metacharacters are literal and matching is case insensitive", () =>
 test("pending request filters include legacy missing/null statuses and combine search", () => {
   const pending = requestAdminFilter("", "pending");
   assert.deepEqual(pending, { $and: [{ $or: [{ status: "pending" }, { status: { $exists: false } }, { status: null }] }] });
-  assert.deepEqual(requestAdminFilter("", "added"), { $and: [{ status: "added" }] });
+  assert.deepEqual(requestAdminFilter("", "completed"), { $and: [{ status: { $in: ["completed", "added"] } }] });
+  assert.deepEqual(requestAdminFilter("", "reviewing"), { $and: [{ status: "reviewing" }] });
   assert.deepEqual(requestAdminFilter(""), {});
   const combined = requestAdminFilter("Song.*", "pending");
   assert.equal(combined.$and?.length, 2);
@@ -46,7 +48,7 @@ test("pagination handles empty lists, partial last pages, and out-of-range pages
 });
 
 test("URL parsing tolerates invalid/duplicate parameters and preserves encoded filters in links", () => {
-  assert.deepEqual(parseAdminSearchParams({ page: "bad", q: ["  Burmese & jazz ", "ignored"], status: "reviewing" }), { page: 1, limit: 20, q: "Burmese & jazz" });
+  assert.deepEqual(parseAdminSearchParams({ page: "bad", q: ["  Burmese & jazz ", "ignored"], status: "added" }), { page: 1, limit: 20, q: "Burmese & jazz" });
   assert.equal(parseAdminSearchParams({ page: "-4" }).page, 1);
   assert.equal(parseAdminSearchParams({ q: "x".repeat(200) }).q.length, 100);
   const url = new URL(adminPageHref("/admin/requests", { q: "မြန်မာ & +", status: "pending" }, 2), "https://example.com");

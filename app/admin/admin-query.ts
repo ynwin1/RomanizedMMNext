@@ -1,6 +1,7 @@
 import { AdminListQuerySchema } from "@/shared/admin-list";
 
 export type AdminSearchParams = Record<string, string | string[] | undefined>;
+const requestStatuses = new Set(["pending", "reviewing", "accepted", "rejected", "completed"]);
 
 export function parseAdminSearchParams(params: AdminSearchParams) {
   const first = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
@@ -11,7 +12,7 @@ export function parseAdminSearchParams(params: AdminSearchParams) {
     page: page.success ? page.data : 1,
     limit: 20,
     q,
-    ...(status === "pending" || status === "added" ? { status } : {}),
+    ...(status && requestStatuses.has(status) ? { status } : {}),
   };
 }
 
