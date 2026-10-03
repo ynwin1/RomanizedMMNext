@@ -3,6 +3,8 @@ import { extname, join, relative } from "node:path";
 
 const ROOT = process.cwd();
 const APP_DIR = join(ROOT, "app");
+const SOURCE_DIRS = ["app", "modules", "integrations", "infrastructure", "shared"]
+  .map((directory) => join(ROOT, directory));
 
 const forbidden = [
   {
@@ -32,6 +34,19 @@ async function walk(directory) {
 }
 
 const violations = [];
+
+for (const directory of SOURCE_DIRS) {
+  for (const file of await walk(directory)) {
+    const source = await readFile(file, "utf8");
+
+    if (/@\/app\/lib\/mongodb(?:["'])/.test(source)) {
+      violations.push({
+        file: relative(ROOT, file),
+        message: "Use infrastructure/database/mongodb directly; the legacy app/lib database shim is removed.",
+      });
+    }
+  }
+}
 
 for (const file of await walk(APP_DIR)) {
   const source = await readFile(file, "utf8");
