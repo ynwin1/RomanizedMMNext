@@ -1,11 +1,10 @@
 "use server";
 import { z } from "zod";
 import {redirect} from "next/navigation";
-import connectDB from "@/app/lib/mongodb";
-import TriviaScore from "@/app/model/TriviaScore";
 import {countryFlags} from "@/app/lib/utils";
 import {songService} from "@/modules/songs";
 import { GameMode } from "@/app/lib/constants";
+import {triviaService} from "@/modules/trivia";
 import {songRequestService} from "@/modules/requests";
 import {sendDiscordNotification} from "@/integrations/notifications/discord-notification.adapter";
 
@@ -211,27 +210,12 @@ export async function createTriviaScore(prevState: TriviaScoreState, formData: F
     }
 }
 
-export async function findMinimumTriviaScore(gameMode: GameMode) {
-    try {
-        await connectDB();
-        const result = await TriviaScore.find({ gameMode }).sort({ score: 1 }).limit(1).lean();
-        if (result.length === 0) {
-            return 0;
-        }
-        return result[0].score;
-    } catch (error) {
-        console.error(error);
-        return 0;
-    }
-}
-
 export async function fetchAllTriviaScores(gameMode: GameMode) {
     try {
-        await connectDB();
-        const scores = await TriviaScore.find({ gameMode }).sort({ score: -1 }).lean(); // sort by score in descending order
-        return scores.map(score => ({
+        const scores = await triviaService.getLeaderboard(gameMode);
+        return scores.map(({ id, ...score }) => ({
             ...score,
-            _id: score._id.toString(),
+            _id: id,
         }));
     } catch (error) {
         console.error("Error fetching Trivia Scores - " + error);
@@ -259,28 +243,20 @@ export async function fetchLastCreatedSongs(limit: number = 5) {
 }
 
 export async function saveScoreAction(
-    userName: string, 
-    country: string, 
+    userName: string,
+    country: string,
     score: number,
     gameMode: GameMode
 ) {
     try {
-        await connectDB();
-
         const emoji = countryFlags[country] || '🌎';
 
-        await TriviaScore.create({
-            userName: userName,
+        await triviaService.saveScore({
+            userName,
             country: emoji,
-            score: score,
-            gameMode: gameMode
+            score,
+            gameMode,
         });
-
-        // remove the lowest score if there are more than 10 scores
-        const allScores = await fetchAllTriviaScores(gameMode);
-        if (allScores.length > 10) {
-            await TriviaScore.deleteOne({ _id: allScores[allScores.length - 1]._id, gameMode: gameMode });
-        }
 
         return { success: true };
     } catch (error) {
