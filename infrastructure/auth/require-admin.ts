@@ -4,17 +4,31 @@ import { isAdminPrincipal } from "./authorization";
 import { getCurrentPrincipal, redirectToAdminSignIn } from "./clerk-auth";
 import type { AuthPrincipal } from "./auth.types";
 
-export async function requireAdmin(): Promise<AuthPrincipal & { role: "admin" }> {
-  const principal = await getCurrentPrincipal();
+type AdminPrincipal = AuthPrincipal & { role: "admin" };
 
-  if (!principal) {
-    await redirectToAdminSignIn();
-    redirect("/");
-  }
+export function createRequireAdmin(dependencies: {
+  getPrincipal: () => Promise<AuthPrincipal | null>;
+  redirectToSignIn: () => Promise<void>;
+  redirect: (path: string) => never;
+}) {
+  return async function requireAdmin(): Promise<AdminPrincipal> {
+    const principal = await dependencies.getPrincipal();
 
-  if (!isAdminPrincipal(principal)) {
-    redirect("/");
-  }
+    if (!principal) {
+      await dependencies.redirectToSignIn();
+      dependencies.redirect("/");
+    }
 
-  return principal;
+    if (!isAdminPrincipal(principal)) {
+      dependencies.redirect("/");
+    }
+
+    return principal;
+  };
 }
+
+export const requireAdmin = createRequireAdmin({
+  getPrincipal: getCurrentPrincipal,
+  redirectToSignIn: redirectToAdminSignIn,
+  redirect,
+});
