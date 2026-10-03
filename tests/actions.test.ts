@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { triviaService } from "@/modules/trivia";
 import { songRequestService, type CreateSongRequestInput } from "@/modules/requests";
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "@/modules/trivia/domain/game-mode";
 import { createTriviaScore } from "@/app/actions/trivia.action";
 import { createSongRequest } from "@/app/actions/song-request.action";
 

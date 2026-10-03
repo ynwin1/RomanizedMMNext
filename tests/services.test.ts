@@ -11,7 +11,7 @@ import { SongRequestService } from "@/modules/requests/application/song-request.
 import type { ISongRequestRepository } from "@/modules/requests/application/song-request.repository";
 import { TriviaService } from "@/modules/trivia/application/trivia.service";
 import type { ITriviaRepository } from "@/modules/trivia/application/trivia.repository";
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "@/modules/trivia/domain/game-mode";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { AnalyticsService } from "@/modules/analytics/application/analytics.service";
 import type { ICountryStatRepository } from "@/modules/analytics/application/country-stat.repository";

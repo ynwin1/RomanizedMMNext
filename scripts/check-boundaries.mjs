@@ -12,7 +12,7 @@ const forbidden = [
     message: "Use the domain module service instead of a legacy app/model import.",
   },
   {
-    pattern: /@\/modules\/(songs|artists|requests|trivia|analytics)\/infrastructure\//,
+    pattern: /@\/modules\/[^/"']+\/infrastructure\//,
     message: "App code must not import module infrastructure directly; use the module public API.",
   },
 ];
@@ -35,21 +35,6 @@ async function walk(directory) {
 
 const violations = [];
 
-for (const moduleName of ["songs", "artists", "requests", "trivia", "analytics"]) {
-  const applicationDir = join(ROOT, "modules", moduleName, "application");
-
-  for (const file of await walk(applicationDir)) {
-    const source = await readFile(file, "utf8");
-
-    if (/from\s+["'](?:\.\.\/infrastructure\/|@\/modules\/[^"']+\/infrastructure\/)/.test(source)) {
-      violations.push({
-        file: relative(ROOT, file),
-        message: "Application code must depend on application/domain contracts, not infrastructure.",
-      });
-    }
-  }
-}
-
 for (const directory of SOURCE_DIRS) {
   for (const file of await walk(directory)) {
     const source = await readFile(file, "utf8");
@@ -59,6 +44,26 @@ for (const directory of SOURCE_DIRS) {
       violations.push({
         file: filePath,
         message: "Use infrastructure/database/mongodb directly; the legacy app/lib database shim is removed.",
+      });
+    }
+
+    if (
+      filePath.startsWith("modules/") &&
+      /(?:["']@\/app\/|["'](?:\.\.\/)+app\/)/.test(source)
+    ) {
+      violations.push({
+        file: filePath,
+        message: "Domain modules must not depend on app code; move shared/domain ownership into the module.",
+      });
+    }
+
+    if (
+      /^modules\/[^/]+\/application\//.test(filePath) &&
+      /from\s+["'](?:\.\.\/infrastructure\/|@\/modules\/[^"']+\/infrastructure\/)/.test(source)
+    ) {
+      violations.push({
+        file: filePath,
+        message: "Application code must depend on application/domain contracts, not infrastructure.",
       });
     }
 

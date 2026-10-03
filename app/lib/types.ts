@@ -4,14 +4,7 @@ export type SongPageArtist = {
     slug?: string
 }
 
-export enum ArtistType {
-    Singer = "Singer",
-    Duo = "Duo",
-    Trio = "Trio",
-    Band = "Band",
-    Studio = "Studio"
-}
-
+export { ArtistType } from "@/modules/artists/domain/artist.types";
 export enum TriviaState {
     Start = 'start',
     Playing = 'playing',

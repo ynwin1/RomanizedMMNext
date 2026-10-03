@@ -4,7 +4,7 @@ import {useTranslations} from "next-intl";
 import {TriviaScoreForm} from "@/app/components/forms/TriviaScoreForm";
 import Leaderboard from "@/app/components/guess-the-lyrics/Leaderboard";
 import {TriviaState} from "@/app/lib/types";
-import {GameMode} from "@/app/lib/constants";
+import {GameMode} from "@/modules/trivia/domain/game-mode";
 import {TriviaCard} from "./TriviaCard";
 import type { GuessSongRecord } from "@/modules/songs";
 

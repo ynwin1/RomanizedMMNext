@@ -1,4 +1,4 @@
-import { GameMode } from "@/app/lib/constants";
+import { GameMode } from "../domain/game-mode";
 import { CreateTriviaScoreInput, TriviaScoreEntity } from "../domain/trivia.types";
 import { ITriviaRepository } from "./trivia.repository";
 

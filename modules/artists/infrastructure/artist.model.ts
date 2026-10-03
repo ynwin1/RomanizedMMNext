@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model, models } from "mongoose";
-import { ArtistType } from "@/app/lib/types";
+import { ArtistType } from "../domain/artist.types";
 
 export interface IArtist extends mongoose.Document {
     name: string;
