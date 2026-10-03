@@ -10,12 +10,12 @@ import SocialShare from "@/app/components/social/SocialShare";
 import {buildArtistNames, extractSongName} from "@/app/lib/utils";
 import Link from "next/link";
 import {SongPageArtist} from "@/app/lib/types";
-import Artist from "@/app/model/Artist";
 import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
 import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService} from "@/modules/songs";
+import {artistService} from "@/modules/artists";
 
 type Props = {
     params: Promise<{ locale: string, id: string, name: string }>
@@ -178,20 +178,19 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         imageLink: "",
         biography: "",
     }
-    // fetch artist details if profile available
+    // fetch the first matching artist profile in one repository query
     try {
-        for (const artist of song.artistName) {
-            if (artist.slug) {
-                const artistDetails = await Artist.findOne({ slug: artist.slug }).select("imageLink biography").lean();
-                if (!artistDetails) {
-                    continue;
-                }
-                firstArtist.name = artist.name;
-                firstArtist.slug = artist.slug;
-                firstArtist.imageLink = artistDetails.imageLink;
-                firstArtist.biography = artistDetails.biography || "";
-                break;
-            }
+        const slugs = song.artistName
+            .map(artist => artist.slug)
+            .filter((slug): slug is string => Boolean(slug));
+
+        const artistDetails = await artistService.getFirstProfileBySlugs(slugs);
+        if (artistDetails) {
+            const matchingSongArtist = song.artistName.find(artist => artist.slug === artistDetails.slug);
+            firstArtist.name = matchingSongArtist?.name || artistDetails.name;
+            firstArtist.slug = artistDetails.slug;
+            firstArtist.imageLink = artistDetails.imageLink;
+            firstArtist.biography = artistDetails.biography || "";
         }
     } catch (e) {
         console.error("Error fetching artist details:", e);

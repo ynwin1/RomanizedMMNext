@@ -1,5 +1,5 @@
-import Artist from "@/app/model/Artist";
-import connectDB from "@/app/lib/mongodb";
+import {artistService} from "@/modules/artists";
+import {NotFoundError} from "@/shared/errors/not-found.error";
 
 type Props = {
     params: Promise<{ slug: string }>
@@ -12,13 +12,12 @@ export async function GET(
   // fetch artist from db
   try {
     const { slug } = await props.params;
-    await connectDB();
-    const artist = await Artist.findOne({ slug }).select("-_id -__v").lean();
-    if (!artist) {
-      return Response.json({ error: 'Artist not found' }, { status: 404 });
-    }
+    const { id, ...artist } = await artistService.getBySlug(slug);
     return Response.json(artist, { status: 200 });
   } catch (error) {
+    if (error instanceof NotFoundError) {
+      return Response.json({ error: 'Artist not found' }, { status: 404 });
+    }
     return Response.json({ error: `Failed to fetch artist with error - ${error}` }, { status: 500 });
   }
 }

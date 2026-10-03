@@ -2,14 +2,13 @@ import React from 'react';
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import connectDB from "@/app/lib/mongodb";
-import Artist from "@/app/model/Artist";
-import Song from "@/app/model/Song";
 import Biography from "@/app/components/artist/biography";
 import SongCard from "@/app/components/artist/SongCard";
 import Link from "next/link";
 import {getTranslations} from "next-intl/server";
 import {Metadata} from "next";
+import {artistService, ArtistEntity} from "@/modules/artists";
+import {songService, SongEntity} from "@/modules/songs";
 
 type Props = {
     params: Promise<{ locale: string, slug: string }>
@@ -26,11 +25,7 @@ export async function generateMetadata(
             throw new Error("Missing required parameters: id or locale");
         }
 
-        const artistQ = await Artist.findOne({ slug: slug }).lean();
-
-        if (!artistQ) {
-            throw new Error("Song not found when generating metadata");
-        }
+        const artistQ = await artistService.getBySlug(slug);
 
         const artistName: string = artistQ.name;
         const artistSlug: string = artistQ.slug;
@@ -121,26 +116,11 @@ const MemberCard = ({ name, imageLink }: Member) => (
 const Page = async ({ params }: ArtistPageProps) => {
     const { locale, slug } = await params;
 
-    // Commented out original database fetching logic
-    let artist;
-    const artistSongs = [];
+    let artist: ArtistEntity;
+    let artistSongs: SongEntity[] = [];
     try {
-        await connectDB();
-        artist = await Artist.findOne({slug: slug}).lean();
-
-        if (!artist) {
-            return notFound();
-        }
-
-        for (const songId of artist.songs) {
-            const song = await Song.findOne({mmid: songId})
-                .select("songName mmid imageLink about")
-                .lean();
-            if (song) {
-                artistSongs.push(song);
-            }
-        }
-
+        artist = await artistService.getBySlug(slug);
+        artistSongs = await songService.getSongsByMmids(artist.songs);
         artistSongs.sort((a, b) => a.songName.localeCompare(b.songName));
     } catch (e) {
         console.error("Error fetching artist page data:", e);
