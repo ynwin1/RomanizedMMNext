@@ -2,13 +2,14 @@ import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRecord } from "@/modules/songs/application/song.dto";
 import type { AdminArtistRecord } from "@/modules/artists/application/artist.dto";
 import type { AdminSongRequestRecord } from "@/modules/requests/application/song-request.dto";
+import type { SongRequestStatus } from "@/modules/requests/domain/song-request.types";
 
 interface ReadService<T> {
   getAdminList(input?: unknown): Promise<AdminPage<T>>;
   getAdminCount(): Promise<number>;
 }
 interface RequestReadService extends ReadService<AdminSongRequestRecord> {
-  getAdminCount(status?: "pending" | "added"): Promise<number>;
+  getAdminCount(status?: SongRequestStatus): Promise<number>;
 }
 
 export class AdminReadService {

@@ -1,15 +1,18 @@
-import { adminPage, type AdminPage, type AdminListQuery } from "@/shared/admin-list";
-import { literalSearch } from "@/shared/literal-search";
-import type { AdminSongRequestRecord } from "../application/song-request.dto";
+import { adminPage, type AdminPage } from "@/shared/admin-list";
+import type { AdminSongRequestDetail, AdminSongRequestRecord, SongRequestQueueItem } from "../application/song-request.dto";
 import type { AdminRequestQuery } from "../application/song-request.admin-query";
 import { requestAdminFilter } from "./song-request.admin-filter";
 import connectDB from "@/infrastructure/database/mongodb";
-import { CreateSongRequestInput, SongRequestEntity } from "../domain/song-request.types";
-import { SongRequestQueueItem } from "../application/song-request.dto";
+import type { CreateSongRequestInput, SongRequestEntity, SongRequestStatus, StoredSongRequestStatus } from "../domain/song-request.types";
 import SongRequest, { type ISongRequest } from "./song-request.model";
 import { ISongRequestRepository } from "../application/song-request.repository";
 
 type SongRequestPersistenceRecord = Pick<ISongRequest, Exclude<keyof SongRequestEntity, "id">> & { _id?: unknown };
+
+function managedStatus(status?: StoredSongRequestStatus | null): SongRequestStatus {
+  if (!status) return "pending";
+  return status === "added" ? "completed" : status;
+}
 
 function toEntity(request: SongRequestPersistenceRecord): SongRequestEntity {
   return {
@@ -27,7 +30,7 @@ function toEntity(request: SongRequestPersistenceRecord): SongRequestEntity {
 }
 
 export class MongoSongRequestRepository implements ISongRequestRepository {
-  async countAdmin(status?: "pending" | "added"): Promise<number> {
+  async countAdmin(status?: SongRequestStatus): Promise<number> {
     await connectDB();
     return SongRequest.countDocuments(requestAdminFilter("", status));
   }
@@ -40,7 +43,13 @@ export class MongoSongRequestRepository implements ISongRequestRepository {
         .limit(query.limit).select("songName artist status createdAt").lean(),
       SongRequest.countDocuments(filter),
     ]);
-    return adminPage(rows.map(row => ({ id: String(row._id), songName: row.songName, artist: row.artist, status: row.status ?? "pending", createdAt: row.createdAt })), total, query);
+    return adminPage(rows.map(row => ({
+      id: String(row._id),
+      songName: row.songName,
+      artist: row.artist,
+      status: managedStatus(row.status),
+      createdAt: row.createdAt,
+    })), total, query);
   }
 
   async create(input: CreateSongRequestInput): Promise<SongRequestEntity> {
@@ -51,8 +60,29 @@ export class MongoSongRequestRepository implements ISongRequestRepository {
 
   async listQueue(): Promise<SongRequestQueueItem[]> {
     await connectDB();
-    return SongRequest.find()
-      .select("songName artist -_id")
-      .lean();
+    return SongRequest.find().select("songName artist -_id").lean();
+  }
+
+  async findAdminDetail(id: string): Promise<AdminSongRequestDetail | null> {
+    await connectDB();
+    const request = await SongRequest.findById(id).lean();
+    return request ? { ...toEntity(request), status: managedStatus(request.status), revision: request.__v ?? 0 } : null;
+  }
+
+  async updateStatus(id: string, revision: number, status: SongRequestStatus): Promise<SongRequestEntity | null> {
+    await connectDB();
+    const versionFilter = revision === 0 ? { $or: [{ __v: 0 }, { __v: { $exists: false } }] } : { __v: revision };
+    const request = await SongRequest.findOneAndUpdate(
+      { _id: id, ...versionFilter },
+      { $set: { status }, $inc: { __v: 1 } },
+      { new: true, runValidators: true, upsert: false },
+    ).lean();
+    return request ? toEntity(request) : null;
+  }
+
+  async findById(id: string): Promise<SongRequestEntity | null> {
+    await connectDB();
+    const request = await SongRequest.findById(id).lean();
+    return request ? toEntity(request) : null;
   }
 }

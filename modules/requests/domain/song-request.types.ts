@@ -1,4 +1,5 @@
-export type SongRequestStatus = "pending" | "added";
+export type SongRequestStatus = "pending" | "reviewing" | "accepted" | "rejected" | "completed";
+export type StoredSongRequestStatus = SongRequestStatus | "added";
 
 export interface SongRequestEntity {
   id: string;
@@ -10,9 +11,7 @@ export interface SongRequestEntity {
   requestedBy?: string;
   songStory?: string;
   createdAt?: Date;
-  status?: SongRequestStatus;
+  status?: StoredSongRequestStatus;
 }
 
-export type CreateSongRequestInput = Omit<SongRequestEntity, "id" | "createdAt" | "status"> & {
-  status?: SongRequestStatus;
-};
+export type CreateSongRequestInput = Omit<SongRequestEntity, "id" | "createdAt" | "status">;
