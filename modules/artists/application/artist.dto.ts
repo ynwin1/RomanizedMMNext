@@ -33,3 +33,11 @@ export interface ArtistProfile {
   socials?: ArtistSocials;
   likes: number;
 }
+
+export interface AdminArtistRecord {
+  name: string;
+  slug: string;
+  type: string;
+  musicGenre: string[];
+  songCount: number;
+}

@@ -1,3 +1,6 @@
+import { AdminListQuerySchema, type AdminListQuery } from "@/shared/admin-list";
+import type { AdminPage } from "@/shared/admin-list";
+import type { AdminSongRecord } from "./song.dto";
 import { SongEntity } from "../domain/song.types";
 import {
   GuessLyricsSong,
@@ -10,6 +13,8 @@ import {
 } from "./song.dto";
 
 export interface ISongRepository {
+  listAdmin(query: AdminListQuery): Promise<AdminPage<AdminSongRecord>>;
+  countAdmin(): Promise<number>;
   findByMmid(mmid: number): Promise<SongEntity | null>;
   searchByTitle(query: string): Promise<SongSearchResult[]>;
   findRandom(): Promise<RandomSongResult | null>;

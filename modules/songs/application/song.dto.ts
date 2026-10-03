@@ -42,3 +42,11 @@ export interface GuessSongRecord {
   youtubeLink?: string[];
   mmid: number;
 }
+
+export interface AdminSongRecord {
+  mmid: number;
+  songName: string;
+  artistName: SongArtist[];
+  genre: string;
+  createdAt?: Date;
+}
