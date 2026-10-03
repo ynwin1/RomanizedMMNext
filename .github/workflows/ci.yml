@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    env:
-      MONGODB_URI: ${{ secrets.MONGODB_URI }}
 
     steps:
       - name: Checkout
@@ -30,5 +28,4 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Build
-        if: ${{ env.MONGODB_URI != '' }}
         run: npm run build

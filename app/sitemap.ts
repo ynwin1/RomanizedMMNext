@@ -1,19 +1,19 @@
-import {songService} from "@/modules/songs";
+import {songService, SitemapSongRecord} from "@/modules/songs";
 import {MetadataRoute} from "next";
 
 const WEBSITE_URL = 'https://www.romanizedmm.com'
 const LOCALES = ['en', 'my']
 const SONG_OPTIONS = ['english', 'burmese', 'meaning'] // Added 'meaning' option
 
-const songs = await (async () => {
+export const dynamic = 'force-dynamic';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    let songs: SitemapSongRecord[] = [];
     try {
-        return await songService.getSitemapSongs();
+        songs = await songService.getSitemapSongs();
     } catch (error) {
         console.error("Error getting songs for sitemap - ", error);
-        return [];
     }
-})();
-export default function sitemap(): MetadataRoute.Sitemap {
     const routes: MetadataRoute.Sitemap = [];
     // Home Pages for each locale
     LOCALES.forEach(locale => {
