@@ -1,24 +1,30 @@
-import {NextRequest} from "next/server";
 import { songService } from "@/modules/songs";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 
 type Props = {
-    params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 export async function GET(
-    request: NextRequest,
-    props: Props
+  request: Request,
+  props: Props,
 ) {
-    const { id } = await props.params;
+  const { id } = await props.params;
+  const mmid = Number(id);
 
-    try {
-        const { id: songId, ...song } = await songService.getByMmid(Number(id));
-        return Response.json({ success: true, data: { _id: songId, ...song } });
-    } catch (error) {
-        if (error instanceof NotFoundError) {
-            return Response.json({ error: "Song not found" }, { status: 404 });
-        }
-        return Response.json({ error: (error as Error).message }, { status: 500 });
+  if (!Number.isInteger(mmid) || mmid <= 0) {
+    return Response.json({ error: "Invalid song id" }, { status: 400 });
+  }
+
+  try {
+    const { id: songId, ...song } = await songService.getByMmid(mmid);
+    return Response.json({ success: true, data: { _id: songId, ...song } });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return Response.json({ error: "Song not found" }, { status: 404 });
     }
+
+    console.error("Failed to fetch song by id:", error);
+    return Response.json({ error: "Failed to fetch song" }, { status: 500 });
+  }
 }
