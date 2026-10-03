@@ -1,7 +1,7 @@
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { ArtistCataloguePage } from "./artist.dto";
 import { ArtistEntity, CreateArtistInput } from "../domain/artist.types";
-import { IArtistRepository } from "../infrastructure/artist.repository";
+import { IArtistRepository } from "./artist.repository";
 
 export class ArtistService {
   constructor(private readonly artists: IArtistRepository) {}

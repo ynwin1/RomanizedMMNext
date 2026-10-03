@@ -2,6 +2,7 @@ import connectDB from "@/infrastructure/database/mongodb";
 import { CreateSongRequestInput, SongRequestEntity } from "../domain/song-request.types";
 import { SongRequestQueueItem } from "../application/song-request.dto";
 import SongRequest from "./song-request.model";
+import { ISongRequestRepository } from "../application/song-request.repository";
 
 function toEntity(request: any): SongRequestEntity {
   return {
@@ -16,11 +17,6 @@ function toEntity(request: any): SongRequestEntity {
     createdAt: request.createdAt,
     status: request.status,
   };
-}
-
-export interface ISongRequestRepository {
-  create(input: CreateSongRequestInput): Promise<SongRequestEntity>;
-  listQueue(): Promise<SongRequestQueueItem[]>;
 }
 
 export class MongoSongRequestRepository implements ISongRequestRepository {

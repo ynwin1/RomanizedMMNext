@@ -1,5 +1,6 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import Song from "./song.model";
+import { ISongRepository } from "../application/song.repository";
 import { SongEntity } from "../domain/song.types";
 import {
   GuessLyricsSong,
@@ -36,19 +37,6 @@ function toEntity(song: any): SongEntity {
     songStoryEn: song.songStoryEn,
     songStoryMy: song.songStoryMy,
   };
-}
-
-export interface ISongRepository {
-  findByMmid(mmid: number): Promise<SongEntity | null>;
-  searchByTitle(query: string): Promise<SongSearchResult[]>;
-  findRandom(): Promise<RandomSongResult | null>;
-  findLatest(limit: number): Promise<SongSummary[]>;
-  findByMmids(mmids: number[]): Promise<SongEntity[]>;
-  listForSitemap(): Promise<SitemapSongRecord[]>;
-  listCatalogue(): Promise<SongCatalogueRecord[]>;
-  listGuessLyricsSongs(): Promise<GuessLyricsSong[]>;
-  listGuessSongRecords(): Promise<GuessSongRecord[]>;
-  findByArtistName(artistName: string): Promise<SongEntity[]>;
 }
 
 export class MongoSongRepository implements ISongRepository {

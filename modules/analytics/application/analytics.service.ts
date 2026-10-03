@@ -1,5 +1,5 @@
 import { CountryStatEntity } from "../domain/country-stat.types";
-import { ICountryStatRepository } from "../infrastructure/country-stat.repository";
+import { ICountryStatRepository } from "./country-stat.repository";
 
 export class AnalyticsService {
   constructor(private readonly countryStats: ICountryStatRepository) {}

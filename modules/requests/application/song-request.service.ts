@@ -1,6 +1,6 @@
 import { SongRequestQueueItem } from "./song-request.dto";
 import { CreateSongRequestInput, SongRequestEntity } from "../domain/song-request.types";
-import { ISongRequestRepository } from "../infrastructure/song-request.repository";
+import { ISongRequestRepository } from "./song-request.repository";
 
 export class SongRequestService {
   constructor(private readonly requests: ISongRequestRepository) {}
