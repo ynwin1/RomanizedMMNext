@@ -11,6 +11,7 @@
     "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node -r ./test-register.cjs --test --test-concurrency=1 .test-dist/tests/*.test.js"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.9.10",
     "@heroicons/react": "^2.2.0",
     "clsx": "^2.1.1",
     "mongoose": "^8.24.4",
