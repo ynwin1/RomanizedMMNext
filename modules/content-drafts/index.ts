@@ -8,3 +8,4 @@ export const contentDraftService = new ContentDraftService(contentDraftRepositor
 export * from "./domain/content-draft.types";
 export * from "./application/content-draft.validation";
 export * from "./application/content-draft-write.error";
+export * from "./application/content-draft-metadata";

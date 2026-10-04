@@ -33,20 +33,24 @@ function toEntity(draft: PersistenceRecord): ContentDraftEntity {
   };
 }
 
-function setOperations(patch: ContentDraftPatch, updatedBy?: string): Record<string, unknown> {
+function writeOperations(patch: ContentDraftPatch, updatedBy?: string) {
   const set: Record<string, unknown> = {};
+  const unset: Record<string, 1> = {};
 
   for (const section of ["identity", "source", "generated", "metadata"] as const) {
     const values = patch[section];
     if (!values) continue;
     for (const [key, value] of Object.entries(values)) {
-      set[`${section}.${key}`] = value;
+      const path = `${section}.${key}`;
+      if (value === null) unset[path] = 1;
+      else set[path] = value;
     }
   }
 
   if (patch.artists !== undefined) set.artists = patch.artists;
   if (updatedBy) set.updatedBy = updatedBy;
-  return set;
+
+  return { set, unset };
 }
 
 export class MongoContentDraftRepository implements IContentDraftRepository {
@@ -99,9 +103,14 @@ export class MongoContentDraftRepository implements IContentDraftRepository {
       ? { $or: [{ __v: 0 }, { __v: { $exists: false } }] }
       : { __v: revision };
 
+    const { set, unset } = writeOperations(patch, updatedBy);
+    const update: Record<string, unknown> = { $inc: { __v: 1 } };
+    if (Object.keys(set).length > 0) update.$set = set;
+    if (Object.keys(unset).length > 0) update.$unset = unset;
+
     const draft = await ContentDraft.findOneAndUpdate(
       { _id: id, ...versionFilter },
-      { $set: setOperations(patch, updatedBy), $inc: { __v: 1 } },
+      update,
       { new: true, runValidators: true, upsert: false },
     ).lean();
 

@@ -28,15 +28,22 @@ function repository(overrides: Partial<IContentDraftRepository> = {}): IContentD
     create: async (input, updatedBy) => ({ ...record(), ingestionId: input.ingestionId, updatedBy }),
     findById: async () => record(),
     findByIngestionId: async () => record(),
-    update: async (_id, _revision, patch, updatedBy) => ({
-      ...record(),
-      identity: { ...record().identity, ...patch.identity },
-      source: { ...record().source, ...patch.source },
-      generated: { ...record().generated, ...patch.generated },
-      metadata: { ...record().metadata, ...patch.metadata },
-      artists: patch.artists ?? [],
-      updatedBy,
-    }),
+    update: async (_id, _revision, patch, updatedBy) => {
+      const metadata = { ...record().metadata } as Record<string, unknown>;
+      for (const [key, value] of Object.entries(patch.metadata ?? {})) {
+        if (value === null) delete metadata[key];
+        else metadata[key] = value;
+      }
+      return {
+        ...record(),
+        identity: { ...record().identity, ...patch.identity },
+        source: { ...record().source, ...patch.source },
+        generated: { ...record().generated, ...patch.generated },
+        metadata,
+        artists: patch.artists ?? [],
+        updatedBy,
+      } as any;
+    },
     ...overrides,
   };
 }

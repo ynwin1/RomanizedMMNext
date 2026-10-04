@@ -6,7 +6,10 @@ import {
   IngestionRequestIdSchema,
   SaveIngestionSourceSchema,
 } from "@/modules/ingestions/application/ingestion.validation";
-import { ContentDraftConflictError } from "@/modules/content-drafts/application/content-draft-write.error";
+import {
+  ContentDraftConflictError,
+  SaveDraftMetadataSchema,
+} from "@/modules/content-drafts";
 import {
   ContentGenerationProviderError,
   GeneratedContentQualityError,
@@ -25,6 +28,7 @@ import {
   AiGenerationStateError,
   IncompleteAiGenerationError,
 } from "@/modules/ingestions/application/ingestion-generation.error";
+import { IngestionMetadataStateError } from "@/modules/ingestions/application/ingestion-metadata.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 
@@ -34,14 +38,31 @@ export interface IngestionActionState {
 }
 
 const StartIngestionSchema = z.object({ requestId: IngestionRequestIdSchema }).strict();
+const SaveIngestionMetadataSchema = SaveDraftMetadataSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
+
+function nullableText(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function youtubeLinks(value: FormDataEntryValue | null): string[] | null {
+  if (typeof value !== "string") return null;
+  const links = value.split(/\r?\n/).map(link => link.trim()).filter(Boolean);
+  return links.length > 0 ? links : null;
+}
 
 export function createIngestionActionHandler(dependencies: {
   authorize: () => Promise<AdminWritePrincipal>;
   workflow: Pick<IngestionWorkflowService, "startAcceptedRequest" | "saveAndConfirmSource">;
   generateAiContent: (ingestionId: string, updatedBy: string) => Promise<unknown>;
+  saveMetadata: (ingestionId: string, input: z.infer<typeof SaveDraftMetadataSchema>, updatedBy: string) => Promise<unknown>;
   started: (ingestionId: string) => never;
   sourceSaved: (ingestionId: string) => never;
   aiGenerated: (ingestionId: string) => never;
+  metadataSaved: (ingestionId: string) => never;
   logFailure: (error: unknown) => void;
 }) {
   return {
@@ -137,6 +158,49 @@ export function createIngestionActionHandler(dependencies: {
       }
 
       return dependencies.aiGenerated(prepared.value.ingestionId);
+    },
+
+    async saveMetadata(
+      ingestionId: string,
+      draftId: string,
+      draftRevision: number,
+      _previous: IngestionActionState,
+      form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({
+          ingestionId,
+          draftId,
+          draftRevision,
+          genre: form.get("genre"),
+          albumName: nullableText(form.get("albumName")),
+          spotifyTrackId: nullableText(form.get("spotifyTrackId")),
+          spotifyLink: nullableText(form.get("spotifyLink")),
+          appleMusicLink: nullableText(form.get("appleMusicLink")),
+          youtubeLinks: youtubeLinks(form.get("youtubeLinks")),
+          imageLink: nullableText(form.get("imageLink")),
+        }),
+        schema: SaveIngestionMetadataSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Enter valid factual metadata.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...metadata } = prepared.value;
+      try {
+        await dependencies.saveMetadata(parsedIngestionId, metadata, prepared.principal.userId);
+      } catch (error) {
+        if (
+          error instanceof ContentDraftConflictError ||
+          error instanceof IngestionMetadataStateError ||
+          error instanceof NotFoundError
+        ) {
+          return { message: error.message };
+        }
+        dependencies.logFailure(error);
+        return { message: "Unable to save factual metadata. Please try again." };
+      }
+
+      return dependencies.metadataSaved(parsedIngestionId);
     },
   };
 }
