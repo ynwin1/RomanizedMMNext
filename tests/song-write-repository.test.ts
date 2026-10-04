@@ -71,10 +71,27 @@ test("song repository does not disguise unrelated duplicate keys as duplicate so
   await assert.rejects(() => new MongoSongRepository().create({ mmid: 17, ...content }), value => value === error);
 });
 
-test("song edit reads use revision zero for legacy records and return null for missing songs", async t => {
+test("song edit reads return plain artist values, use revision zero for legacy records, and return null when missing", async t => {
   t.mock.method(database, "default", async () => {});
-  t.mock.method(model, "findOne", () => ({ lean: async () => ({ _id: "s1", mmid: 17, ...content }) }));
-  assert.equal((await new MongoSongRepository().findForEdit(17))?.revision, 0);
+  const nestedPersistenceId = { toJSON: () => "should-not-cross-boundary" };
+  t.mock.method(model, "findOne", () => ({
+    lean: async () => ({
+      _id: "s1",
+      mmid: 17,
+      ...content,
+      artistName: [{
+        name: "Artist",
+        slug: "artist",
+        _id: nestedPersistenceId,
+      }],
+    }),
+  }));
+
+  const editable = await new MongoSongRepository().findForEdit(17);
+  assert.equal(editable?.revision, 0);
+  assert.deepEqual(editable?.artistName, [{ name: "Artist", slug: "artist" }]);
+  assert.equal(Object.hasOwn(editable?.artistName[0] ?? {}, "_id"), false);
+
   t.mock.method(model, "findOne", () => ({ lean: async () => null }));
   assert.equal(await new MongoSongRepository().findForEdit(99), null);
 });

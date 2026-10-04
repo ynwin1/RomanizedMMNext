@@ -25,7 +25,10 @@ function toEntity(song: SongPersistenceRecord): SongEntity {
     id: song._id == null ? "" : String(song._id),
     mmid: song.mmid,
     songName: song.songName,
-    artistName: song.artistName ?? [],
+    artistName: (song.artistName ?? []).map(artist => ({
+      name: artist.name,
+      ...(artist.slug ? { slug: artist.slug } : {}),
+    })),
     albumName: song.albumName,
     genre: song.genre,
     spotifyTrackId: song.spotifyTrackId,
