@@ -44,6 +44,7 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
     searchByTitle: async () => [],
     findRandom: async () => null,
     findLatest: async () => [],
+    findRecentRomanizationReferences: async () => [],
     findByMmids: async () => [],
     listForSitemap: async () => [],
     listCatalogue: async () => [],

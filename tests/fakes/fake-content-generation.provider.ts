@@ -4,26 +4,37 @@ import type {
   EditorialGenerationResult,
   LineGenerationResult,
   LyricGenerationInput,
+  RomanizationGenerationInput,
+  RomanizationReviewInput,
 } from "@/modules/content-generation";
 
 export class FakeContentGenerationProvider implements ContentGenerationProvider {
   romanizationCalls = 0;
+  romanizationReviewCalls = 0;
   meaningCalls = 0;
   editorialCalls = 0;
 
   constructor(private readonly overrides: {
     romanized?: LineGenerationResult;
+    reviewedRomanized?: LineGenerationResult;
     meaning?: LineGenerationResult;
     editorial?: EditorialGenerationResult;
   } = {}) {}
 
-  async romanize(input: LyricGenerationInput): Promise<LineGenerationResult> {
+  async romanize(input: RomanizationGenerationInput): Promise<LineGenerationResult> {
     this.romanizationCalls++;
     return this.overrides.romanized ?? {
       lines: input.lines.map(line => ({
         index: line.index,
         text: line.text === "" ? "" : "Romanized:" + line.index,
       })),
+    };
+  }
+
+  async reviewRomanization(input: RomanizationReviewInput): Promise<LineGenerationResult> {
+    this.romanizationReviewCalls++;
+    return this.overrides.reviewedRomanized ?? {
+      lines: input.romanizedLines.map(line => ({ ...line })),
     };
   }
 

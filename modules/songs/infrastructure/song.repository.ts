@@ -16,6 +16,7 @@ import {
   SongCatalogueRecord,
   SongSearchResult,
   SongSummary,
+  RomanizationReferenceSong,
 } from "../application/song.dto";
 
 type SongPersistenceRecord = Pick<ISong, Exclude<keyof SongEntity, "id">> & { _id?: unknown };
@@ -184,6 +185,19 @@ export class MongoSongRepository implements ISongRepository {
       .sort({ createdAt: -1 })
       .limit(limit)
       .select("mmid songName artistName imageLink createdAt -_id")
+      .lean();
+  }
+
+  async findRecentRomanizationReferences(limit: number): Promise<RomanizationReferenceSong[]> {
+    await connectDB();
+    return Song.find({
+      burmese: { $type: "string", $ne: "" },
+      romanized: { $type: "string", $ne: "" },
+      meaning: { $type: "string", $ne: "" },
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limit)
+      .select("mmid songName burmese romanized meaning createdAt -_id")
       .lean();
   }
 

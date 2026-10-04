@@ -55,3 +55,12 @@ export interface AdminSongRecord {
 export interface SongEditRecord extends SongEntity {
   revision: number;
 }
+
+export interface RomanizationReferenceSong {
+  mmid: number;
+  songName: string;
+  burmese: string;
+  romanized: string;
+  meaning: string;
+  createdAt?: Date;
+}

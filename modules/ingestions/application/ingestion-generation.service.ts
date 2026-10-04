@@ -1,6 +1,7 @@
 import type { ContentDraftService } from "@/modules/content-drafts/application/content-draft.service";
 import type { ContentDraftRecord } from "@/modules/content-drafts/domain/content-draft.types";
 import type { ContentGenerationService } from "@/modules/content-generation/application/content-generation.service";
+import type { RomanizationReferenceProvider } from "@/modules/content-generation";
 import {
   evaluateCompleteGeneratedContent,
   GeneratedContentQualityError,
@@ -48,7 +49,11 @@ export class IngestionGenerationService {
   constructor(
     private readonly ingestions: IngestionService,
     private readonly drafts: Pick<ContentDraftService, "getByIngestionId" | "update">,
-    private readonly generation: Pick<ContentGenerationService, "romanize" | "translateMeaning" | "generateEditorialMetadata">,
+    private readonly generation: Pick<
+      ContentGenerationService,
+      "romanize" | "reviewRomanization" | "translateMeaning" | "generateEditorialMetadata"
+    >,
+    private readonly references?: Pick<RomanizationReferenceProvider, "findRelevantReferences">,
   ) {
     this.romanization = new IngestionRomanizationService(ingestions, drafts, generation);
   }
@@ -63,38 +68,81 @@ export class IngestionGenerationService {
     const source = draft.source.burmeseLyrics;
     if (!source?.trim()) throw new MissingTrustedSourceError();
 
+    const sourceInput = { lines: sourceLines(source) };
+    let romanizationNeedsReview = !draft.generated.meaning?.trim();
+    const needsReferences = !draft.generated.romanized?.trim() || romanizationNeedsReview;
+    const references = needsReferences && this.references
+      ? await this.references.findRelevantReferences(sourceInput.lines)
+      : [];
+
     if (!draft.generated.romanized?.trim()) {
-      await this.romanization.generate(initial.id, updatedBy);
+      await this.romanization.generate(initial.id, updatedBy, references);
       initial = await this.ingestions.getById(initial.id);
       draft = await this.drafts.getByIngestionId(initial.id);
+      romanizationNeedsReview = true;
     }
 
     await this.ingestions.transition(initial.id, initial.revision, "generating", updatedBy);
 
     try {
-      const sourceInput = { lines: sourceLines(source) };
-      const meaning = draft.generated.meaning?.trim()
-        ? { lines: generatedLines(draft.generated.meaning) }
-        : await this.generation.translateMeaning(sourceInput);
+      const meaningWasMissing = !draft.generated.meaning?.trim();
+      const meaning = meaningWasMissing
+        ? await this.generation.translateMeaning(sourceInput)
+        : { lines: generatedLines(draft.generated.meaning!) };
 
-      const editorial = draft.generated.about?.trim() && draft.generated.whenToListen?.trim()
-        ? { about: draft.generated.about, whenToListen: draft.generated.whenToListen }
-        : await this.generation.generateEditorialMetadata({
+      const reviewedRomanization = romanizationNeedsReview
+        ? await this.generation.reviewRomanization({
             ...sourceInput,
-            songName: draft.identity.songName,
-            artistNames: draft.artists.map(artist => artist.name),
             romanizedLines: generatedLines(draft.generated.romanized!),
             meaningLines: meaning.lines,
-          });
+            ...(references.length ? { references } : {}),
+          })
+        : { lines: generatedLines(draft.generated.romanized!) };
 
-      const generatedPatch = {
-        ...(draft.generated.meaning?.trim() ? {} : { meaning: joinGeneratedLines(meaning.lines) }),
-        ...(draft.generated.about?.trim() ? {} : { about: editorial.about }),
-        ...(draft.generated.whenToListen?.trim() ? {} : { whenToListen: editorial.whenToListen }),
+      const reviewedPatch = {
+        ...(romanizationNeedsReview
+          ? { romanized: joinGeneratedLines(reviewedRomanization.lines) }
+          : {}),
+        ...(meaningWasMissing
+          ? { meaning: joinGeneratedLines(meaning.lines) }
+          : {}),
       };
 
-      if (Object.keys(generatedPatch).length > 0) {
-        await this.drafts.update(draft.id, draft.revision, { generated: generatedPatch }, updatedBy);
+      if (Object.keys(reviewedPatch).length > 0) {
+        await this.drafts.update(
+          draft.id,
+          draft.revision,
+          { generated: reviewedPatch },
+          updatedBy,
+        );
+        draft = await this.drafts.getByIngestionId(initial.id);
+      }
+
+      const finalRomanizedLines = generatedLines(draft.generated.romanized!);
+      const finalMeaningLines = generatedLines(draft.generated.meaning!);
+      const editorialMissing =
+        !draft.generated.about?.trim() || !draft.generated.whenToListen?.trim();
+
+      if (editorialMissing) {
+        const editorial = await this.generation.generateEditorialMetadata({
+          ...sourceInput,
+          songName: draft.identity.songName,
+          artistNames: draft.artists.map(artist => artist.name),
+          romanizedLines: finalRomanizedLines,
+          meaningLines: finalMeaningLines,
+        });
+
+        await this.drafts.update(
+          draft.id,
+          draft.revision,
+          {
+            generated: {
+              about: editorial.about,
+              whenToListen: editorial.whenToListen,
+            },
+          },
+          updatedBy,
+        );
       }
 
       const completedDraft = await this.drafts.getByIngestionId(initial.id);

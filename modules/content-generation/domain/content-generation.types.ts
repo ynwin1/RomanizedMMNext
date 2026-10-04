@@ -12,6 +12,26 @@ export interface GeneratedLyricLine {
   text: string;
 }
 
+export interface RomanizationReference {
+  burmese: string;
+  romanized: string;
+  meaning?: string;
+  sourceSongMmid: number;
+  sourceSongName: string;
+  match: "exact" | "phrase" | "similar";
+  score: number;
+}
+
+export interface RomanizationGenerationInput extends LyricGenerationInput {
+  references?: RomanizationReference[];
+}
+
+export interface RomanizationReviewInput extends LyricGenerationInput {
+  romanizedLines: GeneratedLyricLine[];
+  meaningLines: GeneratedLyricLine[];
+  references?: RomanizationReference[];
+}
+
 export interface EditorialGenerationInput extends LyricGenerationInput {
   songName?: string;
   artistNames?: string[];

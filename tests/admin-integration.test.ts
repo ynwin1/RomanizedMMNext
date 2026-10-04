@@ -66,6 +66,16 @@ class MemorySongs implements ISongRepository {
   async searchByTitle() { return []; }
   async findRandom() { return null; }
   async findLatest(limit: number) { return [...this.records.values()].slice(0, limit); }
+  async findRecentRomanizationReferences(limit: number) {
+    return [...this.records.values()].slice(0, limit).map(song => ({
+      mmid: song.mmid,
+      songName: song.songName,
+      burmese: song.burmese,
+      romanized: song.romanized,
+      meaning: song.meaning,
+      createdAt: song.createdAt,
+    }));
+  }
   async findByMmids(mmids: number[]) { return mmids.flatMap(id => this.records.get(id) ?? []); }
   async listForSitemap() { return []; }
   async listCatalogue() { return []; }

@@ -94,3 +94,51 @@ test("OpenAI client rejects refusals and malformed structured output", async () 
     (error: unknown) => error instanceof ContentGenerationProviderError && error.causeCode === "malformed_output",
   );
 });
+
+
+test("OpenAI romanization payload includes approved references and review pass includes semantic context", async () => {
+  const bodies: any[] = [];
+  const fetcher: typeof fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body));
+    bodies.push(body);
+    return response(completed(JSON.stringify({
+      lines: [{ index: 0, text: "Chit tal" }],
+    })));
+  };
+
+  const adapter = new OpenAIContentGenerationAdapter(new OpenAIResponsesClient({
+    apiKey: "test-key",
+    model: "test-model",
+    baseUrl: "https://example.test/v1",
+    fetcher,
+  }));
+
+  const reference = {
+    burmese: "ချစ်တယ်",
+    romanized: "Chit tal",
+    meaning: "I love you",
+    sourceSongMmid: 25,
+    sourceSongName: "Reference Song",
+    match: "exact" as const,
+    score: 1,
+  };
+
+  await adapter.romanize({
+    lines: [{ index: 0, text: "ချစ်တယ်" }],
+    references: [reference],
+  });
+  await adapter.reviewRomanization({
+    lines: [{ index: 0, text: "ချစ်တယ်" }],
+    romanizedLines: [{ index: 0, text: "Chit de" }],
+    meaningLines: [{ index: 0, text: "I love you" }],
+    references: [reference],
+  });
+
+  const firstInput = JSON.parse(bodies[0].input);
+  const reviewInput = JSON.parse(bodies[1].input);
+  assert.equal(firstInput.references[0].romanized, "Chit tal");
+  assert.equal(reviewInput.romanizedLines[0].text, "Chit de");
+  assert.equal(reviewInput.meaningLines[0].text, "I love you");
+  assert.equal(reviewInput.references[0].sourceSongMmid, 25);
+  assert.equal(bodies[1].text.format.name, "reviewed_romanized_lyrics");
+});

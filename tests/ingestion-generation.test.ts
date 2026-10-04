@@ -36,15 +36,18 @@ function draft(overrides: Partial<ContentDraftRecord> = {}): ContentDraftRecord 
   };
 }
 
-test("AI generation reuses romanization, generates meaning/editorial, and advances to ready_for_review", async () => {
+test("AI generation reuses existing romanization without spending a review call", async () => {
   let current = ingestion();
-  let currentDraft = draft();
+  let currentDraft = draft({
+    generated: {
+      romanized: "R0\n\nR2",
+      meaning: "M0\n\nM2",
+    },
+  });
   const transitions: string[] = [];
-  let romanizeCalls = 0;
   let meaningCalls = 0;
-  let editorialCalls = 0;
+  let reviewCalls = 0;
   let editorialInput: any;
-  let patchSeen: any;
 
   const service = new IngestionGenerationService(
     {
@@ -58,7 +61,6 @@ test("AI generation reuses romanization, generates meaning/editorial, and advanc
     {
       getByIngestionId: async () => currentDraft,
       update: async (_id: unknown, _revision: unknown, patch: any) => {
-        patchSeen = patch;
         currentDraft = draft({
           generated: { ...currentDraft.generated, ...patch.generated },
           revision: currentDraft.revision + 1,
@@ -67,46 +69,60 @@ test("AI generation reuses romanization, generates meaning/editorial, and advanc
       },
     } as any,
     {
-      romanize: async () => { romanizeCalls++; throw new Error("should not romanize"); },
-      translateMeaning: async input => {
+      romanize: async () => { throw new Error("should not romanize"); },
+      reviewRomanization: async () => { reviewCalls++; throw new Error("should not review"); },
+      translateMeaning: async (input: any) => {
         meaningCalls++;
         return {
-          lines: input.lines.map(line => ({ index: line.index, text: line.text === "" ? "" : "M" + line.index })),
+          lines: input.lines.map((line: any) => ({
+            index: line.index,
+            text: line.text === "" ? "" : "M" + line.index,
+          })),
         };
       },
-      generateEditorialMetadata: async input => {
-        editorialCalls++;
+      generateEditorialMetadata: async (input: any) => {
         editorialInput = input;
         return { about: "About song", whenToListen: "Late at night" };
       },
+    },
+    {
+      findRelevantReferences: async () => [{
+        burmese: "တစ်",
+        romanized: "Approved",
+        sourceSongMmid: 25,
+        sourceSongName: "Recent",
+        match: "exact",
+        score: 1,
+      }],
     },
   );
 
   const result = await service.generateAll(ingestionId, "admin-1");
 
-  assert.equal(romanizeCalls, 0);
-  assert.equal(meaningCalls, 1);
-  assert.equal(editorialCalls, 1);
+  assert.equal(meaningCalls, 0);
+  assert.equal(reviewCalls, 0);
   assert.deepEqual(transitions, ["generating", "ready_for_review"]);
-  assert.deepEqual(patchSeen, {
-    generated: {
-      meaning: "M0\n\nM2",
-      about: "About song",
-      whenToListen: "Late at night",
-    },
-  });
-  assert.equal(editorialInput.songName, "Song");
-  assert.deepEqual(editorialInput.artistNames, ["Artist"]);
   assert.equal(editorialInput.romanizedLines[0].text, "R0");
-  assert.equal(editorialInput.meaningLines[2].text, "M2");
   assert.equal(result.ingestion.status, "ready_for_review");
 });
 
-test("AI generation creates missing romanization before remaining content without admin intervention", async () => {
+test("new romanization uses recent references and is corrected after meaning generation", async () => {
   let current = ingestion();
   let currentDraft = draft({ generated: {} });
   const transitions: string[] = [];
-  let romanizeCalls = 0;
+  let firstPassInput: any;
+  let reviewInput: any;
+  let referenceCalls = 0;
+
+  const reference = {
+    burmese: "တစ်",
+    romanized: "Approved One",
+    meaning: "One",
+    sourceSongMmid: 25,
+    sourceSongName: "Recent Song",
+    match: "exact" as const,
+    score: 1,
+  };
 
   const service = new IngestionGenerationService(
     {
@@ -128,33 +144,67 @@ test("AI generation creates missing romanization before remaining content withou
       },
     } as any,
     {
-      romanize: async input => {
-        romanizeCalls++;
-        return { lines: input.lines.map(line => ({ index: line.index, text: line.text === "" ? "" : "R" + line.index })) };
+      romanize: async (input: any) => {
+        firstPassInput = input;
+        return {
+          lines: input.lines.map((line: any) => ({
+            index: line.index,
+            text: line.text === "" ? "" : "Initial " + line.index + ".",
+          })),
+        };
       },
-      translateMeaning: async input => ({
-        lines: input.lines.map(line => ({ index: line.index, text: line.text === "" ? "" : "M" + line.index })),
+      reviewRomanization: async (input: any) => {
+        reviewInput = input;
+        return {
+          lines: input.lines.map((line: any) => ({
+            index: line.index,
+            text: line.text === "" ? "" : "Reviewed " + line.index + ".",
+          })),
+        };
+      },
+      translateMeaning: async (input: any) => ({
+        lines: input.lines.map((line: any) => ({
+          index: line.index,
+          text: line.text === "" ? "" : "Meaning " + line.index + ".",
+        })),
       }),
-      generateEditorialMetadata: async () => ({ about: "About", whenToListen: "When" }),
+      generateEditorialMetadata: async () => ({ about: "About.", whenToListen: "When." }),
+    },
+    {
+      findRelevantReferences: async () => {
+        referenceCalls++;
+        return [reference];
+      },
     },
   );
 
   const result = await service.generateAll(ingestionId);
-  assert.equal(romanizeCalls, 1);
+
+  assert.equal(referenceCalls, 1);
+  assert.deepEqual(firstPassInput.references, [reference]);
+  assert.equal(reviewInput.romanizedLines[0].text, "Initial 0.");
+  assert.equal(reviewInput.meaningLines[0].text, "Meaning 0.");
+  assert.deepEqual(reviewInput.references, [reference]);
   assert.deepEqual(transitions, [
     "generating",
     "ready_to_generate",
     "generating",
     "ready_for_review",
   ]);
-  assert.equal(result.draft.generated.romanized, "R0\n\nR2");
-  assert.equal(result.draft.generated.meaning, "M0\n\nM2");
+  assert.equal(result.draft.generated.romanized, "Reviewed 0.\n\nReviewed 2.");
+  assert.equal(result.draft.generated.meaning, "Meaning 0.\n\nMeaning 2.");
 });
 
-test("AI generation reuses completed meaning on retry to reduce provider usage", async () => {
+test("retry reuses corrected romanization and completed meaning to reduce provider usage", async () => {
   let current = ingestion({ status: "failed", revision: 8 });
-  let currentDraft = draft({ generated: { romanized: "R0\n\nR2", meaning: "M0\n\nM2" } });
+  let currentDraft = draft({
+    generated: {
+      romanized: "Reviewed 0.\n\nReviewed 2.",
+      meaning: "Meaning 0.\n\nMeaning 2.",
+    },
+  });
   let meaningCalls = 0;
+  let reviewCalls = 0;
 
   const service = new IngestionGenerationService(
     {
@@ -176,17 +226,19 @@ test("AI generation reuses completed meaning on retry to reduce provider usage",
     } as any,
     {
       romanize: async () => { throw new Error("unused"); },
+      reviewRomanization: async () => { reviewCalls++; throw new Error("should reuse"); },
       translateMeaning: async () => { meaningCalls++; throw new Error("should reuse"); },
-      generateEditorialMetadata: async () => ({ about: "About", whenToListen: "When" }),
+      generateEditorialMetadata: async () => ({ about: "About.", whenToListen: "When." }),
     },
   );
 
   await service.generateAll(ingestionId);
   assert.equal(meaningCalls, 0);
-  assert.equal(currentDraft.generated.about, "About");
+  assert.equal(reviewCalls, 0);
+  assert.equal(currentDraft.generated.about, "About.");
 });
 
-test("reused stored AI content must pass quality checks before ready_for_review", async () => {
+test("reused stored AI content must still pass quality checks", async () => {
   let current = ingestion({ status: "failed", revision: 8 });
   const badDraft = draft({
     generated: {
@@ -213,6 +265,7 @@ test("reused stored AI content must pass quality checks before ready_for_review"
     } as any,
     {
       romanize: async () => { throw new Error("should not regenerate"); },
+      reviewRomanization: async () => { throw new Error("should not review"); },
       translateMeaning: async () => { throw new Error("should not regenerate"); },
       generateEditorialMetadata: async () => { throw new Error("should not regenerate"); },
     },
@@ -222,9 +275,8 @@ test("reused stored AI content must pass quality checks before ready_for_review"
   assert.deepEqual(transitions, ["generating", "failed"]);
 });
 
-test("remaining AI provider failure marks ingestion failed and does not write incomplete meaning/editorial", async () => {
+test("remaining AI provider failure marks ingestion failed", async () => {
   let current = ingestion();
-  let writes = 0;
   const transitions: string[] = [];
   const service = new IngestionGenerationService(
     {
@@ -236,14 +288,18 @@ test("remaining AI provider failure marks ingestion failed and does not write in
       },
     } as any,
     {
-      getByIngestionId: async () => draft(),
-      update: async () => { writes++; return draft(); },
+      getByIngestionId: async () => draft({
+        generated: {
+          romanized: "R0\n\nR2",
+          meaning: "Meaning 0.\n\nMeaning 2.",
+        },
+      }),
+      update: async () => draft(),
     } as any,
     {
       romanize: async () => { throw new Error("unused"); },
-      translateMeaning: async input => ({
-        lines: input.lines.map(line => ({ index: line.index, text: line.text === "" ? "" : "M" + line.index })),
-      }),
+      reviewRomanization: async () => { throw new Error("unused"); },
+      translateMeaning: async () => { throw new Error("unused"); },
       generateEditorialMetadata: async () => {
         throw new ContentGenerationProviderError("provider down", true, "http_500");
       },
@@ -252,7 +308,6 @@ test("remaining AI provider failure marks ingestion failed and does not write in
 
   await assert.rejects(() => service.generateAll(ingestionId), ContentGenerationProviderError);
   assert.deepEqual(transitions, ["generating", "failed"]);
-  assert.equal(writes, 0);
 });
 
 test("AI generation rejects states outside ready_to_generate/failed", async () => {

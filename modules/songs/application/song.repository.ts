@@ -12,6 +12,7 @@ import type {
   SongCatalogueRecord,
   SongSearchResult,
   SongSummary,
+  RomanizationReferenceSong,
 } from "./song.dto";
 
 export interface ISongRepository {
@@ -27,6 +28,7 @@ export interface ISongRepository {
   searchByTitle(query: string): Promise<SongSearchResult[]>;
   findRandom(): Promise<RandomSongResult | null>;
   findLatest(limit: number): Promise<SongSummary[]>;
+  findRecentRomanizationReferences(limit: number): Promise<RomanizationReferenceSong[]>;
   findByMmids(mmids: number[]): Promise<SongEntity[]>;
   listForSitemap(): Promise<SitemapSongRecord[]>;
   listCatalogue(): Promise<SongCatalogueRecord[]>;

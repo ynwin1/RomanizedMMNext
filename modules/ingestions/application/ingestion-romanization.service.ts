@@ -1,5 +1,6 @@
 import type { ContentDraftService } from "@/modules/content-drafts/application/content-draft.service";
 import type { ContentGenerationService } from "@/modules/content-generation/application/content-generation.service";
+import type { RomanizationReference } from "@/modules/content-generation";
 import { IngestionService } from "./ingestion.service";
 import { IngestionConflictError } from "./ingestion-write.error";
 import { MissingTrustedSourceError, RomanizationStateError } from "./ingestion-romanization.error";
@@ -20,7 +21,11 @@ export class IngestionRomanizationService {
     private readonly generation: Pick<ContentGenerationService, "romanize">,
   ) {}
 
-  async generate(ingestionId: unknown, updatedBy?: string) {
+  async generate(
+    ingestionId: unknown,
+    updatedBy?: string,
+    references: RomanizationReference[] = [],
+  ) {
     const initial = await this.ingestions.getById(ingestionId);
     if (initial.status !== "ready_to_generate" && initial.status !== "failed") {
       throw new RomanizationStateError();
@@ -38,7 +43,10 @@ export class IngestionRomanizationService {
     );
 
     try {
-      const generated = await this.generation.romanize({ lines: sourceLines(source) });
+      const generated = await this.generation.romanize({
+        lines: sourceLines(source),
+        ...(references.length ? { references } : {}),
+      });
       await this.drafts.update(
         draft.id,
         draft.revision,

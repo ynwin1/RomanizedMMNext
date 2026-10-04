@@ -31,6 +31,7 @@ test("romanization workflow preserves line structure and patches only generated.
   let currentDraft = draft();
   const transitions: string[] = [];
   let patchSeen: unknown;
+  let generationInput: any;
 
   const service = new IngestionRomanizationService(
     {
@@ -56,18 +57,30 @@ test("romanization workflow preserves line structure and patches only generated.
       },
     } as any,
     {
-      romanize: async input => ({
-        lines: input.lines.map(line => ({
-          index: line.index,
-          text: line.text === "" ? "" : "R" + line.index,
-        })),
-      }),
+      romanize: async input => {
+        generationInput = input;
+        return {
+          lines: input.lines.map(line => ({
+            index: line.index,
+            text: line.text === "" ? "" : "R" + line.index,
+          })),
+        };
+      },
     },
   );
 
-  const result = await service.generate(ingestionId, "admin-1");
+  const references = [{
+    burmese: "တစ်",
+    romanized: "Approved",
+    sourceSongMmid: 25,
+    sourceSongName: "Recent",
+    match: "exact" as const,
+    score: 1,
+  }];
+  const result = await service.generate(ingestionId, "admin-1", references);
   assert.deepEqual(transitions, ["generating", "ready_to_generate"]);
   assert.deepEqual(patchSeen, { generated: { romanized: "R0\n\nR2" } });
+  assert.deepEqual(generationInput.references, references);
   assert.equal(result.draft.generated.meaning, "existing meaning");
   assert.equal(result.draft.generated.about, "existing about");
   assert.equal(result.draft.metadata.genre, "Pop");

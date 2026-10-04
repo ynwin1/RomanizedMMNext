@@ -14,6 +14,7 @@ import {
   SongCatalogueRecord,
   SongSearchResult,
   SongSummary,
+  RomanizationReferenceSong,
 } from "./song.dto";
 import { ISongRepository } from "./song.repository";
 
@@ -87,6 +88,11 @@ export class SongService {
 
   async getLatestSongs(limit: number = 5): Promise<SongSummary[]> {
     return this.songs.findLatest(limit);
+  }
+
+  async getRecentRomanizationReferenceSongs(limit: number = 25): Promise<RomanizationReferenceSong[]> {
+    const safeLimit = Math.max(1, Math.min(100, Math.trunc(limit)));
+    return this.songs.findRecentRomanizationReferences(safeLimit);
   }
 
   async getSongsByMmids(mmids: number[]): Promise<SongEntity[]> {

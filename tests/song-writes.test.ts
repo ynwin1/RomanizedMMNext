@@ -24,7 +24,7 @@ function repository(overrides: Partial<ISongRepository> = {}): ISongRepository {
     findForEdit: async () => ({ ...song, revision: 0 }),
     findByMmid: async () => song, listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
     countAdmin: async () => 0, searchByTitle: async () => [], findRandom: async () => null,
-    findLatest: async () => [], findByMmids: async () => [], listForSitemap: async () => [],
+    findLatest: async () => [], findRecentRomanizationReferences: async () => [], findByMmids: async () => [], listForSitemap: async () => [],
     listCatalogue: async () => [], listGuessLyricsSongs: async () => [], listGuessSongRecords: async () => [],
     findByArtistName: async () => [], ...overrides,
   };

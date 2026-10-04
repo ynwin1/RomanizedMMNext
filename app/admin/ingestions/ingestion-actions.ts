@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { logger } from "@/infrastructure/logging/logger";
 import { artistService } from "@/modules/artists";
+import { songService } from "@/modules/songs";
 import { contentDraftService } from "@/modules/content-drafts";
 import { ContentGenerationService } from "@/modules/content-generation";
 import {
@@ -17,11 +18,18 @@ import {
 } from "@/modules/ingestions";
 import { publishingService } from "@/modules/publishing";
 import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
+import { createRecentSongRomanizationReferenceProvider } from "@/integrations/romanization-references/recent-song-reference.provider";
 import { createIngestionActionHandler, type IngestionActionState } from "./ingestion-action-handler";
 
 async function generateAiContent(ingestionId: string, updatedBy: string) {
   const generation = new ContentGenerationService(createOpenAIContentGenerationAdapter());
-  const workflow = new IngestionGenerationService(ingestionService, contentDraftService, generation);
+  const references = createRecentSongRomanizationReferenceProvider(songService);
+  const workflow = new IngestionGenerationService(
+    ingestionService,
+    contentDraftService,
+    generation,
+    references,
+  );
   return workflow.generateAll(ingestionId, updatedBy);
 }
 

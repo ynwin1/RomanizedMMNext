@@ -21,6 +21,20 @@ test("content generation service validates deterministic provider results", asyn
 
   const romanized = await service.romanize(input);
   const meaning = await service.translateMeaning(input);
+  const reviewed = await service.reviewRomanization({
+    ...input,
+    romanizedLines: romanized.lines,
+    meaningLines: meaning.lines,
+    references: [{
+      burmese: "ချစ်တယ်",
+      romanized: "Chit tal",
+      meaning: "I love you",
+      sourceSongMmid: 25,
+      sourceSongName: "Reference Song",
+      match: "exact",
+      score: 1,
+    }],
+  });
   const editorial = await service.generateEditorialMetadata({
     ...input,
     songName: "Song",
@@ -32,8 +46,10 @@ test("content generation service validates deterministic provider results", asyn
   assert.equal(romanized.lines[0]?.index, 0);
   assert.equal(romanized.lines[1]?.text, "");
   assert.equal(meaning.lines[2]?.index, 2);
+  assert.equal(reviewed.lines[2]?.text, romanized.lines[2]?.text);
   assert.equal(editorial.about, "Deterministic test about text.");
   assert.equal(provider.romanizationCalls, 1);
+  assert.equal(provider.romanizationReviewCalls, 1);
   assert.equal(provider.meaningCalls, 1);
   assert.equal(provider.editorialCalls, 1);
 });
@@ -132,4 +148,36 @@ test("content generation service rejects invalid or multiline editorial output",
     editorial: { about: "Line one\nLine two", whenToListen: "One line" },
   }));
   await assert.rejects(() => multiline.generateEditorialMetadata(input), InvalidGeneratedContentError);
+});
+
+
+test("romanization review enforces the same alignment and quality rules as first-pass generation", async () => {
+  const provider = new FakeContentGenerationProvider({
+    reviewedRomanized: {
+      lines: [
+        { index: 0, text: "lowercase." },
+        { index: 1, text: "" },
+        { index: 2, text: "Valid." },
+      ],
+    },
+  });
+  const service = new ContentGenerationService(provider);
+
+  await assert.rejects(
+    () => service.reviewRomanization({
+      ...input,
+      romanizedLines: [
+        { index: 0, text: "Initial." },
+        { index: 1, text: "" },
+        { index: 2, text: "Initial." },
+      ],
+      meaningLines: [
+        { index: 0, text: "Meaning." },
+        { index: 1, text: "" },
+        { index: 2, text: "Meaning." },
+      ],
+    }),
+    GeneratedContentQualityError,
+  );
+  assert.equal(provider.romanizationReviewCalls, 1);
 });

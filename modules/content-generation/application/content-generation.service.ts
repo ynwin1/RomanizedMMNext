@@ -4,6 +4,8 @@ import {
   EditorialGenerationResultSchema,
   LineGenerationResultSchema,
   LyricGenerationInputSchema,
+  RomanizationGenerationInputSchema,
+  RomanizationReviewInputSchema,
 } from "./content-generation.validation";
 import {
   GeneratedContentQualityError,
@@ -18,17 +20,26 @@ import type {
   EditorialGenerationResult,
   LineGenerationResult,
   LyricGenerationInput,
+  RomanizationGenerationInput,
+  RomanizationReviewInput,
 } from "../domain/content-generation.types";
 
 export class ContentGenerationService {
   constructor(private readonly provider: ContentGenerationProvider) {}
 
-  async romanize(input: LyricGenerationInput): Promise<LineGenerationResult> {
-    const validatedInput = LyricGenerationInputSchema.parse(input);
+  async romanize(input: RomanizationGenerationInput): Promise<LineGenerationResult> {
+    const validatedInput = RomanizationGenerationInputSchema.parse(input);
     const generated = await this.provider.romanize(validatedInput);
     const aligned = this.validateAlignedLines(validatedInput, generated);
-    const quality = evaluateGeneratedLines("romanized", aligned.lines);
-    if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
+    this.validateRomanizationQuality(aligned);
+    return aligned;
+  }
+
+  async reviewRomanization(input: RomanizationReviewInput): Promise<LineGenerationResult> {
+    const validatedInput = RomanizationReviewInputSchema.parse(input);
+    const generated = await this.provider.reviewRomanization(validatedInput);
+    const aligned = this.validateAlignedLines(validatedInput, generated);
+    this.validateRomanizationQuality(aligned);
     return aligned;
   }
 
@@ -50,6 +61,11 @@ export class ContentGenerationService {
     const quality = evaluateEditorialContent(parsed.data);
     if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
     return parsed.data;
+  }
+
+  private validateRomanizationQuality(result: LineGenerationResult) {
+    const quality = evaluateGeneratedLines("romanized", result.lines);
+    if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
   }
 
   private validateAlignedLines(
