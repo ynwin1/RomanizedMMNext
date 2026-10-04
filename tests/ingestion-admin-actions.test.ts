@@ -17,9 +17,11 @@ function handler(overrides: Partial<Parameters<typeof createIngestionActionHandl
       saveAndConfirmSource: async () => ({ ingestion: { id: ingestionId } as any, draft: {} as any }),
     },
     generateAiContent: async () => ({}),
+    saveMetadata: async () => ({}),
     started: id => { throw new Error("started:" + id); },
     sourceSaved: id => { throw new Error("source:" + id); },
     aiGenerated: id => { throw new Error("generated:" + id); },
+    metadataSaved: id => { throw new Error("metadata:" + id); },
     logFailure: () => {},
     ...overrides,
   });

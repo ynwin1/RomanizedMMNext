@@ -8,7 +8,13 @@ const shortText = z.string().trim().min(1).max(500);
 const content = z.string().max(200000).refine(value => value.trim().length > 0, "Required");
 const editorial = z.string().max(10000).refine(value => value.trim().length > 0, "Required");
 const url = z.string().url().max(2048).refine(
-  value => ["http:", "https:"].includes(new URL(value).protocol),
+  value => {
+    try {
+      return ["http:", "https:"].includes(new URL(value).protocol);
+    } catch {
+      return false;
+    }
+  },
   "Use an HTTP or HTTPS URL",
 );
 const objectId = z.string().regex(/^[a-f\d]{24}$/i, "Invalid artist id");
@@ -41,6 +47,18 @@ export const DraftMetadataSchema = z.object({
   youtubeLinks: z.array(url).max(20).optional(),
   imageLink: url.optional(),
   requestedBy: z.string().max(10000).optional(),
+}).strict();
+
+export const SaveDraftMetadataSchema = z.object({
+  draftId: ContentDraftIdSchema,
+  draftRevision: ContentDraftRevisionSchema,
+  genre: shortText,
+  albumName: z.string().trim().max(10000).nullable(),
+  spotifyTrackId: z.string().trim().max(200).nullable(),
+  spotifyLink: url.nullable(),
+  appleMusicLink: url.nullable(),
+  youtubeLinks: z.array(url).max(20).nullable(),
+  imageLink: url.nullable(),
 }).strict();
 
 export const DraftArtistReferenceSchema = z.discriminatedUnion("kind", [
@@ -79,14 +97,14 @@ const GeneratedPatchSchema = nonEmptyPatch({
 });
 
 const MetadataPatchSchema = nonEmptyPatch({
-  albumName: z.string().max(10000).optional(),
-  genre: shortText.optional(),
-  spotifyTrackId: z.string().trim().min(1).max(200).optional(),
-  spotifyLink: url.optional(),
-  appleMusicLink: url.optional(),
-  youtubeLinks: z.array(url).max(20).optional(),
-  imageLink: url.optional(),
-  requestedBy: z.string().max(10000).optional(),
+  albumName: z.string().max(10000).nullable().optional(),
+  genre: shortText.nullable().optional(),
+  spotifyTrackId: z.string().trim().min(1).max(200).nullable().optional(),
+  spotifyLink: url.nullable().optional(),
+  appleMusicLink: url.nullable().optional(),
+  youtubeLinks: z.array(url).max(20).nullable().optional(),
+  imageLink: url.nullable().optional(),
+  requestedBy: z.string().max(10000).nullable().optional(),
 });
 
 export const ContentDraftPatchSchema = z.object({
@@ -102,3 +120,4 @@ export const ContentDraftPatchSchema = z.object({
 
 export type CreateContentDraftInput = z.infer<typeof CreateContentDraftSchema>;
 export type ContentDraftPatch = z.infer<typeof ContentDraftPatchSchema>;
+export type SaveDraftMetadataInput = z.infer<typeof SaveDraftMetadataSchema>;

@@ -10,6 +10,7 @@ import {
   ingestionService,
   ingestionWorkflowService,
   IngestionGenerationService,
+  IngestionMetadataService,
 } from "@/modules/ingestions";
 import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
 import { createIngestionActionHandler, type IngestionActionState } from "./ingestion-action-handler";
@@ -20,10 +21,20 @@ async function generateAiContent(ingestionId: string, updatedBy: string) {
   return workflow.generateAll(ingestionId, updatedBy);
 }
 
+async function saveMetadata(
+  ingestionId: string,
+  input: Parameters<IngestionMetadataService["save"]>[1],
+  updatedBy: string,
+) {
+  const workflow = new IngestionMetadataService(ingestionService, contentDraftService);
+  return workflow.save(ingestionId, input, updatedBy);
+}
+
 const actions = createIngestionActionHandler({
   authorize: requireAdmin,
   workflow: ingestionWorkflowService,
   generateAiContent,
+  saveMetadata,
   started(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId);
@@ -35,6 +46,10 @@ const actions = createIngestionActionHandler({
   aiGenerated(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId + "?aiGenerated=1");
+  },
+  metadataSaved(ingestionId) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin/ingestions/" + ingestionId + "?metadataSaved=1");
   },
   logFailure(error) {
     logger.error("Admin ingestion workflow failed", error);
@@ -65,4 +80,14 @@ export async function generateAiContentAction(
   form: FormData,
 ) {
   return actions.generateAiContent(ingestionId, previous, form);
+}
+
+export async function saveIngestionMetadataAction(
+  ingestionId: string,
+  draftId: string,
+  draftRevision: number,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.saveMetadata(ingestionId, draftId, draftRevision, previous, form);
 }
