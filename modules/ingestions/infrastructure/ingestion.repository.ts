@@ -21,6 +21,10 @@ function toEntity(ingestion: IngestionPersistenceRecord): IngestionEntity {
   };
 }
 
+function toRecord(ingestion: IngestionPersistenceRecord): IngestionRecord {
+  return { ...toEntity(ingestion), revision: ingestion.__v ?? 0 };
+}
+
 export class MongoIngestionRepository implements IIngestionRepository {
   async create(input: CreateIngestionInput, updatedBy?: string): Promise<IngestionEntity> {
     await connectDB();
@@ -47,7 +51,13 @@ export class MongoIngestionRepository implements IIngestionRepository {
   async findById(id: string): Promise<IngestionRecord | null> {
     await connectDB();
     const ingestion = await Ingestion.findById(id).lean();
-    return ingestion ? { ...toEntity(ingestion), revision: ingestion.__v ?? 0 } : null;
+    return ingestion ? toRecord(ingestion) : null;
+  }
+
+  async findByRequestId(songRequestId: string): Promise<IngestionRecord | null> {
+    await connectDB();
+    const ingestion = await Ingestion.findOne({ songRequestId }).lean();
+    return ingestion ? toRecord(ingestion) : null;
   }
 
   async transition(

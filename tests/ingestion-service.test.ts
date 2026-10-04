@@ -23,6 +23,7 @@ function repository(overrides: Partial<IIngestionRepository> = {}): IIngestionRe
   return {
     create: async (input, updatedBy) => ({ ...record(), songRequestId: input.songRequestId, updatedBy }),
     findById: async () => record(),
+    findByRequestId: async () => record(),
     transition: async (_id, _revision, _from, to, updatedBy) => ({ ...record(), status: to, updatedBy }),
     ...overrides,
   };
@@ -44,6 +45,20 @@ test("ingestion creation validates request id and starts in awaiting_source", as
   const created = await service.createForRequest(requestId, "admin-1");
   assert.equal(created.status, "awaiting_source");
   assert.equal(calls, 1);
+});
+
+test("ingestion lookup by request validates id and preserves revision", async () => {
+  let calls = 0;
+  const service = new IngestionService(repository({
+    findByRequestId: async parsed => {
+      calls++;
+      assert.equal(parsed, requestId);
+      return record({ revision: 5 });
+    },
+  }));
+  await assert.rejects(() => service.findByRequestId("bad"));
+  assert.equal(calls, 0);
+  assert.equal((await service.findByRequestId(requestId))?.revision, 5);
 });
 
 test("ingestion service allows legal transition and propagates actor", async () => {

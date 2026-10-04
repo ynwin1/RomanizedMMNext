@@ -4,6 +4,7 @@ import type { IngestionEntity, IngestionRecord, IngestionStatus } from "../domai
 export interface IIngestionRepository {
   create(input: CreateIngestionInput, updatedBy?: string): Promise<IngestionEntity>;
   findById(id: string): Promise<IngestionRecord | null>;
+  findByRequestId(songRequestId: string): Promise<IngestionRecord | null>;
   transition(
     id: string,
     revision: number,
