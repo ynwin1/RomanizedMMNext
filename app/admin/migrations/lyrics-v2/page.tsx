@@ -3,7 +3,7 @@ import { adminReads } from "../../admin.data";
 import { requireAdmin } from "@/infrastructure/auth";
 import { lyricsMeaningReviewDraftRepository } from "@/modules/songs";
 import type { LyricsMigrationRepairStrategy, LyricsMigrationStatus } from "@/modules/songs";
-import { migrateLowRiskLyricsV2Action } from "./migration-actions";
+import { generateAiMeaningDraftBatchAction, migrateLowRiskLyricsV2Action } from "./migration-actions";
 
 const statusStyle: Record<LyricsMigrationStatus, string> = {
   SAFE: "border-emerald-800 bg-emerald-950/40 text-emerald-200",
@@ -39,6 +39,13 @@ export default async function LyricsV2MigrationPage({
   const migrationError = typeof params.migrationError === "string" ? params.migrationError : undefined;
   const saveResult = typeof params.saveResult === "string" ? params.saveResult : undefined;
   const savedMmid = typeof params.mmid === "string" ? params.mmid : undefined;
+  const aiBatchSaved = typeof params.aiBatchSaved === "string" ? params.aiBatchSaved : undefined;
+  const aiBatchGenerated = typeof params.aiBatchGenerated === "string" ? params.aiBatchGenerated : undefined;
+  const aiBatchReusedDraft = typeof params.aiBatchReusedDraft === "string" ? params.aiBatchReusedDraft : undefined;
+  const aiBatchAlreadyV2 = typeof params.aiBatchAlreadyV2 === "string" ? params.aiBatchAlreadyV2 : undefined;
+  const aiBatchStale = typeof params.aiBatchStale === "string" ? params.aiBatchStale : undefined;
+  const aiBatchFailed = typeof params.aiBatchFailed === "string" ? params.aiBatchFailed : undefined;
+  const aiBatchError = typeof params.aiBatchError === "string" ? params.aiBatchError : undefined;
 
   return (
     <section aria-labelledby="lyrics-v2-migration-heading">
@@ -84,6 +91,20 @@ export default async function LyricsV2MigrationPage({
           Reviewed lyricsV2 saved{savedMmid ? ` for MMID ${savedMmid}` : ""}. Its AI review draft has been cleared.
         </div>
       )}
+      {aiBatchSaved !== undefined && (
+        <div role="status" className="mt-6 rounded border border-emerald-800 bg-emerald-950/40 p-4 text-emerald-200">
+          AI Meaning batch complete: {aiBatchSaved} lyricsV2 saved.
+          {aiBatchGenerated ?? "0"} new AI drafts generated, {aiBatchReusedDraft ?? "0"} existing drafts reused,
+          {aiBatchAlreadyV2 ?? "0"} already on V2, {aiBatchStale ?? "0"} stale, {aiBatchFailed ?? "0"} failed.
+        </div>
+      )}
+      {aiBatchError && (
+        <div role="alert" className="mt-6 rounded border border-red-800 bg-red-950/40 p-4 text-red-200">
+          {aiBatchError === "confirmation"
+            ? "Type GENERATE_AND_ACCEPT_10_AI_MEANING exactly before running the batch."
+            : "The AI Meaning batch stopped unexpectedly. Successfully written lyricsV2 remains saved and existing drafts are preserved for any failed/stale songs."}
+        </div>
+      )}
 
       <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
         <h2 className="text-xl font-semibold">Phase 7 auto-repair plan</h2>
@@ -98,6 +119,29 @@ export default async function LyricsV2MigrationPage({
             </div>
           ))}
         </div>
+
+        <form action={generateAiMeaningDraftBatchAction} className="mt-6 rounded-lg border border-indigo-900 bg-indigo-950/20 p-4">
+          <h3 className="font-semibold text-indigo-200">Generate + accept next 10 AI Meaning songs</h3>
+          <p className="mt-2 text-sm text-zinc-400">
+            This completes up to 10 AI Meaning songs in one batch. Existing saved review drafts are used first with no new AI call.
+            Missing drafts are generated once, then the draft Meaning is immediately accepted and written to lyricsV2.
+            Existing lyricsV2 is never overwritten; stale or failed songs are left untouched for later review.
+          </p>
+          <p className="mt-2 text-sm text-amber-300">
+            This is an auto-accept action. You can revise the saved lyricsV2 later from the normal admin song editor.
+          </p>
+          <label className="mt-4 block max-w-md text-sm">
+            Type <span className="font-mono text-zinc-200">GENERATE_AND_ACCEPT_10_AI_MEANING</span> to confirm
+            <input
+              name="confirmation"
+              autoComplete="off"
+              className="mt-2 w-full rounded border border-zinc-700 bg-zinc-900 p-3 text-zinc-100"
+            />
+          </label>
+          <button type="submit" className="mt-4 rounded bg-indigo-600 px-4 py-2 font-medium hover:bg-indigo-500">
+            Generate + accept next 10
+          </button>
+        </form>
 
         <form action={migrateLowRiskLyricsV2Action} className="mt-6 rounded-lg border border-zinc-700 bg-zinc-950/60 p-4">
           <h3 className="font-semibold">Migrate low-risk songs</h3>
