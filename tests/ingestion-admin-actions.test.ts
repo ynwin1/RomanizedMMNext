@@ -8,6 +8,7 @@ import {
 
 const requestId = "507f1f77bcf86cd799439011";
 const ingestionId = "507f191e810c19729de860ea";
+const draftId = "507f191e810c19729de860eb";
 
 function handler(overrides: Partial<Parameters<typeof createIngestionActionHandler>[0]> = {}) {
   return createIngestionActionHandler({
@@ -18,18 +19,18 @@ function handler(overrides: Partial<Parameters<typeof createIngestionActionHandl
     },
     generateAiContent: async () => ({}),
     saveMetadata: async () => ({}),
+    saveReview: async () => ({}),
     resolveArtist: async () => ({}),
     addArtist: async () => ({}),
     removeArtist: async () => ({}),
     confirmArtists: async () => ({}),
-    reopenAdminInput: async () => ({}),
     started: id => { throw new Error("started:" + id); },
-    sourceSaved: id => { throw new Error("source:" + id); },
     aiGenerated: id => { throw new Error("generated:" + id); },
+    generationFailed: id => { throw new Error("generation-failed:" + id); },
     metadataSaved: id => { throw new Error("metadata:" + id); },
+    reviewSaved: id => { throw new Error("review:" + id); },
     artistChanged: id => { throw new Error("artist:" + id); },
     artistsConfirmed: id => { throw new Error("artists-confirmed:" + id); },
-    adminInputReopened: id => { throw new Error("admin-input-reopened:" + id); },
     logFailure: () => {},
     ...overrides,
   });
@@ -50,7 +51,7 @@ test("ingestion admin actions authorize before workflow writes or AI generation"
   assert.equal(calls, 0);
 });
 
-test("source action validates lyrics before calling workflow", async () => {
+test("source action validates lyrics before writes", async () => {
   let calls = 0;
   const actions = handler({
     workflow: {
@@ -64,39 +65,51 @@ test("source action validates lyrics before calling workflow", async () => {
   assert.equal(calls, 0);
 });
 
-test("start, source, and full AI generation redirect only after successful workflow", async () => {
+test("saving source automatically runs AI and redirects to final review", async () => {
   const calls: string[] = [];
   const actions = handler({
     workflow: {
-      startAcceptedRequest: async (_requestId, actor) => {
-        assert.equal(actor, "admin-1"); calls.push("start");
-        return { ingestion: { id: ingestionId } as any, draft: {} as any };
-      },
+      startAcceptedRequest: async () => { throw new Error("unused"); },
       saveAndConfirmSource: async (_input, actor) => {
-        assert.equal(actor, "admin-1"); calls.push("source");
+        assert.equal(actor, "admin-1");
+        calls.push("source");
         return { ingestion: { id: ingestionId } as any, draft: {} as any };
       },
     },
     generateAiContent: async (_id, actor) => {
-      assert.equal(actor, "admin-1"); calls.push("generate");
+      assert.equal(actor, "admin-1");
+      calls.push("generate");
     },
-    started: id => { calls.push("started:" + id); throw new Error("start redirect"); },
-    sourceSaved: id => { calls.push("saved:" + id); throw new Error("source redirect"); },
-    aiGenerated: id => { calls.push("generated:" + id); throw new Error("generation redirect"); },
+    aiGenerated: id => {
+      calls.push("review:" + id);
+      throw new Error("review redirect");
+    },
   });
 
-  await assert.rejects(() => actions.start(requestId, {}, new FormData()), /start redirect/);
   const form = new FormData(); form.set("burmeseLyrics", "မြန်မာစာ");
-  await assert.rejects(() => actions.saveSource(ingestionId, 2, 3, {}, form), /source redirect/);
-  await assert.rejects(() => actions.generateAiContent(ingestionId, {}, new FormData()), /generation redirect/);
-  assert.deepEqual(calls, [
-    "start", "started:" + ingestionId,
-    "source", "saved:" + ingestionId,
-    "generate", "generated:" + ingestionId,
-  ]);
+  await assert.rejects(
+    () => actions.saveSource(ingestionId, 2, 3, {}, form),
+    /review redirect/,
+  );
+  assert.deepEqual(calls, ["source", "generate", "review:" + ingestionId]);
 });
 
-test("provider and quality failures are logged and returned as retryable generation failures", async () => {
+test("source-triggered AI failure redirects to retry state instead of asking for another transition", async () => {
+  const actions = handler({
+    generateAiContent: async () => {
+      throw new ContentGenerationProviderError("provider down", true, "http_500");
+    },
+    generationFailed: id => { throw new Error("failed:" + id); },
+  });
+
+  const form = new FormData(); form.set("burmeseLyrics", "မြန်မာစာ");
+  await assert.rejects(
+    () => actions.saveSource(ingestionId, 2, 3, {}, form),
+    /failed:/,
+  );
+});
+
+test("explicit retry still returns safe provider/quality failures", async () => {
   let logged: unknown;
   const providerFailure = handler({
     generateAiContent: async () => {
@@ -106,10 +119,7 @@ test("provider and quality failures are logged and returned as retryable generat
   });
 
   const providerResult = await providerFailure.generateAiContent(ingestionId, {}, new FormData());
-  assert.equal(
-    providerResult.message,
-    "AI generation failed quality or provider checks. You can retry this generation.",
-  );
+  assert.equal(providerResult.message, "AI generation failed quality or provider checks. You can retry.");
   assert.ok(logged instanceof ContentGenerationProviderError);
 
   const qualityFailure = handler({
@@ -125,9 +135,31 @@ test("provider and quality failures are logged and returned as retryable generat
   });
 
   const qualityResult = await qualityFailure.generateAiContent(ingestionId, {}, new FormData());
-  assert.equal(
-    qualityResult.message,
-    "AI generation failed quality or provider checks. You can retry this generation.",
-  );
+  assert.equal(qualityResult.message, "AI generation failed quality or provider checks. You can retry.");
   assert.ok(logged instanceof GeneratedContentQualityError);
+});
+
+test("review action passes editable generated and factual fields", async () => {
+  let inputSeen: any;
+  const actions = handler({
+    saveReview: async (_id, input) => { inputSeen = input; },
+    reviewSaved: id => { throw new Error("saved:" + id); },
+  });
+
+  const form = new FormData();
+  form.set("songName", "Corrected");
+  form.set("burmeseLyrics", "စာသား");
+  form.set("romanized", "Romanized.");
+  form.set("meaning", "Meaning.");
+  form.set("about", "About.");
+  form.set("whenToListen", "When.");
+  form.set("genre", "Pop");
+
+  await assert.rejects(
+    () => actions.saveReview(ingestionId, draftId, 4, {}, form),
+    /saved:/,
+  );
+  assert.equal(inputSeen.songName, "Corrected");
+  assert.equal(inputSeen.romanized, "Romanized.");
+  assert.equal(inputSeen.genre, "Pop");
 });

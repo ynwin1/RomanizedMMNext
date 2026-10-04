@@ -45,5 +45,5 @@ test("request pending dashboard count uses the same legacy-status filter as the 
   const model = SongRequest as unknown as QueryModel;
   t.mock.method(model, "countDocuments", async (value: unknown) => { filter = value; return 3; });
   assert.equal(await new MongoSongRequestRepository().countAdmin("pending"), 3);
-  assert.deepEqual(filter, { $and: [{ $or: [{ status: "pending" }, { status: { $exists: false } }, { status: null }] }] });
+  assert.deepEqual(filter, { $and: [{ $or: [{ status: { $in: ["pending", "reviewing"] } }, { status: { $exists: false } }, { status: null }] }] });
 });

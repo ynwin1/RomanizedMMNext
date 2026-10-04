@@ -15,18 +15,18 @@ function handler(overrides: Partial<Parameters<typeof createIngestionActionHandl
     },
     generateAiContent: async () => ({}),
     saveMetadata: async () => ({}),
+    saveReview: async () => ({}),
     resolveArtist: async () => ({}),
     addArtist: async () => ({}),
     removeArtist: async () => ({}),
     confirmArtists: async () => ({}),
-    reopenAdminInput: async () => ({}),
     started: id => { throw new Error("started:" + id); },
-    sourceSaved: id => { throw new Error("source:" + id); },
     aiGenerated: id => { throw new Error("generated:" + id); },
+    generationFailed: id => { throw new Error("generation-failed:" + id); },
     metadataSaved: id => { throw new Error("metadata:" + id); },
+    reviewSaved: id => { throw new Error("review:" + id); },
     artistChanged: id => { throw new Error("artist:" + id); },
     artistsConfirmed: id => { throw new Error("artists-confirmed:" + id); },
-    adminInputReopened: id => { throw new Error("admin-input-reopened:" + id); },
     logFailure: () => {},
     ...overrides,
   });
@@ -151,25 +151,4 @@ test("artist actions authorize before writes", async () => {
     error => error === denied,
   );
   assert.equal(calls, 0);
-});
-
-
-test("reopen admin input action passes the draft and actor", async () => {
-  let inputSeen: any;
-  let actorSeen: string | undefined;
-  const actions = handler({
-    reopenAdminInput: async (_ingestionId, input, actor) => {
-      inputSeen = input;
-      actorSeen = actor;
-    },
-    adminInputReopened: id => { throw new Error("reopened:" + id); },
-  });
-
-  await assert.rejects(
-    () => actions.reopenAdminInput(ingestionId, draftId, {}, new FormData()),
-    /reopened:/,
-  );
-
-  assert.deepEqual(inputSeen, { draftId });
-  assert.equal(actorSeen, "admin-1");
 });

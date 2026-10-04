@@ -212,7 +212,10 @@ test("admin integration flow covers protected reads, song/artist create+edit, an
   const requestActions = createRequestActionHandler({
     authorize,
     requests,
+    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: id => { throw new Error("saved-request:" + id); },
+    accepted: () => { throw new Error("unexpected accepted redirect"); },
+    rejected: () => { throw new Error("unexpected rejected redirect"); },
     logFailure: error => { throw error; },
   });
   const statusForm = new FormData();

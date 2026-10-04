@@ -6,7 +6,11 @@ export const ContentDraftRevisionSchema = z.coerce.number().int().min(0).max(Num
 
 const shortText = z.string().trim().min(1).max(500);
 const content = z.string().max(200000).refine(value => value.trim().length > 0, "Required");
-const editorial = z.string().max(10000).refine(value => value.trim().length > 0, "Required");
+const editorial = z.string()
+  .trim()
+  .min(1)
+  .max(10000)
+  .refine(value => !/[\r\n]/.test(value), "Must be a single line");
 const url = z.string().url().max(2048).refine(
   value => {
     try {
@@ -53,6 +57,24 @@ export const SaveDraftMetadataSchema = z.object({
   draftId: ContentDraftIdSchema,
   draftRevision: ContentDraftRevisionSchema,
   genre: shortText,
+  albumName: z.string().trim().max(10000).nullable(),
+  spotifyTrackId: z.string().trim().max(200).nullable(),
+  spotifyLink: url.nullable(),
+  appleMusicLink: url.nullable(),
+  youtubeLinks: z.array(url).max(20).nullable(),
+  imageLink: url.nullable(),
+}).strict();
+
+export const SaveDraftReviewSchema = z.object({
+  draftId: ContentDraftIdSchema,
+  draftRevision: ContentDraftRevisionSchema,
+  songName: shortText,
+  burmeseLyrics: content,
+  romanized: content,
+  meaning: content,
+  about: editorial,
+  whenToListen: editorial,
+  genre: shortText.nullable(),
   albumName: z.string().trim().max(10000).nullable(),
   spotifyTrackId: z.string().trim().max(200).nullable(),
   spotifyLink: url.nullable(),
@@ -121,3 +143,4 @@ export const ContentDraftPatchSchema = z.object({
 export type CreateContentDraftInput = z.infer<typeof CreateContentDraftSchema>;
 export type ContentDraftPatch = z.infer<typeof ContentDraftPatchSchema>;
 export type SaveDraftMetadataInput = z.infer<typeof SaveDraftMetadataSchema>;
+export type SaveDraftReviewInput = z.infer<typeof SaveDraftReviewSchema>;

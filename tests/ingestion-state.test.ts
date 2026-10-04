@@ -5,9 +5,9 @@ import { allowedIngestionTransitions, canTransitionIngestion } from "@/modules/i
 test("ingestion state machine exposes legal generation, partial-completion, and recovery transitions", () => {
   assert.deepEqual(allowedIngestionTransitions("awaiting_source"), ["ready_to_generate"]);
   assert.deepEqual(allowedIngestionTransitions("ready_to_generate"), ["generating"]);
-  assert.deepEqual(allowedIngestionTransitions("generating"), ["ready_to_generate", "needs_admin_input", "failed"]);
+  assert.deepEqual(allowedIngestionTransitions("generating"), ["ready_to_generate", "ready_for_review", "failed"]);
   assert.deepEqual(allowedIngestionTransitions("needs_admin_input"), ["ready_for_review"]);
-  assert.deepEqual(allowedIngestionTransitions("ready_for_review"), ["needs_admin_input", "generating", "approved", "rejected"]);
+  assert.deepEqual(allowedIngestionTransitions("ready_for_review"), ["generating", "approved", "rejected"]);
   assert.deepEqual(allowedIngestionTransitions("failed"), ["generating"]);
 });
 

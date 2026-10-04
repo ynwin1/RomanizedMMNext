@@ -36,7 +36,7 @@ function draft(overrides: Partial<ContentDraftRecord> = {}): ContentDraftRecord 
   };
 }
 
-test("AI generation reuses romanization, generates meaning/editorial, and advances to needs_admin_input", async () => {
+test("AI generation reuses romanization, generates meaning/editorial, and advances to ready_for_review", async () => {
   let current = ingestion();
   let currentDraft = draft();
   const transitions: string[] = [];
@@ -87,7 +87,7 @@ test("AI generation reuses romanization, generates meaning/editorial, and advanc
   assert.equal(romanizeCalls, 0);
   assert.equal(meaningCalls, 1);
   assert.equal(editorialCalls, 1);
-  assert.deepEqual(transitions, ["generating", "needs_admin_input"]);
+  assert.deepEqual(transitions, ["generating", "ready_for_review"]);
   assert.deepEqual(patchSeen, {
     generated: {
       meaning: "M0\n\nM2",
@@ -99,7 +99,7 @@ test("AI generation reuses romanization, generates meaning/editorial, and advanc
   assert.deepEqual(editorialInput.artistNames, ["Artist"]);
   assert.equal(editorialInput.romanizedLines[0].text, "R0");
   assert.equal(editorialInput.meaningLines[2].text, "M2");
-  assert.equal(result.ingestion.status, "needs_admin_input");
+  assert.equal(result.ingestion.status, "ready_for_review");
 });
 
 test("AI generation creates missing romanization before remaining content without admin intervention", async () => {
@@ -145,7 +145,7 @@ test("AI generation creates missing romanization before remaining content withou
     "generating",
     "ready_to_generate",
     "generating",
-    "needs_admin_input",
+    "ready_for_review",
   ]);
   assert.equal(result.draft.generated.romanized, "R0\n\nR2");
   assert.equal(result.draft.generated.meaning, "M0\n\nM2");
@@ -186,7 +186,7 @@ test("AI generation reuses completed meaning on retry to reduce provider usage",
   assert.equal(currentDraft.generated.about, "About");
 });
 
-test("reused stored AI content must pass quality checks before needs_admin_input", async () => {
+test("reused stored AI content must pass quality checks before ready_for_review", async () => {
   let current = ingestion({ status: "failed", revision: 8 });
   const badDraft = draft({
     generated: {
@@ -257,7 +257,7 @@ test("remaining AI provider failure marks ingestion failed and does not write in
 
 test("AI generation rejects states outside ready_to_generate/failed", async () => {
   const service = new IngestionGenerationService(
-    { getById: async () => ingestion({ status: "needs_admin_input" }) } as any,
+    { getById: async () => ingestion({ status: "ready_for_review" }) } as any,
     {} as any,
     {} as any,
   );

@@ -14,9 +14,7 @@ import {
   type AddDraftArtistInput,
   type ConfirmDraftArtistsInput,
   type RemoveDraftArtistInput,
-  type ReopenDraftAdminInput,
   type ResolveDraftArtistInput,
-  ReopenDraftAdminInputSchema,
 } from "./ingestion-artist-resolution.validation";
 
 export class IngestionArtistResolutionService {
@@ -28,7 +26,7 @@ export class IngestionArtistResolutionService {
 
   private async editable(ingestionId: unknown, draftId: string) {
     const ingestion = await this.ingestions.getById(ingestionId);
-    if (ingestion.status !== "needs_admin_input") {
+    if (ingestion.status !== "needs_admin_input" && ingestion.status !== "ready_for_review") {
       throw new IngestionArtistResolutionStateError();
     }
 
@@ -40,11 +38,7 @@ export class IngestionArtistResolutionService {
     return { ingestion, draft };
   }
 
-  async resolve(
-    ingestionId: unknown,
-    input: ResolveDraftArtistInput,
-    updatedBy?: string,
-  ) {
+  async resolve(ingestionId: unknown, input: ResolveDraftArtistInput, updatedBy?: string) {
     const parsed = ResolveDraftArtistSchema.parse(input);
     const { draft } = await this.editable(ingestionId, parsed.draftId);
 
@@ -67,12 +61,7 @@ export class IngestionArtistResolutionService {
 
     const artists = draft.artists.map((artist, index) =>
       index === parsed.artistIndex
-        ? {
-            kind: "resolved" as const,
-            artistId: canonical.id,
-            name: canonical.name,
-            slug: canonical.slug,
-          }
+        ? { kind: "resolved" as const, artistId: canonical.id, name: canonical.name, slug: canonical.slug }
         : artist,
     );
 
@@ -80,11 +69,7 @@ export class IngestionArtistResolutionService {
     return this.drafts.getById(draft.id);
   }
 
-  async add(
-    ingestionId: unknown,
-    input: AddDraftArtistInput,
-    updatedBy?: string,
-  ) {
+  async add(ingestionId: unknown, input: AddDraftArtistInput, updatedBy?: string) {
     const parsed = AddDraftArtistSchema.parse(input);
     const { draft } = await this.editable(ingestionId, parsed.draftId);
 
@@ -106,15 +91,10 @@ export class IngestionArtistResolutionService {
       { artists: [...draft.artists, { kind: "unresolved", name: parsed.artistName }] },
       updatedBy,
     );
-
     return this.drafts.getById(draft.id);
   }
 
-  async remove(
-    ingestionId: unknown,
-    input: RemoveDraftArtistInput,
-    updatedBy?: string,
-  ) {
+  async remove(ingestionId: unknown, input: RemoveDraftArtistInput, updatedBy?: string) {
     const parsed = RemoveDraftArtistSchema.parse(input);
     const { draft } = await this.editable(ingestionId, parsed.draftId);
 
@@ -127,37 +107,7 @@ export class IngestionArtistResolutionService {
     return this.drafts.getById(draft.id);
   }
 
-  async reopen(
-    ingestionId: unknown,
-    input: ReopenDraftAdminInput,
-    updatedBy?: string,
-  ) {
-    const parsed = ReopenDraftAdminInputSchema.parse(input);
-    const ingestion = await this.ingestions.getById(ingestionId);
-    if (ingestion.status !== "ready_for_review") {
-      throw new IngestionArtistResolutionStateError();
-    }
-
-    const draft = await this.drafts.getById(parsed.draftId);
-    if (draft.ingestionId !== ingestion.id) {
-      throw new DraftArtistResolutionError("The content draft does not belong to this ingestion.");
-    }
-
-    const transitioned = await this.ingestions.transition(
-      ingestion.id,
-      ingestion.revision,
-      "needs_admin_input",
-      updatedBy,
-    );
-
-    return { draft, ingestion: transitioned };
-  }
-
-  async confirm(
-    ingestionId: unknown,
-    input: ConfirmDraftArtistsInput,
-    updatedBy?: string,
-  ) {
+  async confirm(ingestionId: unknown, input: ConfirmDraftArtistsInput, updatedBy?: string) {
     const parsed = ConfirmDraftArtistsSchema.parse(input);
     const { ingestion, draft } = await this.editable(ingestionId, parsed.draftId);
     const completeness = evaluateDraftAdminInputCompleteness(draft);
@@ -169,13 +119,16 @@ export class IngestionArtistResolutionService {
       throw new DraftArtistResolutionError("Complete required factual metadata before continuing.");
     }
 
+    if (ingestion.status === "ready_for_review") {
+      return { draft, ingestion, completeness };
+    }
+
     const transitioned = await this.ingestions.transition(
       ingestion.id,
       ingestion.revision,
       "ready_for_review",
       updatedBy,
     );
-
     return { draft, ingestion: transitioned, completeness };
   }
 }

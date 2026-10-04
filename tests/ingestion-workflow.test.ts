@@ -30,7 +30,7 @@ test("workflow starts only accepted requests and seeds request-owned draft field
       findByRequestId: async () => null,
       transition: async () => ingestion(),
     } as any,
-    { getAdminDetail: async () => ({
+    { updateStatus: async () => ({ id: requestId } as any), getAdminDetail: async () => ({
       id: requestId,
       songName: "Requested Song",
       artist: "Requested Artist",
@@ -83,7 +83,7 @@ test("workflow refuses non-accepted request before creating work", async () => {
       findByRequestId: async () => null,
       transition: async () => ingestion(),
     } as any,
-    { getAdminDetail: async () => ({ id: requestId, songName: "Song", artist: "Artist", status: "reviewing" as const, revision: 0 }) },
+    { updateStatus: async () => ({ id: requestId } as any), getAdminDetail: async () => ({ id: requestId, songName: "Song", artist: "Artist", status: "reviewing" as const, revision: 0 }) },
     {} as any,
   );
   await assert.rejects(() => service.startAcceptedRequest(requestId), RequestNotAcceptedForIngestionError);
@@ -106,7 +106,7 @@ test("workflow start is retry-safe when ingestion and fully seeded draft already
       findByRequestId: async () => ingestion(),
       transition: async () => ingestion(),
     } as any,
-    { getAdminDetail: async () => ({
+    { updateStatus: async () => ({ id: requestId } as any), getAdminDetail: async () => ({
       id: requestId,
       songName: "Song",
       artist: "Artist",
@@ -138,7 +138,7 @@ test("workflow repairs a partially-created draft without promoting request YouTu
       findByRequestId: async () => ingestion(),
       transition: async () => ingestion(),
     } as any,
-    { getAdminDetail: async () => ({
+    { updateStatus: async () => ({ id: requestId } as any), getAdminDetail: async () => ({
       id: requestId,
       songName: "Recovered Song",
       artist: "Recovered Artist",
@@ -189,7 +189,7 @@ test("workflow repairs only missing seed sections without overwriting admin-owne
       getById: async () => ingestion(),
       findByRequestId: async () => ingestion(),
     } as any,
-    { getAdminDetail: async () => ({
+    { updateStatus: async () => ({ id: requestId } as any), getAdminDetail: async () => ({
       id: requestId,
       songName: "Request Song",
       artist: "Missing Artist",
@@ -270,4 +270,48 @@ test("source confirmation only works from awaiting_source", async () => {
   await assert.rejects(() => service.saveAndConfirmSource({
     ingestionId, ingestionRevision: 0, draftRevision: 0, burmeseLyrics: "မြန်မာစာ",
   }), IngestionSourceStateError);
+});
+
+
+test("accept request updates request status and immediately starts ingestion", async () => {
+  const calls: string[] = [];
+  let currentDraft = draft();
+  const service = new IngestionWorkflowService(
+    {
+      findByRequestId: async () => null,
+      createForRequest: async () => { calls.push("ingestion"); return ingestion(); },
+      getById: async () => ingestion(),
+    } as any,
+    {
+      updateStatus: async (_id: unknown, revision: number, status: any, actor?: string) => {
+        assert.equal(revision, 2);
+        assert.equal(status, "accepted");
+        assert.equal(actor, "admin-1");
+        calls.push("accept");
+        return { id: requestId } as any;
+      },
+      getAdminDetail: async () => ({
+        id: requestId,
+        songName: "Song",
+        artist: "Artist",
+        status: "accepted" as const,
+        revision: 3,
+      }),
+    },
+    {
+      getByIngestionId: async () => currentDraft,
+      createForIngestion: async () => currentDraft,
+      update: async (_id: unknown, _revision: unknown, patch: any) => {
+        currentDraft = draft({
+          identity: patch.identity ?? currentDraft.identity,
+          artists: patch.artists ?? currentDraft.artists,
+          revision: 1,
+        });
+        return currentDraft;
+      },
+    } as any,
+  );
+
+  await service.acceptRequest(requestId, 2, "admin-1");
+  assert.deepEqual(calls, ["accept", "ingestion"]);
 });
