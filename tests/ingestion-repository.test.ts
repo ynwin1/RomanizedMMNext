@@ -11,6 +11,7 @@ const requestId = "507f191e810c19729de860ea";
 type WriteModel = {
   create: (input: unknown) => Promise<{ toObject: () => unknown }>;
   findById: (id: string) => { lean: () => Promise<any> };
+  findOne: (filter: unknown) => { lean: () => Promise<any> };
   findOneAndUpdate: (filter: unknown, update: unknown, options: unknown) => { lean: () => Promise<any> };
 };
 const model = Ingestion as unknown as WriteModel;
@@ -38,6 +39,19 @@ test("ingestion repository maps duplicate request ingestion to domain error", as
     () => new MongoIngestionRepository().create({ songRequestId: requestId }),
     DuplicateIngestionError,
   );
+});
+
+test("ingestion repository finds the one ingestion for a request", async t => {
+  t.mock.method(database, "default", async () => {});
+  let filter: unknown;
+  t.mock.method(model, "findOne", (value: unknown) => {
+    filter = value;
+    return { lean: async () => ({ _id: id, songRequestId: requestId, status: "awaiting_source", __v: 3 }) };
+  });
+  const found = await new MongoIngestionRepository().findByRequestId(requestId);
+  assert.deepEqual(filter, { songRequestId: requestId });
+  assert.equal(found?.id, id);
+  assert.equal(found?.revision, 3);
 });
 
 test("ingestion transition is atomic on id, source status and revision", async t => {

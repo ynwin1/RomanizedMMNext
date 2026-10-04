@@ -5,6 +5,7 @@ import type { IIngestionRepository } from "./ingestion.repository";
 import {
   CreateIngestionSchema,
   IngestionIdSchema,
+  IngestionRequestIdSchema,
   IngestionRevisionSchema,
   IngestionStatusSchema,
 } from "./ingestion.validation";
@@ -23,6 +24,10 @@ export class IngestionService {
     const ingestion = await this.ingestions.findById(ingestionId);
     if (!ingestion) throw new NotFoundError("Ingestion not found", "INGESTION_NOT_FOUND");
     return ingestion;
+  }
+
+  async findByRequestId(songRequestId: unknown): Promise<IngestionRecord | null> {
+    return this.ingestions.findByRequestId(IngestionRequestIdSchema.parse(songRequestId));
   }
 
   async transition(id: unknown, revision: unknown, nextStatus: unknown, updatedBy?: string): Promise<IngestionEntity> {
