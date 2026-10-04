@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { adminReads } from "../../admin.data";
 import type { LyricsMigrationRepairStrategy, LyricsMigrationStatus } from "@/modules/songs";
+import { migrateLowRiskLyricsV2Action } from "./migration-actions";
 
 const statusStyle: Record<LyricsMigrationStatus, string> = {
   SAFE: "border-emerald-800 bg-emerald-950/40 text-emerald-200",
@@ -17,8 +18,17 @@ const repairStyle: Record<LyricsMigrationRepairStrategy, string> = {
   MANUAL_REVIEW: "border-red-800 bg-red-950/40 text-red-200",
 };
 
-export default async function LyricsV2MigrationPage() {
+export default async function LyricsV2MigrationPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const [report, repairs] = await Promise.all([adminReads.lyricsMigrationReadiness(), adminReads.lyricsMigrationRepairs()]);
+  const migrated = typeof params.migrated === "string" ? params.migrated : undefined;
+  const alreadyV2 = typeof params.alreadyV2 === "string" ? params.alreadyV2 : undefined;
+  const skippedConcurrent = typeof params.skippedConcurrent === "string" ? params.skippedConcurrent : undefined;
+  const migrationError = typeof params.migrationError === "string" ? params.migrationError : undefined;
 
   return (
     <section aria-labelledby="lyrics-v2-migration-heading">
@@ -47,6 +57,19 @@ export default async function LyricsV2MigrationPage() {
         ))}
       </div>
 
+      {migrated !== undefined && (
+        <div role="status" className="mt-6 rounded border border-emerald-800 bg-emerald-950/40 p-4 text-emerald-200">
+          Migration complete: {migrated} songs migrated, {alreadyV2 ?? "0"} already on V2, {skippedConcurrent ?? "0"} skipped because they changed concurrently.
+        </div>
+      )}
+      {migrationError && (
+        <div role="alert" className="mt-6 rounded border border-red-800 bg-red-950/40 p-4 text-red-200">
+          {migrationError === "confirmation"
+            ? "Type MIGRATE_LOW_RISK exactly before running the migration."
+            : "The migration stopped after an unexpected error. It is safe to rerun because writes are idempotent."}
+        </div>
+      )}
+
       <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
         <h2 className="text-xl font-semibold">Phase 7 auto-repair plan</h2>
         <p className="mt-2 text-sm text-zinc-400">
@@ -60,6 +83,25 @@ export default async function LyricsV2MigrationPage() {
             </div>
           ))}
         </div>
+
+        <form action={migrateLowRiskLyricsV2Action} className="mt-6 rounded-lg border border-zinc-700 bg-zinc-950/60 p-4">
+          <h3 className="font-semibold">Migrate low-risk songs</h3>
+          <p className="mt-2 text-sm text-zinc-400">
+            This writes lyricsV2 only for READY and DETERMINISTIC REPAIR songs. AI Meaning Alignment and AI Romanization Repair songs are excluded.
+            Existing lyricsV2 is never overwritten.
+          </p>
+          <label className="mt-4 block max-w-md text-sm">
+            Type <span className="font-mono text-zinc-200">MIGRATE_LOW_RISK</span> to confirm
+            <input
+              name="confirmation"
+              autoComplete="off"
+              className="mt-2 w-full rounded border border-zinc-700 bg-zinc-900 p-3 text-zinc-100"
+            />
+          </label>
+          <button type="submit" className="mt-4 rounded bg-indigo-600 px-4 py-2 font-medium hover:bg-indigo-500">
+            Migrate READY + deterministic songs
+          </button>
+        </form>
       </div>
 
       <div className="mt-8 overflow-x-auto rounded-xl border border-zinc-800">

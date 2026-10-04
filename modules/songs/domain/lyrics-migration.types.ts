@@ -62,3 +62,11 @@ export interface LyricsMigrationRepairReport {
   counts: Record<LyricsMigrationRepairStrategy, number>;
   plans: LyricsMigrationRepairPlan[];
 }
+
+
+export interface LyricsMigrationExecutionResult {
+  eligible: number;
+  migrated: number;
+  alreadyV2: number;
+  skippedConcurrent: number;
+}
