@@ -258,6 +258,10 @@ test("denied integration reads never touch content services", async () => {
   const reads = new AdminReadService(denied, {
     getAdminCount: async () => { contentCalls++; return 0; },
     getAdminList: async () => { contentCalls++; return adminPage([], 0, { page: 1, limit: 20, q: "" }); },
+    analyzeLyricsMigration: async () => {
+      contentCalls++;
+      return { total: 0, counts: { SAFE: 0, WARNING: 0, INVALID: 0, MANUAL_REVIEW: 0 }, assessments: [] };
+    },
   }, {
     getAdminCount: async () => { contentCalls++; return 0; },
     getAdminList: async () => { contentCalls++; return adminPage([], 0, { page: 1, limit: 20, q: "" }); },
@@ -269,5 +273,6 @@ test("denied integration reads never touch content services", async () => {
   await assert.rejects(() => reads.listSongs({}), /denied/);
   await assert.rejects(() => reads.listArtists({}), /denied/);
   await assert.rejects(() => reads.listRequests({}), /denied/);
+  await assert.rejects(() => reads.lyricsMigrationReadiness(), /denied/);
   assert.equal(contentCalls, 0);
 });

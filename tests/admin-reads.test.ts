@@ -62,6 +62,10 @@ function reads(authorize: () => Promise<unknown>, calls: string[]) {
   return new AdminReadService(authorize, {
     getAdminCount: async () => { calls.push("songs"); return 12; },
     getAdminList: async input => { calls.push("recent:" + JSON.stringify(input)); return page; },
+    analyzeLyricsMigration: async () => {
+      calls.push("migration");
+      return { total: 0, counts: { SAFE: 0, WARNING: 0, INVALID: 0, MANUAL_REVIEW: 0 }, assessments: [] };
+    },
   }, {
     getAdminCount: async () => { calls.push("artists"); return 4; },
     getAdminList: async () => { calls.push("artist-list"); return page; },
@@ -81,10 +85,17 @@ test("dashboard authorizes before reads and aggregates independent counts and re
 });
 
 test("every admin read denies access before any content service call", async () => {
-  for (const action of ["dashboard", "listSongs", "listArtists", "listRequests"] as const) {
+  for (const action of ["dashboard", "listSongs", "listArtists", "listRequests", "lyricsMigrationReadiness"] as const) {
     const calls: string[] = [];
     const service = reads(async () => { throw new Error("denied"); }, calls);
-    await assert.rejects(() => action === "dashboard" ? service.dashboard() : service[action]({}), /denied/);
+    await assert.rejects(
+      () => action === "dashboard"
+        ? service.dashboard()
+        : action === "lyricsMigrationReadiness"
+          ? service.lyricsMigrationReadiness()
+          : service[action]({}),
+      /denied/,
+    );
     assert.deepEqual(calls, []);
   }
 });
@@ -94,8 +105,18 @@ test("dashboard read failures propagate to the error boundary rather than becomi
   const service = new AdminReadService(async () => {}, {
     getAdminCount: async () => { throw new Error("database unavailable"); },
     getAdminList: async () => adminPage([], 0, { page: 1, limit: 5, q: "" }),
+    analyzeLyricsMigration: async () => ({ total: 0, counts: { SAFE: 0, WARNING: 0, INVALID: 0, MANUAL_REVIEW: 0 }, assessments: [] }),
   }, { getAdminCount: async () => 0, getAdminList: async () => adminPage([], 0, { page: 1, limit: 20, q: "" }) },
   { getAdminCount: async () => 0, getAdminList: async () => adminPage([], 0, { page: 1, limit: 20, q: "" }) });
   await assert.rejects(() => service.dashboard(), /database unavailable/);
   assert.deepEqual(calls, []);
+});
+
+
+test("lyrics migration readiness authorizes before returning the read-only report", async () => {
+  const calls: string[] = [];
+  const service = reads(async () => { calls.push("auth"); }, calls);
+  const report = await service.lyricsMigrationReadiness();
+  assert.equal(report.total, 0);
+  assert.deepEqual(calls, ["auth", "migration"]);
 });

@@ -9,7 +9,7 @@ test("overview is active only at the admin root", () => {
 });
 
 test("sections remain active for nested management routes", () => {
-  for (const href of ["/admin/songs", "/admin/artists", "/admin/requests"]) {
+  for (const href of ["/admin/songs", "/admin/artists", "/admin/requests", "/admin/migrations/lyrics-v2"]) {
     assert.equal(isAdminRouteActive(href, href), true);
     assert.equal(isAdminRouteActive(href + "/123/edit", href), true);
     assert.equal(isAdminRouteActive(href + "/", href), true);
