@@ -74,6 +74,7 @@ class MemorySongs implements ISongRepository {
   async findByArtistName() { return []; }
   async listLyricsMigrationCandidates() { return []; }
   async setLyricsV2IfAbsent() { return true; }
+  async setLyricsV2IfLegacyMatches() { return { status: "saved" as const }; }
 }
 
 class MemoryArtists implements IArtistRepository {

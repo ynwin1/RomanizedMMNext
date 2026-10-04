@@ -52,6 +52,7 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
     findByArtistName: async () => [],
     listLyricsMigrationCandidates: async () => [],
     setLyricsV2IfAbsent: async () => true,
+    setLyricsV2IfLegacyMatches: async () => ({ status: "saved" }),
     ...overrides,
   };
 }
