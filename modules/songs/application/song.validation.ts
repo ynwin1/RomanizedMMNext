@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LyricsV2Schema } from "./lyrics-v2.validation";
 
 export const SongIdSchema = z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const title = z.string().trim().min(1).max(500);
@@ -36,6 +37,7 @@ export const SongContentSchema = z.object({
   romanized: content,
   burmese: content,
   meaning: content,
+  lyricsV2: LyricsV2Schema.optional(),
   isRequested: z.boolean().default(false),
   requestedBy: optionalText,
   songStoryEn: optionalText,
