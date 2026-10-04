@@ -16,3 +16,7 @@ export * from "./application/song.dto";
 export * from "./application/song.validation";
 export * from "./application/lyrics-v2.validation";
 export * from "./application/song-write.error";
+
+export * from "./domain/lyrics-meaning-alignment.types";
+export * from "./application/lyrics-meaning-alignment.provider";
+export * from "./application/lyrics-meaning-alignment.service";

@@ -160,7 +160,9 @@ export default async function LyricsV2MigrationPage({
                 <td className="p-4 text-zinc-300">
                   {assessment.preview
                     ? `${assessment.preview.entries.filter(entry => entry.kind === "line").length} lyric rows`
-                    : "No automatic preview"}
+                    : repair?.strategy === "AI_MEANING_ALIGNMENT"
+                      ? <Link href={`/admin/migrations/lyrics-v2/${assessment.mmid}/meaning-preview`} className="underline decoration-zinc-600 underline-offset-4 hover:text-indigo-300">Generate AI preview</Link>
+                      : "No automatic preview"}
                 </td>
               </tr>
             )})}

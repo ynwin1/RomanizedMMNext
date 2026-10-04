@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { OpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
 import { OpenAIResponsesClient } from "@/integrations/ai/openai-responses.client";
+import { OpenAILyricsMeaningAlignmentAdapter } from "@/integrations/ai/openai-lyrics-meaning-alignment.adapter";
 import { ContentGenerationProviderError } from "@/modules/content-generation";
 
 function response(payload: unknown, status = 200): Response {
@@ -93,4 +94,38 @@ test("OpenAI client rejects refusals and malformed structured output", async () 
     () => malformed.generateStructured({ instructions: "", input: "", schemaName: "x", schema: {} }),
     (error: unknown) => error instanceof ContentGenerationProviderError && error.causeCode === "malformed_output",
   );
+});
+
+
+test("OpenAI meaning alignment adapter uses a strict migration-specific structured contract", async () => {
+  let requestBody: any;
+  const fetcher: typeof fetch = async (_input, init) => {
+    requestBody = JSON.parse(String(init?.body));
+    return response(completed(JSON.stringify({
+      lines: [{
+        index: 0,
+        meaning: "Hello",
+        source: "generated",
+        confidence: "high",
+      }],
+    })));
+  };
+
+  const adapter = new OpenAILyricsMeaningAlignmentAdapter(new OpenAIResponsesClient({
+    apiKey: "test-key",
+    model: "test-model",
+    baseUrl: "https://example.test/v1",
+    fetcher,
+  }));
+
+  const result = await adapter.alignMeaning({
+    songName: "Song",
+    lines: [{ index: 0, burmese: "မင်္ဂလာပါ", romanized: "mingalar par" }],
+    existingMeaningLines: [],
+  });
+
+  assert.equal(result.lines[0]?.meaning, "Hello");
+  assert.equal(requestBody.text.format.name, "lyrics_migration_meaning_alignment");
+  assert.equal(requestBody.text.format.strict, true);
+  assert.match(requestBody.instructions, /Never rewrite/);
 });
