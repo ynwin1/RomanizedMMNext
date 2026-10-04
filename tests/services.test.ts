@@ -54,9 +54,30 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
   };
 }
 
-test("song page smoke: SongService returns the canonical song", async () => {
+test("song page smoke: SongService returns legacy lyrics when v2 is absent", async () => {
   const service = new SongService(songRepository());
   assert.deepEqual(await service.getSongPage(17), song);
+});
+
+test("song page prefers canonical lyricsV2 without changing repository data", async () => {
+  const v2Song: SongEntity = {
+    ...song,
+    lyricsV2: {
+      version: 2,
+      entries: [
+        { kind: "line", burmese: "မြန်မာ", romanized: "myanmar", meaning: "Myanmar" },
+        { kind: "break" },
+        { kind: "line", burmese: "အိုး", romanized: "oh", meaning: null },
+      ],
+    },
+  };
+  const service = new SongService(songRepository({ findByMmid: async () => v2Song }));
+  const pageSong = await service.getSongPage(17);
+
+  assert.equal(pageSong.burmese, "မြန်မာ\n\nအိုး");
+  assert.equal(pageSong.romanized, "myanmar\n\noh");
+  assert.equal(pageSong.meaning, "Myanmar\n\n");
+  assert.deepEqual(v2Song.burmese, song.burmese);
 });
 
 test("SongService throws NotFoundError for a missing song", async () => {
