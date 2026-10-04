@@ -133,6 +133,15 @@ test("publish creates canonical song, links resolved artists, completes request,
   assert.equal(createInput.lyrics, "မြန်မာစာ");
   assert.equal(createInput.burmese, "မြန်မာစာ");
   assert.equal(createInput.isRequested, true);
+  assert.deepEqual(createInput.lyricsV2, {
+    version: 2,
+    entries: [{
+      kind: "line",
+      burmese: "မြန်မာစာ",
+      romanized: "Myan mar sar.",
+      meaning: "Burmese words.",
+    }],
+  });
   assert.deepEqual(createInput.artistName, [
     { name: "Known Artist", slug: "known-artist" },
     { name: "New Singer" },
@@ -281,4 +290,124 @@ test("publish rejects workflow states that are not reviewed or already approved"
   );
 
   await assert.rejects(() => service.publish(ingestionId), PublicationStateError);
+});
+
+
+test("publish converts aligned reviewed lyric blocks into canonical lyricsV2", async () => {
+  let createInput: any;
+  const alignedDraft = draft({
+    source: { burmeseLyrics: "ပထမလိုင်း\n\n\nဒုတိယလိုင်း" },
+    generated: {
+      romanized: "pa hta ma line\n\n\ndu ti ya line",
+      meaning: "\n\n\nSecond line",
+      about: "About.",
+      whenToListen: "When.",
+    },
+  });
+
+  const service = new PublishingService(
+    {
+      getById: async () => ingestion("approved"),
+      transition: async () => { throw new Error("should not transition"); },
+    } as any,
+    { getByIngestionId: async () => alignedDraft } as any,
+    {
+      getPublishedByIngestion: async () => null,
+      getNextMmid: async () => 200,
+      createPublishedSong: async (input: any) => {
+        createInput = input;
+        return { ...publishedSong, lyricsV2: input.lyricsV2 };
+      },
+    } as any,
+    { addSongReference: async () => ({} as any) } as any,
+    {
+      getAdminDetail: async () => ({ id: requestId, status: "completed", revision: 4 } as any),
+      updateStatus: async () => ({} as any),
+    } as any,
+  );
+
+  await service.publish(ingestionId);
+
+  assert.deepEqual(createInput.lyricsV2, {
+    version: 2,
+    entries: [
+      {
+        kind: "line",
+        burmese: "ပထမလိုင်း",
+        romanized: "pa hta ma line",
+        meaning: null,
+      },
+      { kind: "break" },
+      {
+        kind: "line",
+        burmese: "ဒုတိယလိုင်း",
+        romanized: "du ti ya line",
+        meaning: "Second line",
+      },
+    ],
+  });
+});
+
+test("publish rejects misaligned reviewed lyrics before canonical writes", async () => {
+  let writes = 0;
+  const service = new PublishingService(
+    { getById: async () => ingestion() } as any,
+    {
+      getByIngestionId: async () => draft({
+        source: { burmeseLyrics: "တစ်\nနှစ်" },
+        generated: {
+          romanized: "tit",
+          meaning: "One\nTwo",
+          about: "About.",
+          whenToListen: "When.",
+        },
+      }),
+    } as any,
+    {
+      getPublishedByIngestion: async () => { writes++; return null; },
+      getNextMmid: async () => { writes++; return 200; },
+      createPublishedSong: async () => { writes++; return publishedSong; },
+    } as any,
+    {} as any,
+    {} as any,
+  );
+
+  await assert.rejects(
+    () => service.publish(ingestionId),
+    error => error instanceof DraftNotPublishableError &&
+      /matching line counts/.test(error.message),
+  );
+  assert.equal(writes, 0);
+});
+
+test("publish rejects nonblank output on a Burmese section break", async () => {
+  let writes = 0;
+  const service = new PublishingService(
+    { getById: async () => ingestion() } as any,
+    {
+      getByIngestionId: async () => draft({
+        source: { burmeseLyrics: "တစ်\n\nနှစ်" },
+        generated: {
+          romanized: "tit\nnot blank\nhnit",
+          meaning: "One\n\nTwo",
+          about: "About.",
+          whenToListen: "When.",
+        },
+      }),
+    } as any,
+    {
+      getPublishedByIngestion: async () => { writes++; return null; },
+      getNextMmid: async () => { writes++; return 200; },
+      createPublishedSong: async () => { writes++; return publishedSong; },
+    } as any,
+    {} as any,
+    {} as any,
+  );
+
+  await assert.rejects(
+    () => service.publish(ingestionId),
+    error => error instanceof DraftNotPublishableError &&
+      /section breaks/.test(error.message),
+  );
+  assert.equal(writes, 0);
 });
