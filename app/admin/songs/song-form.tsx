@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import type { SongEditRecord } from "@/modules/songs/application/song.dto";
+import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
 import { createSongAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
 
@@ -17,6 +17,108 @@ const multiline = new Set(["about", "whenToListen", "lyrics", "romanized", "burm
 const required = new Set(["songName", "genre", "about", "whenToListen", "lyrics", "romanized", "burmese", "meaning"]);
 const inputClass = "w-full rounded border border-zinc-700 bg-zinc-900 p-3 text-zinc-100";
 
+function emptyLine(): LyricsV2Entry {
+  return { kind: "line", burmese: "", romanized: "", meaning: null };
+}
+
+function LyricsV2Editor({
+  initial,
+  errorMessages,
+}: {
+  initial: LyricsV2Entry[];
+  errorMessages?: string[];
+}) {
+  const [entries, setEntries] = useState<LyricsV2Entry[]>(initial);
+
+  const replace = (index: number, entry: LyricsV2Entry) =>
+    setEntries(current => current.map((item, i) => i === index ? entry : item));
+
+  const insert = (index: number, entry: LyricsV2Entry) =>
+    setEntries(current => [...current.slice(0, index), entry, ...current.slice(index)]);
+
+  const remove = (index: number) =>
+    setEntries(current => current.filter((_, i) => i !== index));
+
+  return (
+    <fieldset className="rounded-xl border border-zinc-800 p-4">
+      <legend className="px-2 font-semibold">Lyrics V2 <span className="text-sm font-normal text-zinc-400">(optional during migration)</span></legend>
+      <p className="mb-4 text-sm text-zinc-400">
+        Edit aligned lyric rows directly. Section breaks are explicit rows; English meaning may be intentionally blank.
+      </p>
+      <input
+        type="hidden"
+        name="lyricsV2"
+        value={entries.length ? JSON.stringify({ version: 2, entries }) : ""}
+      />
+
+      {entries.length === 0 ? (
+        <div className="rounded border border-dashed border-zinc-700 p-4 text-sm text-zinc-400">
+          No V2 lyrics yet. Legacy fields below will continue to be saved normally.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {entries.map((entry, index) => (
+            <div key={index} className="rounded-lg border border-zinc-800 p-3">
+              {entry.kind === "break" ? (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-zinc-300">Section break</span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => insert(index, emptyLine())} className="rounded border border-zinc-700 px-3 py-2 text-sm">Insert line above</button>
+                    <button type="button" onClick={() => remove(index)} className="rounded border border-zinc-700 px-3 py-2 text-sm">Remove</button>
+                    <button type="button" onClick={() => insert(index + 1, emptyLine())} className="rounded border border-zinc-700 px-3 py-2 text-sm">Insert line below</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-3 grid gap-3 lg:grid-cols-3">
+                    <label className="text-sm">Burmese / source
+                      <textarea
+                        rows={2}
+                        className={inputClass}
+                        value={entry.burmese}
+                        onChange={event => replace(index, { ...entry, burmese: event.target.value })}
+                      />
+                    </label>
+                    <label className="text-sm">Romanized
+                      <textarea
+                        rows={2}
+                        className={inputClass}
+                        value={entry.romanized}
+                        onChange={event => replace(index, { ...entry, romanized: event.target.value })}
+                      />
+                    </label>
+                    <label className="text-sm">English meaning <span className="text-zinc-500">(blank = intentionally omitted)</span>
+                      <textarea
+                        rows={2}
+                        className={inputClass}
+                        value={entry.meaning ?? ""}
+                        onChange={event => replace(index, { ...entry, meaning: event.target.value === "" ? null : event.target.value })}
+                      />
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => insert(index, emptyLine())} className="rounded border border-zinc-700 px-3 py-2 text-sm">Insert line above</button>
+                    <button type="button" onClick={() => insert(index + 1, { kind: "break" })} className="rounded border border-zinc-700 px-3 py-2 text-sm">Insert break below</button>
+                    <button type="button" onClick={() => insert(index + 1, emptyLine())} className="rounded border border-zinc-700 px-3 py-2 text-sm">Insert line below</button>
+                    <button type="button" onClick={() => remove(index)} className="rounded border border-zinc-700 px-3 py-2 text-sm">Remove line</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button type="button" onClick={() => setEntries(current => [...current, emptyLine()])} className="rounded border border-zinc-700 px-3 py-2">Add lyric line</button>
+        {entries.length > 0 && <button type="button" onClick={() => setEntries(current => [...current, { kind: "break" }])} className="rounded border border-zinc-700 px-3 py-2">Add section break</button>}
+        {entries.length > 0 && <button type="button" onClick={() => setEntries([])} className="rounded border border-red-900 px-3 py-2 text-red-300">Remove V2 lyrics</button>}
+      </div>
+      {errorMessages?.map((message, index) => <p key={index} className="mt-2 text-sm text-red-300">{message}</p>)}
+    </fieldset>
+  );
+}
+
 export default function SongForm({ song }: { song?: SongEditRecord }) {
   const action = song ? updateSongAction.bind(null, song.mmid, song.revision) : createSongAction;
   const [state, formAction, pending] = useActionState(action, {});
@@ -27,6 +129,7 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
   const [requested, setRequested] = useState(song?.isRequested ?? false);
   const change = (field: string, value: string) => setValues(previous => ({ ...previous, [field]: value }));
   const errors = (field: string) => state.errors?.[field]?.map((message, index) => <p key={index} className="mt-1 text-sm text-red-300">{message}</p>);
+
   return (
     <form action={formAction} className="mt-6 space-y-6">
       {state.message && <div role="alert" className="rounded border border-red-400 bg-red-950/30 p-4">{state.message}</div>}
@@ -51,6 +154,9 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           <button type="button" disabled={artists.length >= 30} onClick={() => setArtists([...artists, { name: "", slug: "" }])} className="rounded border border-zinc-700 px-3 py-2">Add artist</button>
           {errors("artistName")}
         </fieldset>
+
+        <LyricsV2Editor initial={song?.lyricsV2?.entries ?? []} errorMessages={state.errors?.lyricsV2} />
+
         <div className="grid gap-5 md:grid-cols-2">
           {songTextFields.map(field => <label key={field} className={multiline.has(field) ? "block md:col-span-2" : "block"}>
             {labels[field]} {required.has(field) && <span className="text-sm text-zinc-400">(required)</span>}

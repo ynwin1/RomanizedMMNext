@@ -44,16 +44,15 @@ const LyricsV2Schema = new Schema({
     entries: { type: [LyricsV2EntrySchema], required: true },
 }, { _id: false });
 
+const SongArtistSchema = new Schema({
+    name: { type: String, required: true },
+    slug: { type: String, required: false },
+}, { _id: false });
+
 const SongSchema: Schema<ISong> = new Schema({
     mmid: { type: Number, required: true, unique: true },
     songName: { type: String, required: true },
-    artistName: { type: [
-            {
-                name: { type: String, required: true },
-                slug: { type: String, required: false },
-            },
-        ]
-    },
+    artistName: { type: [SongArtistSchema] },
     albumName: { type: String },
     genre: { type: String, required: true },
     spotifyTrackId: { type: String },

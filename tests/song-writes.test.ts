@@ -107,7 +107,7 @@ test("song validation rejects missing content, unsafe URLs, malformed artists, a
   for (const mmid of [0, -1, 1.2, "bad", Infinity]) assert.equal(CreateSongSchema.safeParse({ ...content, mmid }).success, false);
 });
 
-test("form decoding handles blank optional fields, YouTube lines, and malformed artist input", () => {
+test("form decoding handles blank optional fields, YouTube lines, malformed artist input, and optional lyricsV2", () => {
   const value = form();
   value.set("albumName", "");
   value.set("youtubeLink", "https://youtu.be/a\r\n\n https://youtu.be/b ");
@@ -115,7 +115,15 @@ test("form decoding handles blank optional fields, YouTube lines, and malformed 
   assert.equal(parsed.albumName, undefined);
   assert.deepEqual(parsed.youtubeLink, ["https://youtu.be/a", "https://youtu.be/b"]);
   assert.equal(parsed.lyrics, content.lyrics);
+  assert.equal(parsed.lyricsV2, undefined);
   assert.equal(songFormInput(value, false).mmid, undefined);
+
+  value.set("lyricsV2", JSON.stringify(lyricsV2));
+  assert.deepEqual(songFormInput(value, true).lyricsV2, lyricsV2);
+
+  value.set("lyricsV2", "{");
+  assert.equal(songFormInput(value, true).lyricsV2, null);
+
   value.set("artistName", "{");
   assert.equal(songFormInput(value, true).artistName, null);
 });
@@ -234,4 +242,38 @@ test("song action failures surface validation and conflicts without success redi
   const invalid = form(); invalid.set("songName", "");
   const result = await handler.create({}, invalid);
   assert.ok(result.errors?.songName.length);
+});
+
+
+test("song actions accept valid lyricsV2 form JSON and reject malformed JSON before writes", async () => {
+  let writes = 0;
+  let received: unknown;
+  const handler = createSongActionHandler({
+    authorize: async () => ({ userId: "admin-1" }),
+    songs: {
+      createSong: async input => {
+        writes++;
+        received = input;
+        return { id: "s1", ...(input as any) };
+      },
+      updateSong: async () => {
+        writes++;
+        return song;
+      },
+    },
+    saved: () => { throw new Error("success redirect"); },
+    logFailure: () => {},
+  });
+
+  const valid = form();
+  valid.set("lyricsV2", JSON.stringify(lyricsV2));
+  await assert.rejects(() => handler.create({}, valid), /success redirect/);
+  assert.equal(writes, 1);
+  assert.deepEqual((received as any).lyricsV2.entries[1], { kind: "break" });
+
+  const invalid = form();
+  invalid.set("lyricsV2", "{");
+  const result = await handler.create({}, invalid);
+  assert.equal(writes, 1);
+  assert.equal(result.message, "Please correct the highlighted fields.");
 });
