@@ -21,6 +21,8 @@ test("workflow starts only accepted requests and seeds request-owned draft field
   const updates: unknown[] = [];
   let createdIngestion = false;
   let createdDraft = false;
+  let currentDraft = draft();
+
   const service = new IngestionWorkflowService(
     {
       createForRequest: async () => { createdIngestion = true; return ingestion(); },
@@ -29,16 +31,34 @@ test("workflow starts only accepted requests and seeds request-owned draft field
       transition: async () => ingestion(),
     } as any,
     { getAdminDetail: async () => ({
-      id: requestId, songName: "Requested Song", artist: "Requested Artist", youtubeLink: "https://youtube.com/watch?v=1",
-      requestedBy: "Listener", status: "accepted" as const, revision: 1,
+      id: requestId,
+      songName: "Requested Song",
+      artist: "Requested Artist",
+      youtubeLink: "https://youtube.com/watch?v=1",
+      requestedBy: "Listener",
+      status: "accepted" as const,
+      revision: 1,
     }) },
     {
       getByIngestionId: async () => {
         if (!createdDraft) throw new NotFoundError("Content draft not found");
-        return draft({ revision: 1 });
+        return currentDraft;
       },
-      createForIngestion: async () => { createdDraft = true; return draft(); },
-      update: async (_id: unknown, _revision: unknown, patch: unknown) => { updates.push(patch); return draft({ revision: 1 }); },
+      createForIngestion: async () => {
+        createdDraft = true;
+        currentDraft = draft();
+        return currentDraft;
+      },
+      update: async (_id: unknown, _revision: unknown, patch: any) => {
+        updates.push(patch);
+        currentDraft = draft({
+          identity: { ...currentDraft.identity, ...patch.identity },
+          metadata: { ...currentDraft.metadata, ...patch.metadata },
+          artists: patch.artists ?? currentDraft.artists,
+          revision: currentDraft.revision + 1,
+        });
+        return currentDraft;
+      },
     } as any,
   );
 
@@ -47,9 +67,11 @@ test("workflow starts only accepted requests and seeds request-owned draft field
   assert.equal(result.ingestion.id, ingestionId);
   assert.deepEqual(updates, [{
     identity: { songName: "Requested Song" },
-    metadata: { youtubeLinks: ["https://youtube.com/watch?v=1"], requestedBy: "Listener" },
+    metadata: { requestedBy: "Listener" },
     artists: [{ kind: "unresolved", name: "Requested Artist" }],
   }]);
+  assert.equal(result.draft.identity.songName, "Requested Song");
+  assert.equal(result.draft.artists[0]?.name, "Requested Artist");
 });
 
 test("workflow refuses non-accepted request before creating work", async () => {
@@ -68,9 +90,15 @@ test("workflow refuses non-accepted request before creating work", async () => {
   assert.equal(creates, 0);
 });
 
-test("workflow start is retry-safe when ingestion already exists", async () => {
+test("workflow start is retry-safe when ingestion and fully seeded draft already exist", async () => {
   let creates = 0;
-  const existingDraft = draft({ identity: { songName: "Already seeded" }, revision: 3 });
+  const existingDraft = draft({
+    identity: { songName: "Already seeded" },
+    metadata: { requestedBy: "Listener" },
+    artists: [{ kind: "unresolved", name: "Artist" }],
+    revision: 3,
+  });
+
   const service = new IngestionWorkflowService(
     {
       createForRequest: async () => { creates++; return ingestion(); },
@@ -78,7 +106,15 @@ test("workflow start is retry-safe when ingestion already exists", async () => {
       findByRequestId: async () => ingestion(),
       transition: async () => ingestion(),
     } as any,
-    { getAdminDetail: async () => ({ id: requestId, songName: "Song", artist: "Artist", status: "accepted" as const, revision: 0 }) },
+    { getAdminDetail: async () => ({
+      id: requestId,
+      songName: "Song",
+      artist: "Artist",
+      youtubeLink: "https://youtube.com/watch?v=1",
+      requestedBy: "Listener",
+      status: "accepted" as const,
+      revision: 0,
+    }) },
     {
       getByIngestionId: async () => existingDraft,
       createForIngestion: async () => { throw new Error("should not create"); },
@@ -89,6 +125,101 @@ test("workflow start is retry-safe when ingestion already exists", async () => {
   const result = await service.startAcceptedRequest(requestId);
   assert.equal(creates, 0);
   assert.equal(result.draft.revision, 3);
+});
+
+test("workflow repairs a partially-created draft without promoting request YouTube data into draft metadata", async () => {
+  let currentDraft = draft({ revision: 0 });
+  const updates: any[] = [];
+
+  const service = new IngestionWorkflowService(
+    {
+      createForRequest: async () => { throw new Error("should not create ingestion"); },
+      getById: async () => ingestion(),
+      findByRequestId: async () => ingestion(),
+      transition: async () => ingestion(),
+    } as any,
+    { getAdminDetail: async () => ({
+      id: requestId,
+      songName: "Recovered Song",
+      artist: "Recovered Artist",
+      youtubeLink: "https://youtube.com/watch?v=request-context-only",
+      requestedBy: "Listener",
+      status: "accepted" as const,
+      revision: 2,
+    }) },
+    {
+      getByIngestionId: async () => currentDraft,
+      createForIngestion: async () => { throw new Error("should not create draft"); },
+      update: async (_id: unknown, _revision: unknown, patch: any) => {
+        updates.push(patch);
+        currentDraft = draft({
+          identity: { ...currentDraft.identity, ...patch.identity },
+          metadata: { ...currentDraft.metadata, ...patch.metadata },
+          artists: patch.artists ?? currentDraft.artists,
+          revision: currentDraft.revision + 1,
+        });
+        return currentDraft;
+      },
+    } as any,
+  );
+
+  const result = await service.startAcceptedRequest(requestId, "admin-1");
+
+  assert.deepEqual(updates, [{
+    identity: { songName: "Recovered Song" },
+    metadata: { requestedBy: "Listener" },
+    artists: [{ kind: "unresolved", name: "Recovered Artist" }],
+  }]);
+  assert.equal(result.draft.identity.songName, "Recovered Song");
+  assert.equal(result.draft.artists[0]?.name, "Recovered Artist");
+  assert.equal(result.draft.metadata.youtubeLinks, undefined);
+});
+
+test("workflow repairs only missing seed sections without overwriting admin-owned draft metadata", async () => {
+  let currentDraft = draft({
+    identity: { songName: "Existing Song" },
+    metadata: { youtubeLinks: ["https://youtube.com/existing"] },
+    artists: [],
+    revision: 5,
+  });
+  let patchSeen: any;
+
+  const service = new IngestionWorkflowService(
+    {
+      getById: async () => ingestion(),
+      findByRequestId: async () => ingestion(),
+    } as any,
+    { getAdminDetail: async () => ({
+      id: requestId,
+      songName: "Request Song",
+      artist: "Missing Artist",
+      youtubeLink: "https://youtube.com/request",
+      requestedBy: "Listener",
+      status: "accepted" as const,
+      revision: 2,
+    }) },
+    {
+      getByIngestionId: async () => currentDraft,
+      update: async (_id: unknown, _revision: unknown, patch: any) => {
+        patchSeen = patch;
+        currentDraft = draft({
+          identity: currentDraft.identity,
+          metadata: { ...currentDraft.metadata, ...patch.metadata },
+          artists: patch.artists ?? currentDraft.artists,
+          revision: 6,
+        });
+        return currentDraft;
+      },
+    } as any,
+  );
+
+  const result = await service.startAcceptedRequest(requestId);
+  assert.deepEqual(patchSeen, {
+    metadata: { requestedBy: "Listener" },
+    artists: [{ kind: "unresolved", name: "Missing Artist" }],
+  });
+  assert.equal(result.draft.identity.songName, "Existing Song");
+  assert.deepEqual(result.draft.metadata.youtubeLinks, ["https://youtube.com/existing"]);
 });
 
 test("saving trusted source writes draft then advances ingestion to ready_to_generate", async () => {

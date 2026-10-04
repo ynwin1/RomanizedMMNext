@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { logger } from "@/infrastructure/logging/logger";
+import { artistService } from "@/modules/artists";
 import { contentDraftService } from "@/modules/content-drafts";
 import { ContentGenerationService } from "@/modules/content-generation";
 import {
   ingestionService,
   ingestionWorkflowService,
+  IngestionArtistResolutionService,
   IngestionGenerationService,
   IngestionMetadataService,
 } from "@/modules/ingestions";
@@ -30,11 +32,29 @@ async function saveMetadata(
   return workflow.save(ingestionId, input, updatedBy);
 }
 
+function artistWorkflow() {
+  return new IngestionArtistResolutionService(
+    ingestionService,
+    contentDraftService,
+    artistService,
+  );
+}
+
 const actions = createIngestionActionHandler({
   authorize: requireAdmin,
   workflow: ingestionWorkflowService,
   generateAiContent,
   saveMetadata,
+  resolveArtist: (ingestionId, input, updatedBy) =>
+    artistWorkflow().resolve(ingestionId, input, updatedBy),
+  addArtist: (ingestionId, input, updatedBy) =>
+    artistWorkflow().add(ingestionId, input, updatedBy),
+  removeArtist: (ingestionId, input, updatedBy) =>
+    artistWorkflow().remove(ingestionId, input, updatedBy),
+  confirmArtists: (ingestionId, input, updatedBy) =>
+    artistWorkflow().confirm(ingestionId, input, updatedBy),
+  reopenAdminInput: (ingestionId, input, updatedBy) =>
+    artistWorkflow().reopen(ingestionId, input, updatedBy),
   started(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId);
@@ -50,6 +70,18 @@ const actions = createIngestionActionHandler({
   metadataSaved(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId + "?metadataSaved=1");
+  },
+  artistChanged(ingestionId) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin/ingestions/" + ingestionId + "?artistChanged=1");
+  },
+  artistsConfirmed(ingestionId) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin/ingestions/" + ingestionId + "?artistsConfirmed=1");
+  },
+  adminInputReopened(ingestionId) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin/ingestions/" + ingestionId + "?adminInputReopened=1");
   },
   logFailure(error) {
     logger.error("Admin ingestion workflow failed", error);
@@ -90,4 +122,55 @@ export async function saveIngestionMetadataAction(
   form: FormData,
 ) {
   return actions.saveMetadata(ingestionId, draftId, draftRevision, previous, form);
+}
+
+export async function resolveDraftArtistAction(
+  ingestionId: string,
+  draftId: string,
+  draftRevision: number,
+  artistIndex: number,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.resolveArtist(ingestionId, draftId, draftRevision, artistIndex, previous, form);
+}
+
+export async function addDraftArtistAction(
+  ingestionId: string,
+  draftId: string,
+  draftRevision: number,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.addArtist(ingestionId, draftId, draftRevision, previous, form);
+}
+
+export async function removeDraftArtistAction(
+  ingestionId: string,
+  draftId: string,
+  draftRevision: number,
+  artistIndex: number,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.removeArtist(ingestionId, draftId, draftRevision, artistIndex, previous, form);
+}
+
+export async function confirmDraftArtistsAction(
+  ingestionId: string,
+  draftId: string,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.confirmArtists(ingestionId, draftId, previous, form);
+}
+
+
+export async function reopenDraftAdminInputAction(
+  ingestionId: string,
+  draftId: string,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.reopenAdminInput(ingestionId, draftId, previous, form);
 }
