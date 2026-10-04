@@ -13,6 +13,24 @@ const content = {
   about: "About", whenToListen: "Anytime", lyrics: " first line\nsecond line ",
   romanized: "romanized", burmese: "မြန်မာ", meaning: "meaning", isRequested: false,
 };
+const lyricsV2 = {
+  version: 2 as const,
+  entries: [
+    {
+      kind: "line" as const,
+      burmese: "  မြန်မာစာ  ",
+      romanized: "  myanmar sar  ",
+      meaning: "  Burmese words  ",
+    },
+    { kind: "break" as const },
+    {
+      kind: "line" as const,
+      burmese: "Oh!",
+      romanized: "Oh!",
+      meaning: null,
+    },
+  ],
+};
 const song = { id: "s1", mmid: 17, ...content };
 function repository(overrides: Partial<ISongRepository> = {}): ISongRepository {
   return {
@@ -49,6 +67,36 @@ test("song validation preserves lyric whitespace and normalizes metadata", () =>
   }).success, true);
 });
 
+test("song validation accepts and canonicalizes optional lyricsV2", () => {
+  const parsed = CreateSongSchema.parse({ ...content, mmid: 17, lyricsV2 });
+  assert.deepEqual(parsed.lyricsV2, {
+    version: 2,
+    entries: [
+      {
+        kind: "line",
+        burmese: "မြန်မာစာ",
+        romanized: "myanmar sar",
+        meaning: "Burmese words",
+      },
+      { kind: "break" },
+      {
+        kind: "line",
+        burmese: "Oh!",
+        romanized: "Oh!",
+        meaning: null,
+      },
+    ],
+  });
+  assert.equal(CreateSongSchema.safeParse({
+    ...content,
+    mmid: 17,
+    lyricsV2: {
+      version: 2,
+      entries: [{ kind: "break" }],
+    },
+  }).success, false);
+});
+
 test("song validation rejects missing content, unsafe URLs, malformed artists, and immutable fields", () => {
   for (const change of [
     { lyrics: "   " }, { artistName: [] }, { artistName: [{ name: "" }] },
@@ -83,6 +131,38 @@ test("song service validates before write and delegates validated full content",
   assert.equal((await service.createSong({ ...content, mmid: "17" }, "admin-1")).mmid, 17);
   assert.deepEqual(received, { ...content, mmid: 17 });
   assert.equal(actor, "admin-1");
+});
+
+test("song service validates and delegates canonical lyricsV2 on create and update", async () => {
+  const received: unknown[] = [];
+  const service = new SongService(repository({
+    create: async input => {
+      received.push(input);
+      return { id: "s1", ...input };
+    },
+    update: async (_mmid, _revision, input) => {
+      received.push(input);
+      return { ...song, ...input };
+    },
+  }));
+
+  const created = await service.createSong({ ...content, mmid: 17, lyricsV2 });
+  const updated = await service.updateSong(17, 0, { ...content, lyricsV2 });
+
+  assert.deepEqual(created.lyricsV2, updated.lyricsV2);
+  assert.deepEqual(created.lyricsV2?.entries[0], {
+    kind: "line",
+    burmese: "မြန်မာစာ",
+    romanized: "myanmar sar",
+    meaning: "Burmese words",
+  });
+  assert.equal(received.length, 2);
+
+  await assert.rejects(() => service.updateSong(17, 0, {
+    ...content,
+    lyricsV2: { version: 2, entries: [{ kind: "break" }] },
+  }));
+  assert.equal(received.length, 2);
 });
 
 test("song update distinguishes a missing record from a stale revision", async () => {

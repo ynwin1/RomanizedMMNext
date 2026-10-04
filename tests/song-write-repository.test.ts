@@ -13,6 +13,15 @@ const content = {
   about: "About", whenToListen: "Anytime", lyrics: "lyrics", romanized: "romanized",
   burmese: "burmese", meaning: "meaning", isRequested: false,
 };
+const lyricsV2 = {
+  version: 2 as const,
+  entries: [{
+    kind: "line" as const,
+    burmese: "မြန်မာ",
+    romanized: "myanmar",
+    meaning: "Myanmar",
+  }],
+};
 type WriteModel = {
   create: (input: unknown) => Promise<unknown>;
   findOne: (filter: unknown) => {
@@ -35,6 +44,24 @@ test("song repository create maps the canonical entity and translates duplicate 
   assert.equal(created.updatedBy, "admin-1");
   t.mock.method(model, "create", async () => { throw { code: 11000, keyPattern: { mmid: 1 } }; });
   await assert.rejects(() => repo.create({ mmid: 17, ...content }), DuplicateSongError);
+});
+
+test("song repository create persists lyricsV2 when application input includes it", async t => {
+  t.mock.method(database, "default", async () => {});
+  let received: any;
+  t.mock.method(model, "create", async (input: unknown) => {
+    received = input;
+    return { toObject: () => ({ _id: "s1", ...(input as object) }) };
+  });
+
+  const created = await new MongoSongRepository().create({
+    mmid: 17,
+    ...content,
+    lyricsV2,
+  });
+
+  assert.deepEqual(received.lyricsV2, lyricsV2);
+  assert.deepEqual(created.lyricsV2, lyricsV2);
 });
 
 test("song repository does not disguise unrelated duplicate keys as duplicate song IDs", async t => {
@@ -68,12 +95,31 @@ test("song update is atomic, never upserts, validates, clears optional fields an
   assert.deepEqual(mutation.$set, { ...content, updatedBy: "admin-1" });
   assert.equal(mutation.$unset.imageLink, 1);
   assert.equal(mutation.$unset.songStoryMy, 1);
+  assert.equal(mutation.$unset.lyricsV2, undefined);
+  assert.equal(Object.hasOwn(mutation.$set, "lyricsV2"), false);
   assert.deepEqual(mutation.$inc, { __v: 1 });
   assert.equal(Object.hasOwn(mutation.$set, "mmid"), false);
   assert.equal(Object.hasOwn(mutation.$set, "createdAt"), false);
   await repo.update(17, 0, { ...content, imageLink: "https://example.com/a.jpg" });
   assert.deepEqual(filter, { mmid: 17, $or: [{ __v: 0 }, { __v: { $exists: false } }] });
   assert.equal((update as typeof mutation).$unset.imageLink, undefined);
+});
+
+test("song update writes lyricsV2 when supplied without requiring it for legacy edits", async t => {
+  t.mock.method(database, "default", async () => {});
+  let update: any;
+  t.mock.method(model, "findOneAndUpdate", (_filter: unknown, mutation: unknown) => {
+    update = mutation;
+    return { lean: async () => ({ _id: "s1", mmid: 17, ...content, lyricsV2 }) };
+  });
+
+  const repo = new MongoSongRepository();
+  await repo.update(17, 1, { ...content, lyricsV2 });
+  assert.deepEqual(update.$set.lyricsV2, lyricsV2);
+
+  await repo.update(17, 2, content);
+  assert.equal(Object.hasOwn(update.$set, "lyricsV2"), false);
+  assert.equal(Object.hasOwn(update.$unset ?? {}, "lyricsV2"), false);
 });
 
 test("song repository returns null when optimistic update does not match", async t => {
