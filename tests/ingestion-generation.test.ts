@@ -4,7 +4,10 @@ import { IngestionGenerationService } from "@/modules/ingestions/application/ing
 import { AiGenerationStateError } from "@/modules/ingestions/application/ingestion-generation.error";
 import type { IngestionRecord } from "@/modules/ingestions/domain/ingestion.types";
 import type { ContentDraftRecord } from "@/modules/content-drafts/domain/content-draft.types";
-import { ContentGenerationProviderError } from "@/modules/content-generation";
+import {
+  ContentGenerationProviderError,
+  GeneratedContentQualityError,
+} from "@/modules/content-generation";
 
 const ingestionId = "507f1f77bcf86cd799439011";
 const draftId = "507f191e810c19729de860ea";
@@ -181,6 +184,42 @@ test("AI generation reuses completed meaning on retry to reduce provider usage",
   await service.generateAll(ingestionId);
   assert.equal(meaningCalls, 0);
   assert.equal(currentDraft.generated.about, "About");
+});
+
+test("reused stored AI content must pass quality checks before needs_admin_input", async () => {
+  let current = ingestion({ status: "failed", revision: 8 });
+  const badDraft = draft({
+    generated: {
+      romanized: "lowercase romanization.",
+      meaning: "Valid meaning.",
+      about: "About",
+      whenToListen: "When",
+    },
+  });
+  const transitions: string[] = [];
+
+  const service = new IngestionGenerationService(
+    {
+      getById: async () => current,
+      transition: async (_id: unknown, _revision: unknown, next: unknown) => {
+        transitions.push(String(next));
+        current = ingestion({ status: next as any, revision: current.revision + 1 });
+        return current;
+      },
+    } as any,
+    {
+      getByIngestionId: async () => badDraft,
+      update: async () => { throw new Error("should not write"); },
+    } as any,
+    {
+      romanize: async () => { throw new Error("should not regenerate"); },
+      translateMeaning: async () => { throw new Error("should not regenerate"); },
+      generateEditorialMetadata: async () => { throw new Error("should not regenerate"); },
+    },
+  );
+
+  await assert.rejects(() => service.generateAll(ingestionId), GeneratedContentQualityError);
+  assert.deepEqual(transitions, ["generating", "failed"]);
 });
 
 test("remaining AI provider failure marks ingestion failed and does not write incomplete meaning/editorial", async () => {

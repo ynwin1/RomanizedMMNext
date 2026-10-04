@@ -7,7 +7,11 @@ import {
   SaveIngestionSourceSchema,
 } from "@/modules/ingestions/application/ingestion.validation";
 import { ContentDraftConflictError } from "@/modules/content-drafts/application/content-draft-write.error";
-import { ContentGenerationProviderError, InvalidGeneratedContentError } from "@/modules/content-generation";
+import {
+  ContentGenerationProviderError,
+  GeneratedContentQualityError,
+  InvalidGeneratedContentError,
+} from "@/modules/content-generation";
 import { IngestionConflictError } from "@/modules/ingestions/application/ingestion-write.error";
 import {
   IngestionSourceStateError,
@@ -122,10 +126,11 @@ export function createIngestionActionHandler(dependencies: {
         if (
           error instanceof ContentGenerationProviderError ||
           error instanceof InvalidGeneratedContentError ||
+          error instanceof GeneratedContentQualityError ||
           error instanceof IncompleteAiGenerationError
         ) {
           dependencies.logFailure(error);
-          return { message: "AI generation failed. You can retry this generation." };
+          return { message: "AI generation failed quality or provider checks. You can retry this generation." };
         }
         dependencies.logFailure(error);
         return { message: "Unable to generate AI content. Please try again." };

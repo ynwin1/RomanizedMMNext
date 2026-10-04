@@ -22,7 +22,7 @@ export class FakeContentGenerationProvider implements ContentGenerationProvider 
     return this.overrides.romanized ?? {
       lines: input.lines.map(line => ({
         index: line.index,
-        text: line.text === "" ? "" : "romanized:" + line.text,
+        text: line.text === "" ? "" : "Romanized:" + line.index,
       })),
     };
   }
@@ -32,7 +32,7 @@ export class FakeContentGenerationProvider implements ContentGenerationProvider 
     return this.overrides.meaning ?? {
       lines: input.lines.map(line => ({
         index: line.index,
-        text: line.text === "" ? "" : "meaning:" + line.text,
+        text: line.text === "" ? "" : "Meaning:" + line.index,
       })),
     };
   }

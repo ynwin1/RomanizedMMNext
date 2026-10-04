@@ -5,7 +5,14 @@ import {
   LineGenerationResultSchema,
   LyricGenerationInputSchema,
 } from "./content-generation.validation";
-import { InvalidGeneratedContentError } from "./content-generation.error";
+import {
+  GeneratedContentQualityError,
+  InvalidGeneratedContentError,
+} from "./content-generation.error";
+import {
+  evaluateEditorialContent,
+  evaluateGeneratedLines,
+} from "./content-generation-quality";
 import type {
   EditorialGenerationInput,
   EditorialGenerationResult,
@@ -19,13 +26,19 @@ export class ContentGenerationService {
   async romanize(input: LyricGenerationInput): Promise<LineGenerationResult> {
     const validatedInput = LyricGenerationInputSchema.parse(input);
     const generated = await this.provider.romanize(validatedInput);
-    return this.validateAlignedLines(validatedInput, generated);
+    const aligned = this.validateAlignedLines(validatedInput, generated);
+    const quality = evaluateGeneratedLines("romanized", aligned.lines);
+    if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
+    return aligned;
   }
 
   async translateMeaning(input: LyricGenerationInput): Promise<LineGenerationResult> {
     const validatedInput = LyricGenerationInputSchema.parse(input);
     const generated = await this.provider.translateMeaning(validatedInput);
-    return this.validateAlignedLines(validatedInput, generated);
+    const aligned = this.validateAlignedLines(validatedInput, generated);
+    const quality = evaluateGeneratedLines("meaning", aligned.lines);
+    if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
+    return aligned;
   }
 
   async generateEditorialMetadata(input: EditorialGenerationInput): Promise<EditorialGenerationResult> {
@@ -33,6 +46,9 @@ export class ContentGenerationService {
     const generated = await this.provider.generateEditorialMetadata(validatedInput);
     const parsed = EditorialGenerationResultSchema.safeParse(generated);
     if (!parsed.success) throw new InvalidGeneratedContentError();
+
+    const quality = evaluateEditorialContent(parsed.data);
+    if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
     return parsed.data;
   }
 
