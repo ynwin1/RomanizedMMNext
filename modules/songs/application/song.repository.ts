@@ -4,6 +4,7 @@ import type { AdminListQuery } from "@/shared/admin-list";
 import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRecord } from "./song.dto";
 import type { SongEntity } from "../domain/song.types";
+import type { LegacyLyricsMigrationCandidate } from "../domain/lyrics-migration.types";
 import type {
   GuessLyricsSong,
   GuessSongRecord,
@@ -33,4 +34,5 @@ export interface ISongRepository {
   listGuessLyricsSongs(): Promise<GuessLyricsSong[]>;
   listGuessSongRecords(): Promise<GuessSongRecord[]>;
   findByArtistName(artistName: string): Promise<SongEntity[]>;
+  listLyricsMigrationCandidates(): Promise<LegacyLyricsMigrationCandidate[]>;
 }

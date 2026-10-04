@@ -8,6 +8,7 @@ import connectDB from "@/infrastructure/database/mongodb";
 import Song, { type ISong } from "./song.model";
 import { ISongRepository } from "../application/song.repository";
 import { SongEntity } from "../domain/song.types";
+import type { LegacyLyricsMigrationCandidate } from "../domain/lyrics-migration.types";
 import {
   GuessLyricsSong,
   GuessSongRecord,
@@ -235,5 +236,21 @@ export class MongoSongRepository implements ISongRepository {
       .sort({ songName: 1 })
       .lean();
     return songs.map(toEntity);
+  }
+
+  async listLyricsMigrationCandidates(): Promise<LegacyLyricsMigrationCandidate[]> {
+    await connectDB();
+    const songs = await Song.find({})
+      .sort({ mmid: 1 })
+      .select("mmid songName burmese romanized meaning lyricsV2 -_id")
+      .lean();
+    return songs.map(song => ({
+      mmid: song.mmid,
+      songName: song.songName,
+      burmese: song.burmese,
+      romanized: song.romanized,
+      meaning: song.meaning,
+      ...(song.lyricsV2 ? { lyricsV2: song.lyricsV2 } : {}),
+    }));
   }
 }

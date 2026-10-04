@@ -17,6 +17,8 @@ import {
   SongSummary,
 } from "./song.dto";
 import { ISongRepository } from "./song.repository";
+import { buildLyricsMigrationReport } from "./lyrics-migration.validator";
+import type { LyricsMigrationReport } from "../domain/lyrics-migration.types";
 
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}
@@ -112,5 +114,9 @@ export class SongService {
 
   async getSongsByArtistName(artistName: string): Promise<SongEntity[]> {
     return this.songs.findByArtistName(artistName);
+  }
+
+  async analyzeLyricsMigration(): Promise<LyricsMigrationReport> {
+    return buildLyricsMigrationReport(await this.songs.listLyricsMigrationCandidates());
   }
 }

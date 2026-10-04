@@ -44,7 +44,7 @@ function repository(overrides: Partial<ISongRepository> = {}): ISongRepository {
     countAdmin: async () => 0, searchByTitle: async () => [], findRandom: async () => null,
     findLatest: async () => [], findByMmids: async () => [], listForSitemap: async () => [],
     listCatalogue: async () => [], listGuessLyricsSongs: async () => [], listGuessSongRecords: async () => [],
-    findByArtistName: async () => [], ...overrides,
+    findByArtistName: async () => [], listLyricsMigrationCandidates: async () => [], ...overrides,
   };
 }
 function form() {

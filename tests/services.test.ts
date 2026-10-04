@@ -50,6 +50,7 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
     listGuessLyricsSongs: async () => [],
     listGuessSongRecords: async () => [],
     findByArtistName: async () => [],
+    listLyricsMigrationCandidates: async () => [],
     ...overrides,
   };
 }
@@ -78,6 +79,25 @@ test("song page prefers canonical lyricsV2 without changing repository data", as
   assert.equal(pageSong.romanized, "myanmar\n\noh");
   assert.equal(pageSong.meaning, "Myanmar\n\n");
   assert.deepEqual(v2Song.burmese, song.burmese);
+});
+
+test("SongService analyzes the migration catalogue without writes", async () => {
+  const service = new SongService(songRepository({
+    listLyricsMigrationCandidates: async () => [
+      {
+        mmid: 17,
+        songName: "Test Song",
+        burmese: "တစ်",
+        romanized: "tit",
+        meaning: "One",
+      },
+    ],
+  }));
+
+  const report = await service.analyzeLyricsMigration();
+  assert.equal(report.total, 1);
+  assert.equal(report.counts.SAFE, 1);
+  assert.equal(report.assessments[0]?.preview?.entries[0]?.kind, "line");
 });
 
 test("SongService throws NotFoundError for a missing song", async () => {
