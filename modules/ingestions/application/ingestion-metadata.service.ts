@@ -1,10 +1,11 @@
 import type { ContentDraftService } from "@/modules/content-drafts/application/content-draft.service";
 import {
+  evaluateDraftAdminInputCompleteness,
   evaluateDraftMetadataCompleteness,
   SaveDraftMetadataSchema,
   type SaveDraftMetadataInput,
 } from "@/modules/content-drafts";
-import { IngestionService } from "./ingestion.service";
+import type { IngestionService } from "./ingestion.service";
 import { IngestionMetadataStateError } from "./ingestion-metadata.error";
 
 export class IngestionMetadataService {
@@ -42,6 +43,8 @@ export class IngestionMetadataService {
     return {
       draft,
       completeness: evaluateDraftMetadataCompleteness(draft.metadata),
+      adminInputCompleteness: evaluateDraftAdminInputCompleteness(draft),
+      ingestion,
     };
   }
 }

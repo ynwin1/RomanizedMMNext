@@ -24,3 +24,6 @@ export * from "./application/ingestion-generation.error";
 export * from "./application/ingestion-generation.service";
 export * from "./application/ingestion-metadata.error";
 export * from "./application/ingestion-metadata.service";
+export * from "./application/ingestion-artist-resolution.error";
+export * from "./application/ingestion-artist-resolution.validation";
+export * from "./application/ingestion-artist-resolution.service";

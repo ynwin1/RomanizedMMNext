@@ -5,7 +5,7 @@ const transitions: Record<IngestionStatus, readonly IngestionStatus[]> = {
   ready_to_generate: ["generating"],
   generating: ["ready_to_generate", "needs_admin_input", "failed"],
   needs_admin_input: ["ready_for_review"],
-  ready_for_review: ["generating", "approved", "rejected"],
+  ready_for_review: ["needs_admin_input", "generating", "approved", "rejected"],
   failed: ["generating"],
   approved: [],
   rejected: [],

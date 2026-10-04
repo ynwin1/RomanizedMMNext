@@ -29,6 +29,17 @@ import {
   IncompleteAiGenerationError,
 } from "@/modules/ingestions/application/ingestion-generation.error";
 import { IngestionMetadataStateError } from "@/modules/ingestions/application/ingestion-metadata.error";
+import {
+  DraftArtistResolutionError,
+  IngestionArtistResolutionStateError,
+} from "@/modules/ingestions/application/ingestion-artist-resolution.error";
+import {
+  AddDraftArtistSchema,
+  ConfirmDraftArtistsSchema,
+  RemoveDraftArtistSchema,
+  ReopenDraftAdminInputSchema,
+  ResolveDraftArtistSchema,
+} from "@/modules/ingestions/application/ingestion-artist-resolution.validation";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 
@@ -39,6 +50,21 @@ export interface IngestionActionState {
 
 const StartIngestionSchema = z.object({ requestId: IngestionRequestIdSchema }).strict();
 const SaveIngestionMetadataSchema = SaveDraftMetadataSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
+const ResolveIngestionArtistSchema = ResolveDraftArtistSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
+const AddIngestionArtistSchema = AddDraftArtistSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
+const RemoveIngestionArtistSchema = RemoveDraftArtistSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
+const ConfirmIngestionArtistsSchema = ConfirmDraftArtistsSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
+const ReopenIngestionAdminInputSchema = ReopenDraftAdminInputSchema.extend({
   ingestionId: IngestionIdSchema,
 }).strict();
 
@@ -59,12 +85,27 @@ export function createIngestionActionHandler(dependencies: {
   workflow: Pick<IngestionWorkflowService, "startAcceptedRequest" | "saveAndConfirmSource">;
   generateAiContent: (ingestionId: string, updatedBy: string) => Promise<unknown>;
   saveMetadata: (ingestionId: string, input: z.infer<typeof SaveDraftMetadataSchema>, updatedBy: string) => Promise<unknown>;
+  resolveArtist: (ingestionId: string, input: z.infer<typeof ResolveDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
+  addArtist: (ingestionId: string, input: z.infer<typeof AddDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
+  removeArtist: (ingestionId: string, input: z.infer<typeof RemoveDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
+  confirmArtists: (ingestionId: string, input: z.infer<typeof ConfirmDraftArtistsSchema>, updatedBy: string) => Promise<unknown>;
+  reopenAdminInput: (ingestionId: string, input: z.infer<typeof ReopenDraftAdminInputSchema>, updatedBy: string) => Promise<unknown>;
   started: (ingestionId: string) => never;
   sourceSaved: (ingestionId: string) => never;
   aiGenerated: (ingestionId: string) => never;
   metadataSaved: (ingestionId: string) => never;
+  artistChanged: (ingestionId: string) => never;
+  artistsConfirmed: (ingestionId: string) => never;
+  adminInputReopened: (ingestionId: string) => never;
   logFailure: (error: unknown) => void;
 }) {
+  const artistError = (error: unknown) =>
+    error instanceof ContentDraftConflictError ||
+    error instanceof IngestionConflictError ||
+    error instanceof IngestionArtistResolutionStateError ||
+    error instanceof DraftArtistResolutionError ||
+    error instanceof NotFoundError;
+
   return {
     async start(requestId: string, _previous: IngestionActionState, _form: FormData): Promise<IngestionActionState> {
       const prepared = await prepareValidatedWrite({
@@ -79,9 +120,7 @@ export function createIngestionActionHandler(dependencies: {
         const result = await dependencies.workflow.startAcceptedRequest(prepared.value.requestId, prepared.principal.userId);
         ingestionId = result.ingestion.id;
       } catch (error) {
-        if (error instanceof RequestNotAcceptedForIngestionError || error instanceof NotFoundError) {
-          return { message: error.message };
-        }
+        if (error instanceof RequestNotAcceptedForIngestionError || error instanceof NotFoundError) return { message: error.message };
         dependencies.logFailure(error);
         return { message: "Unable to start ingestion. Please try again." };
       }
@@ -110,9 +149,7 @@ export function createIngestionActionHandler(dependencies: {
           error instanceof IngestionConflictError ||
           error instanceof IngestionSourceStateError ||
           error instanceof NotFoundError
-        ) {
-          return { message: error.message };
-        }
+        ) return { message: error.message };
         dependencies.logFailure(error);
         return { message: "Unable to save Burmese source. Please try again." };
       }
@@ -141,9 +178,8 @@ export function createIngestionActionHandler(dependencies: {
           error instanceof ContentDraftConflictError ||
           error instanceof IngestionConflictError ||
           error instanceof NotFoundError
-        ) {
-          return { message: error.message };
-        }
+        ) return { message: error.message };
+
         if (
           error instanceof ContentGenerationProviderError ||
           error instanceof InvalidGeneratedContentError ||
@@ -156,7 +192,6 @@ export function createIngestionActionHandler(dependencies: {
         dependencies.logFailure(error);
         return { message: "Unable to generate AI content. Please try again." };
       }
-
       return dependencies.aiGenerated(prepared.value.ingestionId);
     },
 
@@ -191,16 +226,139 @@ export function createIngestionActionHandler(dependencies: {
       } catch (error) {
         if (
           error instanceof ContentDraftConflictError ||
+          error instanceof IngestionConflictError ||
           error instanceof IngestionMetadataStateError ||
           error instanceof NotFoundError
-        ) {
-          return { message: error.message };
-        }
+        ) return { message: error.message };
         dependencies.logFailure(error);
         return { message: "Unable to save factual metadata. Please try again." };
       }
-
       return dependencies.metadataSaved(parsedIngestionId);
+    },
+
+    async resolveArtist(
+      ingestionId: string,
+      draftId: string,
+      draftRevision: number,
+      artistIndex: number,
+      _previous: IngestionActionState,
+      form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ ingestionId, draftId, draftRevision, artistIndex, artistSlug: form.get("artistSlug") }),
+        schema: ResolveIngestionArtistSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Select a valid existing artist.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...resolution } = prepared.value;
+      try {
+        await dependencies.resolveArtist(parsedIngestionId, resolution, prepared.principal.userId);
+      } catch (error) {
+        if (artistError(error)) return { message: (error as Error).message };
+        dependencies.logFailure(error);
+        return { message: "Unable to resolve artist. Please try again." };
+      }
+      return dependencies.artistChanged(parsedIngestionId);
+    },
+
+    async addArtist(
+      ingestionId: string,
+      draftId: string,
+      draftRevision: number,
+      _previous: IngestionActionState,
+      form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ ingestionId, draftId, draftRevision, artistName: form.get("artistName") }),
+        schema: AddIngestionArtistSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Enter a valid artist name.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...input } = prepared.value;
+      try {
+        await dependencies.addArtist(parsedIngestionId, input, prepared.principal.userId);
+      } catch (error) {
+        if (artistError(error)) return { message: (error as Error).message };
+        dependencies.logFailure(error);
+        return { message: "Unable to add artist. Please try again." };
+      }
+      return dependencies.artistChanged(parsedIngestionId);
+    },
+
+    async removeArtist(
+      ingestionId: string,
+      draftId: string,
+      draftRevision: number,
+      artistIndex: number,
+      _previous: IngestionActionState,
+      _form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ ingestionId, draftId, draftRevision, artistIndex }),
+        schema: RemoveIngestionArtistSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Invalid artist selection.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...input } = prepared.value;
+      try {
+        await dependencies.removeArtist(parsedIngestionId, input, prepared.principal.userId);
+      } catch (error) {
+        if (artistError(error)) return { message: (error as Error).message };
+        dependencies.logFailure(error);
+        return { message: "Unable to remove artist. Please try again." };
+      }
+      return dependencies.artistChanged(parsedIngestionId);
+    },
+
+    async reopenAdminInput(
+      ingestionId: string,
+      draftId: string,
+      _previous: IngestionActionState,
+      _form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ ingestionId, draftId }),
+        schema: ReopenIngestionAdminInputSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Invalid draft.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...input } = prepared.value;
+      try {
+        await dependencies.reopenAdminInput(parsedIngestionId, input, prepared.principal.userId);
+      } catch (error) {
+        if (artistError(error)) return { message: (error as Error).message };
+        dependencies.logFailure(error);
+        return { message: "Unable to reopen admin input. Please try again." };
+      }
+      return dependencies.adminInputReopened(parsedIngestionId);
+    },
+
+    async confirmArtists(
+      ingestionId: string,
+      draftId: string,
+      _previous: IngestionActionState,
+      _form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({ ingestionId, draftId }),
+        schema: ConfirmIngestionArtistsSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Invalid artist list.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...input } = prepared.value;
+      try {
+        await dependencies.confirmArtists(parsedIngestionId, input, prepared.principal.userId);
+      } catch (error) {
+        if (artistError(error)) return { message: (error as Error).message };
+        dependencies.logFailure(error);
+        return { message: "Unable to confirm artist list. Please try again." };
+      }
+      return dependencies.artistsConfirmed(parsedIngestionId);
     },
   };
 }

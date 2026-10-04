@@ -1,7 +1,10 @@
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import type { SongRequestService } from "@/modules/requests/application/song-request.service";
 import type { ContentDraftService } from "@/modules/content-drafts/application/content-draft.service";
-import type { ContentDraftRecord } from "@/modules/content-drafts/domain/content-draft.types";
+import type {
+  ContentDraftPatch,
+  ContentDraftRecord,
+} from "@/modules/content-drafts";
 import type { IngestionRecord } from "../domain/ingestion.types";
 import { IngestionService } from "./ingestion.service";
 import { SaveIngestionSourceSchema } from "./ingestion.validation";
@@ -10,6 +13,37 @@ import { IngestionSourceStateError, RequestNotAcceptedForIngestionError } from "
 export interface StartedIngestion {
   ingestion: IngestionRecord;
   draft: ContentDraftRecord;
+}
+
+function seedPatch(
+  draft: ContentDraftRecord,
+  request: {
+    songName: string;
+    artist: string;
+    youtubeLink?: string;
+    requestedBy?: string;
+  },
+): ContentDraftPatch | null {
+  const patch: ContentDraftPatch = {};
+
+  if (!draft.identity.songName?.trim()) {
+    patch.identity = { songName: request.songName };
+  }
+
+  const metadata: NonNullable<ContentDraftPatch["metadata"]> = {};
+
+  if (!draft.metadata.requestedBy?.trim() && request.requestedBy?.trim()) {
+    metadata.requestedBy = request.requestedBy;
+  }
+  if (Object.keys(metadata).length > 0) {
+    patch.metadata = metadata;
+  }
+
+  if (draft.artists.length === 0) {
+    patch.artists = [{ kind: "unresolved", name: request.artist }];
+  }
+
+  return Object.keys(patch).length > 0 ? patch : null;
 }
 
 export class IngestionWorkflowService {
@@ -34,15 +68,13 @@ export class IngestionWorkflowService {
       draft = await this.drafts.getByIngestionId(ingestion.id);
     } catch (error) {
       if (!(error instanceof NotFoundError)) throw error;
-      const created = await this.drafts.createForIngestion(ingestion.id, updatedBy);
-      await this.drafts.update(created.id, 0, {
-        identity: { songName: request.songName },
-        metadata: {
-          ...(request.youtubeLink ? { youtubeLinks: [request.youtubeLink] } : {}),
-          ...(request.requestedBy ? { requestedBy: request.requestedBy } : {}),
-        },
-        artists: [{ kind: "unresolved", name: request.artist }],
-      }, updatedBy);
+      await this.drafts.createForIngestion(ingestion.id, updatedBy);
+      draft = await this.drafts.getByIngestionId(ingestion.id);
+    }
+
+    const patch = seedPatch(draft, request);
+    if (patch) {
+      await this.drafts.update(draft.id, draft.revision, patch, updatedBy);
       draft = await this.drafts.getByIngestionId(ingestion.id);
     }
 
