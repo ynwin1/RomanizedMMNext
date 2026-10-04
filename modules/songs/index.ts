@@ -10,6 +10,7 @@ export * from "./domain/lyrics-v2.types";
 export * from "./domain/lyrics.compatibility";
 export * from "./domain/lyrics-migration.types";
 export * from "./application/lyrics-migration.validator";
+export * from "./application/lyrics-migration.repair";
 export * from "./application/song.dto";
 
 export * from "./application/song.validation";

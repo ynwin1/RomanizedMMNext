@@ -37,3 +37,28 @@ export interface LyricsMigrationReport {
   counts: Record<LyricsMigrationStatus, number>;
   assessments: LyricsMigrationAssessment[];
 }
+
+
+export type LyricsMigrationRepairStrategy =
+  | "READY"
+  | "DETERMINISTIC_REPAIR"
+  | "AI_MEANING_ALIGNMENT"
+  | "AI_ROMANIZATION_REPAIR"
+  | "MANUAL_REVIEW";
+
+export interface LyricsMigrationRepairPlan {
+  mmid: number;
+  songName: string;
+  strategy: LyricsMigrationRepairStrategy;
+  reason: string;
+  sourceLyricLines: number;
+  romanizedLines: number;
+  meaningLines: number;
+  preview?: LyricsV2;
+}
+
+export interface LyricsMigrationRepairReport {
+  total: number;
+  counts: Record<LyricsMigrationRepairStrategy, number>;
+  plans: LyricsMigrationRepairPlan[];
+}

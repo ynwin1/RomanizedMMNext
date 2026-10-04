@@ -3,7 +3,7 @@ import type { AdminSongRecord } from "@/modules/songs/application/song.dto";
 import type { AdminArtistRecord } from "@/modules/artists/application/artist.dto";
 import type { AdminSongRequestRecord } from "@/modules/requests/application/song-request.dto";
 import type { SongRequestStatus } from "@/modules/requests/domain/song-request.types";
-import type { LyricsMigrationReport } from "@/modules/songs/domain/lyrics-migration.types";
+import type { LyricsMigrationRepairReport, LyricsMigrationReport } from "@/modules/songs/domain/lyrics-migration.types";
 
 interface ReadService<T> {
   getAdminList(input?: unknown): Promise<AdminPage<T>>;
@@ -12,6 +12,7 @@ interface ReadService<T> {
 
 interface SongReadService extends ReadService<AdminSongRecord> {
   analyzeLyricsMigration(): Promise<LyricsMigrationReport>;
+  analyzeLyricsMigrationRepairs(): Promise<LyricsMigrationRepairReport>;
 }
 interface RequestReadService extends ReadService<AdminSongRequestRecord> {
   getAdminCount(status?: SongRequestStatus): Promise<number>;
@@ -51,5 +52,10 @@ export class AdminReadService {
   async lyricsMigrationReadiness() {
     await this.authorize();
     return this.songs.analyzeLyricsMigration();
+  }
+
+  async lyricsMigrationRepairs() {
+    await this.authorize();
+    return this.songs.analyzeLyricsMigrationRepairs();
   }
 }

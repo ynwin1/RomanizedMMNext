@@ -66,6 +66,10 @@ function reads(authorize: () => Promise<unknown>, calls: string[]) {
       calls.push("migration");
       return { total: 0, counts: { SAFE: 0, WARNING: 0, INVALID: 0, MANUAL_REVIEW: 0 }, assessments: [] };
     },
+    analyzeLyricsMigrationRepairs: async () => {
+      calls.push("repairs");
+      return { total: 0, counts: { READY: 0, DETERMINISTIC_REPAIR: 0, AI_MEANING_ALIGNMENT: 0, AI_ROMANIZATION_REPAIR: 0, MANUAL_REVIEW: 0 }, plans: [] };
+    },
   }, {
     getAdminCount: async () => { calls.push("artists"); return 4; },
     getAdminList: async () => { calls.push("artist-list"); return page; },
@@ -85,7 +89,7 @@ test("dashboard authorizes before reads and aggregates independent counts and re
 });
 
 test("every admin read denies access before any content service call", async () => {
-  for (const action of ["dashboard", "listSongs", "listArtists", "listRequests", "lyricsMigrationReadiness"] as const) {
+  for (const action of ["dashboard", "listSongs", "listArtists", "listRequests", "lyricsMigrationReadiness", "lyricsMigrationRepairs"] as const) {
     const calls: string[] = [];
     const service = reads(async () => { throw new Error("denied"); }, calls);
     await assert.rejects(
@@ -93,7 +97,9 @@ test("every admin read denies access before any content service call", async () 
         ? service.dashboard()
         : action === "lyricsMigrationReadiness"
           ? service.lyricsMigrationReadiness()
-          : service[action]({}),
+          : action === "lyricsMigrationRepairs"
+            ? service.lyricsMigrationRepairs()
+            : service[action]({}),
       /denied/,
     );
     assert.deepEqual(calls, []);
@@ -106,6 +112,7 @@ test("dashboard read failures propagate to the error boundary rather than becomi
     getAdminCount: async () => { throw new Error("database unavailable"); },
     getAdminList: async () => adminPage([], 0, { page: 1, limit: 5, q: "" }),
     analyzeLyricsMigration: async () => ({ total: 0, counts: { SAFE: 0, WARNING: 0, INVALID: 0, MANUAL_REVIEW: 0 }, assessments: [] }),
+    analyzeLyricsMigrationRepairs: async () => ({ total: 0, counts: { READY: 0, DETERMINISTIC_REPAIR: 0, AI_MEANING_ALIGNMENT: 0, AI_ROMANIZATION_REPAIR: 0, MANUAL_REVIEW: 0 }, plans: [] }),
   }, { getAdminCount: async () => 0, getAdminList: async () => adminPage([], 0, { page: 1, limit: 20, q: "" }) },
   { getAdminCount: async () => 0, getAdminList: async () => adminPage([], 0, { page: 1, limit: 20, q: "" }) });
   await assert.rejects(() => service.dashboard(), /database unavailable/);
@@ -119,4 +126,13 @@ test("lyrics migration readiness authorizes before returning the read-only repor
   const report = await service.lyricsMigrationReadiness();
   assert.equal(report.total, 0);
   assert.deepEqual(calls, ["auth", "migration"]);
+});
+
+
+test("lyrics migration repair planning authorizes before returning the preview-only report", async () => {
+  const calls: string[] = [];
+  const service = reads(async () => { calls.push("auth"); }, calls);
+  const report = await service.lyricsMigrationRepairs();
+  assert.equal(report.total, 0);
+  assert.deepEqual(calls, ["auth", "repairs"]);
 });

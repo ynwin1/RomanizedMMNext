@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { adminReads } from "../../admin.data";
-import type { LyricsMigrationStatus } from "@/modules/songs";
+import type { LyricsMigrationRepairStrategy, LyricsMigrationStatus } from "@/modules/songs";
 
 const statusStyle: Record<LyricsMigrationStatus, string> = {
   SAFE: "border-emerald-800 bg-emerald-950/40 text-emerald-200",
@@ -9,8 +9,16 @@ const statusStyle: Record<LyricsMigrationStatus, string> = {
   INVALID: "border-red-800 bg-red-950/40 text-red-200",
 };
 
+const repairStyle: Record<LyricsMigrationRepairStrategy, string> = {
+  READY: "border-emerald-800 bg-emerald-950/40 text-emerald-200",
+  DETERMINISTIC_REPAIR: "border-cyan-800 bg-cyan-950/40 text-cyan-200",
+  AI_MEANING_ALIGNMENT: "border-indigo-800 bg-indigo-950/40 text-indigo-200",
+  AI_ROMANIZATION_REPAIR: "border-violet-800 bg-violet-950/40 text-violet-200",
+  MANUAL_REVIEW: "border-red-800 bg-red-950/40 text-red-200",
+};
+
 export default async function LyricsV2MigrationPage() {
-  const report = await adminReads.lyricsMigrationReadiness();
+  const [report, repairs] = await Promise.all([adminReads.lyricsMigrationReadiness(), adminReads.lyricsMigrationRepairs()]);
 
   return (
     <section aria-labelledby="lyrics-v2-migration-heading">
@@ -39,6 +47,21 @@ export default async function LyricsV2MigrationPage() {
         ))}
       </div>
 
+      <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900/60 p-5">
+        <h2 className="text-xl font-semibold">Phase 7 auto-repair plan</h2>
+        <p className="mt-2 text-sm text-zinc-400">
+          Burmese and existing Romanization are treated as protected anchors. This is still preview-only and performs no migration writes.
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {(["READY", "DETERMINISTIC_REPAIR", "AI_MEANING_ALIGNMENT", "AI_ROMANIZATION_REPAIR", "MANUAL_REVIEW"] as const).map(strategy => (
+            <div key={strategy} className={`rounded-lg border p-4 ${repairStyle[strategy]}`}>
+              <p className="text-xs font-semibold">{strategy.replaceAll("_", " ")}</p>
+              <p className="mt-2 text-2xl font-semibold">{repairs.counts[strategy]}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="mt-8 overflow-x-auto rounded-xl border border-zinc-800">
         <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="bg-zinc-900 text-zinc-300">
@@ -46,12 +69,15 @@ export default async function LyricsV2MigrationPage() {
               <th className="p-4">MMID</th>
               <th className="p-4">Song</th>
               <th className="p-4">Status</th>
+              <th className="p-4">Repair plan</th>
               <th className="p-4">Diagnostics</th>
               <th className="p-4">Preview</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {report.assessments.map(assessment => (
+            {report.assessments.map(assessment => {
+              const repair = repairs.plans.find(plan => plan.mmid === assessment.mmid);
+              return (
               <tr key={assessment.mmid} className="align-top">
                 <td className="p-4 font-mono">{assessment.mmid}</td>
                 <td className="p-4">
@@ -63,6 +89,19 @@ export default async function LyricsV2MigrationPage() {
                   <span className={`inline-flex rounded border px-2 py-1 text-xs font-semibold ${statusStyle[assessment.status]}`}>
                     {assessment.status.replace("_", " ")}
                   </span>
+                </td>
+                <td className="p-4">
+                  {repair ? (
+                    <div>
+                      <span className={`inline-flex rounded border px-2 py-1 text-xs font-semibold ${repairStyle[repair.strategy]}`}>
+                        {repair.strategy.replaceAll("_", " ")}
+                      </span>
+                      <p className="mt-2 max-w-md text-xs text-zinc-400">{repair.reason}</p>
+                      <p className="mt-2 font-mono text-xs text-zinc-500">
+                        B {repair.sourceLyricLines} · R {repair.romanizedLines} · M {repair.meaningLines}
+                      </p>
+                    </div>
+                  ) : <span className="text-zinc-500">No plan</span>}
                 </td>
                 <td className="p-4">
                   {assessment.diagnostics.length ? (
@@ -82,9 +121,9 @@ export default async function LyricsV2MigrationPage() {
                     : "No automatic preview"}
                 </td>
               </tr>
-            ))}
+            )})}
             {!report.assessments.length && (
-              <tr><td colSpan={5} className="p-8 text-center text-zinc-500">No songs found.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-zinc-500">No songs found.</td></tr>
             )}
           </tbody>
         </table>
