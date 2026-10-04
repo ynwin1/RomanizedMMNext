@@ -13,6 +13,7 @@ import {
   IngestionArtistResolutionService,
   IngestionGenerationService,
   IngestionMetadataService,
+  IngestionReviewService,
 } from "@/modules/ingestions";
 import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
 import { createIngestionActionHandler, type IngestionActionState } from "./ingestion-action-handler";
@@ -28,8 +29,17 @@ async function saveMetadata(
   input: Parameters<IngestionMetadataService["save"]>[1],
   updatedBy: string,
 ) {
-  const workflow = new IngestionMetadataService(ingestionService, contentDraftService);
-  return workflow.save(ingestionId, input, updatedBy);
+  return new IngestionMetadataService(ingestionService, contentDraftService)
+    .save(ingestionId, input, updatedBy);
+}
+
+async function saveReview(
+  ingestionId: string,
+  input: Parameters<IngestionReviewService["save"]>[1],
+  updatedBy: string,
+) {
+  return new IngestionReviewService(ingestionService, contentDraftService)
+    .save(ingestionId, input, updatedBy);
 }
 
 function artistWorkflow() {
@@ -45,6 +55,7 @@ const actions = createIngestionActionHandler({
   workflow: ingestionWorkflowService,
   generateAiContent,
   saveMetadata,
+  saveReview,
   resolveArtist: (ingestionId, input, updatedBy) =>
     artistWorkflow().resolve(ingestionId, input, updatedBy),
   addArtist: (ingestionId, input, updatedBy) =>
@@ -53,23 +64,25 @@ const actions = createIngestionActionHandler({
     artistWorkflow().remove(ingestionId, input, updatedBy),
   confirmArtists: (ingestionId, input, updatedBy) =>
     artistWorkflow().confirm(ingestionId, input, updatedBy),
-  reopenAdminInput: (ingestionId, input, updatedBy) =>
-    artistWorkflow().reopen(ingestionId, input, updatedBy),
   started(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId);
-  },
-  sourceSaved(ingestionId) {
-    revalidatePath("/admin", "layout");
-    redirect("/admin/ingestions/" + ingestionId + "?sourceSaved=1");
   },
   aiGenerated(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId + "?aiGenerated=1");
   },
+  generationFailed(ingestionId) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin/ingestions/" + ingestionId + "?generationFailed=1");
+  },
   metadataSaved(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId + "?metadataSaved=1");
+  },
+  reviewSaved(ingestionId) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin/ingestions/" + ingestionId + "?reviewSaved=1");
   },
   artistChanged(ingestionId) {
     revalidatePath("/admin", "layout");
@@ -77,11 +90,7 @@ const actions = createIngestionActionHandler({
   },
   artistsConfirmed(ingestionId) {
     revalidatePath("/admin", "layout");
-    redirect("/admin/ingestions/" + ingestionId + "?artistsConfirmed=1");
-  },
-  adminInputReopened(ingestionId) {
-    revalidatePath("/admin", "layout");
-    redirect("/admin/ingestions/" + ingestionId + "?adminInputReopened=1");
+    redirect("/admin/ingestions/" + ingestionId);
   },
   logFailure(error) {
     logger.error("Admin ingestion workflow failed", error);
@@ -112,6 +121,16 @@ export async function generateAiContentAction(
   form: FormData,
 ) {
   return actions.generateAiContent(ingestionId, previous, form);
+}
+
+export async function saveIngestionReviewAction(
+  ingestionId: string,
+  draftId: string,
+  draftRevision: number,
+  previous: IngestionActionState,
+  form: FormData,
+) {
+  return actions.saveReview(ingestionId, draftId, draftRevision, previous, form);
 }
 
 export async function saveIngestionMetadataAction(
@@ -163,14 +182,4 @@ export async function confirmDraftArtistsAction(
   form: FormData,
 ) {
   return actions.confirmArtists(ingestionId, draftId, previous, form);
-}
-
-
-export async function reopenDraftAdminInputAction(
-  ingestionId: string,
-  draftId: string,
-  previous: IngestionActionState,
-  form: FormData,
-) {
-  return actions.reopenAdminInput(ingestionId, draftId, previous, form);
 }

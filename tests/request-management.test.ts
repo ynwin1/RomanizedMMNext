@@ -58,7 +58,10 @@ test("request action authorizes before write and handles status errors", async (
   const handler = createRequestActionHandler({
     authorize: async () => { throw denied; },
     requests: { updateStatus: async () => { writes++; return entity; } },
+    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: () => { throw new Error("unexpected redirect"); },
+    accepted: () => { throw new Error("unexpected accepted redirect"); },
+    rejected: () => { throw new Error("unexpected rejected redirect"); },
     logFailure: () => {},
   });
   const form = new FormData(); form.set("status", "reviewing");
@@ -68,7 +71,10 @@ test("request action authorizes before write and handles status errors", async (
   const validating = createRequestActionHandler({
     authorize: async () => ({ userId: "admin-1" }),
     requests: new SongRequestService(repository()),
+    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: () => { throw new Error("unexpected redirect"); },
+    accepted: () => { throw new Error("unexpected accepted redirect"); },
+    rejected: () => { throw new Error("unexpected rejected redirect"); },
     logFailure: () => {},
   });
   form.set("status", "added");
@@ -81,7 +87,10 @@ test("request action redirects only after successful persistence and hides inter
   const handler = createRequestActionHandler({
     authorize: async () => { calls.push("auth"); return { userId: "admin-1" }; },
     requests: { updateStatus: async (_id, _revision, _status, updatedBy) => { assert.equal(updatedBy, "admin-1"); calls.push("write"); return entity; } },
+    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: savedId => { calls.push("saved:" + savedId); throw new Error("success redirect"); },
+    accepted: () => { throw new Error("unexpected accepted redirect"); },
+    rejected: () => { throw new Error("unexpected rejected redirect"); },
     logFailure: () => {},
   });
   await assert.rejects(() => handler.update(id, 3, {}, form), /success redirect/);
@@ -91,7 +100,10 @@ test("request action redirects only after successful persistence and hides inter
     const failing = createRequestActionHandler({
       authorize: async () => ({ userId: "admin-1" }),
       requests: { updateStatus: async () => { throw error; } },
+      acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
       saved: () => { throw new Error("unexpected"); },
+      accepted: () => { throw new Error("unexpected accepted redirect"); },
+      rejected: () => { throw new Error("unexpected rejected redirect"); },
       logFailure: () => {},
     });
     const result = await failing.update(id, 0, {}, form);

@@ -43,7 +43,7 @@ function canonicalArtist() {
   };
 }
 
-function ingestion(status = "needs_admin_input") {
+function ingestion(status = "ready_for_review") {
   return {
     id: ingestionId,
     songRequestId: "507f191e810c19729de860ec",
@@ -52,20 +52,16 @@ function ingestion(status = "needs_admin_input") {
   };
 }
 
-test("artist resolution replaces only the selected unresolved entry and does not auto-advance", async () => {
+test("artist resolution remains directly editable during final review", async () => {
   let currentDraft = draft({
     artists: [
       { kind: "unresolved", name: "Requested Artist" },
       { kind: "unresolved", name: "Second Singer" },
     ],
   });
-  let transitions = 0;
 
   const service = new IngestionArtistResolutionService(
-    {
-      getById: async () => ingestion(),
-      transition: async () => { transitions++; throw new Error("should not transition"); },
-    } as any,
+    { getById: async () => ingestion() } as any,
     {
       getById: async () => currentDraft,
       update: async (_id: unknown, _revision: unknown, patch: any) => {
@@ -83,19 +79,15 @@ test("artist resolution replaces only the selected unresolved entry and does not
     artistSlug: "canonical-artist",
   });
 
-  assert.equal(transitions, 0);
-  assert.deepEqual(result.artists, [
-    { kind: "unresolved", name: "Requested Artist" },
-    {
-      kind: "resolved",
-      artistId,
-      name: "Canonical Artist",
-      slug: "canonical-artist",
-    },
-  ]);
+  assert.deepEqual(result.artists[1], {
+    kind: "resolved",
+    artistId,
+    name: "Canonical Artist",
+    slug: "canonical-artist",
+  });
 });
 
-test("artist list supports adding multiple unresolved name-only artists", async () => {
+test("final review supports multiple unresolved name-only artists", async () => {
   let currentDraft = draft();
   const service = new IngestionArtistResolutionService(
     { getById: async () => ingestion() } as any,
@@ -121,10 +113,36 @@ test("artist list supports adding multiple unresolved name-only artists", async 
   ]);
 });
 
-test("artist list rejects duplicate names case-insensitively", async () => {
-  const service = new IngestionArtistResolutionService(
+test("artist list rejects duplicate names and invalid indexes", async () => {
+  const duplicate = new IngestionArtistResolutionService(
     { getById: async () => ingestion() } as any,
     { getById: async () => draft() } as any,
+    {} as any,
+  );
+
+  await assert.rejects(
+    () => duplicate.add(ingestionId, {
+      draftId,
+      draftRevision: 4,
+      artistName: "requested artist",
+    }),
+    DraftArtistResolutionError,
+  );
+
+  await assert.rejects(
+    () => duplicate.remove(ingestionId, {
+      draftId,
+      draftRevision: 4,
+      artistIndex: 4,
+    }),
+    DraftArtistResolutionError,
+  );
+});
+
+test("artist management rejects states before final review/admin input", async () => {
+  const service = new IngestionArtistResolutionService(
+    { getById: async () => ingestion("awaiting_source") } as any,
+    {} as any,
     {} as any,
   );
 
@@ -132,27 +150,16 @@ test("artist list rejects duplicate names case-insensitively", async () => {
     () => service.add(ingestionId, {
       draftId,
       draftRevision: 4,
-      artistName: "requested artist",
+      artistName: "Artist",
     }),
-    DraftArtistResolutionError,
+    IngestionArtistResolutionStateError,
   );
 });
 
-test("artist list can remove resolved or unresolved entries", async () => {
-  let currentDraft = draft({
-    artists: [
-      { kind: "unresolved", name: "Requested Artist" },
-      {
-        kind: "resolved",
-        artistId,
-        name: "Canonical Artist",
-        slug: "canonical-artist",
-      },
-    ],
-  });
-
+test("legacy needs_admin_input drafts remain artist-editable", async () => {
+  let currentDraft = draft();
   const service = new IngestionArtistResolutionService(
-    { getById: async () => ingestion() } as any,
+    { getById: async () => ingestion("needs_admin_input") } as any,
     {
       getById: async () => currentDraft,
       update: async (_id: unknown, _revision: unknown, patch: any) => {
@@ -163,148 +170,11 @@ test("artist list can remove resolved or unresolved entries", async () => {
     {} as any,
   );
 
-  const result = await service.remove(ingestionId, {
+  const result = await service.add(ingestionId, {
     draftId,
     draftRevision: 4,
-    artistIndex: 0,
+    artistName: "Legacy Featured Singer",
   });
 
-  assert.deepEqual(result.artists, [{
-    kind: "resolved",
-    artistId,
-    name: "Canonical Artist",
-    slug: "canonical-artist",
-  }]);
-});
-
-test("confirm accepts unresolved name-only artists and advances when metadata is complete", async () => {
-  let current = ingestion();
-  const transitions: string[] = [];
-
-  const service = new IngestionArtistResolutionService(
-    {
-      getById: async () => current,
-      transition: async (_id: unknown, _revision: unknown, next: unknown) => {
-        transitions.push(String(next));
-        current = { ...current, status: String(next), revision: 9 };
-        return current;
-      },
-    } as any,
-    { getById: async () => draft() } as any,
-    {} as any,
-  );
-
-  const result = await service.confirm(ingestionId, { draftId }, "admin-1");
-
-  assert.deepEqual(transitions, ["ready_for_review"]);
-  assert.equal(result.completeness.complete, true);
-  assert.equal(result.ingestion.status, "ready_for_review");
-});
-
-test("confirm rejects empty artist list or incomplete metadata", async () => {
-  const baseIngestions = { getById: async () => ingestion() } as any;
-
-  const empty = new IngestionArtistResolutionService(
-    baseIngestions,
-    { getById: async () => draft({ artists: [] }) } as any,
-    {} as any,
-  );
-  await assert.rejects(
-    () => empty.confirm(ingestionId, { draftId }),
-    /Add at least one artist/,
-  );
-
-  const noGenre = new IngestionArtistResolutionService(
-    baseIngestions,
-    { getById: async () => draft({ metadata: {} }) } as any,
-    {} as any,
-  );
-  await assert.rejects(
-    () => noGenre.confirm(ingestionId, { draftId }),
-    /Complete required factual metadata/,
-  );
-});
-
-test("artist management rejects edits outside needs_admin_input and invalid draft/index", async () => {
-  const wrongState = new IngestionArtistResolutionService(
-    { getById: async () => ingestion("ready_for_review") } as any,
-    {} as any,
-    {} as any,
-  );
-
-  await assert.rejects(
-    () => wrongState.add(ingestionId, {
-      draftId,
-      draftRevision: 4,
-      artistName: "Artist",
-    }),
-    IngestionArtistResolutionStateError,
-  );
-
-  const wrongDraft = new IngestionArtistResolutionService(
-    { getById: async () => ingestion() } as any,
-    { getById: async () => draft({ ingestionId: "507f191e810c19729de860ff" }) } as any,
-    {} as any,
-  );
-
-  await assert.rejects(
-    () => wrongDraft.remove(ingestionId, {
-      draftId,
-      draftRevision: 4,
-      artistIndex: 0,
-    }),
-    DraftArtistResolutionError,
-  );
-
-  const missingIndex = new IngestionArtistResolutionService(
-    { getById: async () => ingestion() } as any,
-    { getById: async () => draft() } as any,
-    {} as any,
-  );
-
-  await assert.rejects(
-    () => missingIndex.remove(ingestionId, {
-      draftId,
-      draftRevision: 4,
-      artistIndex: 4,
-    }),
-    DraftArtistResolutionError,
-  );
-});
-
-
-test("ready_for_review can be reopened to edit admin input", async () => {
-  let current = ingestion("ready_for_review");
-  const transitions: string[] = [];
-
-  const service = new IngestionArtistResolutionService(
-    {
-      getById: async () => current,
-      transition: async (_id: unknown, _revision: unknown, next: unknown) => {
-        transitions.push(String(next));
-        current = { ...current, status: String(next), revision: 9 };
-        return current;
-      },
-    } as any,
-    { getById: async () => draft() } as any,
-    {} as any,
-  );
-
-  const result = await service.reopen(ingestionId, { draftId }, "admin-1");
-
-  assert.deepEqual(transitions, ["needs_admin_input"]);
-  assert.equal(result.ingestion.status, "needs_admin_input");
-});
-
-test("reopen rejects ingestions that are not ready_for_review", async () => {
-  const service = new IngestionArtistResolutionService(
-    { getById: async () => ingestion("needs_admin_input") } as any,
-    {} as any,
-    {} as any,
-  );
-
-  await assert.rejects(
-    () => service.reopen(ingestionId, { draftId }),
-    IngestionArtistResolutionStateError,
-  );
+  assert.equal(result.artists.length, 2);
 });

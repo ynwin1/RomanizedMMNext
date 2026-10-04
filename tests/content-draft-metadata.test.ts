@@ -108,13 +108,13 @@ test("metadata service saves factual fields without changing ingestion status", 
   assert.equal(result.completeness.complete, true);
 });
 
-test("metadata service rejects edits outside needs_admin_input", async () => {
+test("metadata service allows final-review edits and rejects pre-generation states", async () => {
   const service = new IngestionMetadataService(
     {
       getById: async () => ({
         id: ingestionId,
         songRequestId: "507f191e810c19729de860eb",
-        status: "ready_for_review",
+        status: "awaiting_source",
         revision: 8,
       }),
     } as any,
@@ -135,6 +135,34 @@ test("metadata service rejects edits outside needs_admin_input", async () => {
     }),
     IngestionMetadataStateError,
   );
+
+  const reviewService = new IngestionMetadataService(
+    {
+      getById: async () => ({
+        id: ingestionId,
+        songRequestId: "507f191e810c19729de860eb",
+        status: "ready_for_review",
+        revision: 8,
+      }),
+    } as any,
+    {
+      getById: async () => draft({ metadata: { genre: "Pop" } }),
+      update: async () => draft({ metadata: { genre: "Rock" }, revision: 5 }),
+    } as any,
+  );
+
+  const reviewResult = await reviewService.save(ingestionId, {
+    draftId,
+    draftRevision: 4,
+    genre: "Rock",
+    albumName: null,
+    spotifyTrackId: null,
+    spotifyLink: null,
+    appleMusicLink: null,
+    youtubeLinks: null,
+    imageLink: null,
+  });
+  assert.equal(reviewResult.ingestion.status, "ready_for_review");
 });
 
 test("metadata service rejects a draft belonging to another ingestion", async () => {

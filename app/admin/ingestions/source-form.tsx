@@ -29,10 +29,10 @@ export default function SourceForm({ ingestion, draft }: {
         <p key={index} className="mt-1 text-sm text-red-300">{message}</p>)}
     </label>
     <p className="text-sm text-zinc-400">
-      Confirming this source advances the ingestion to ready_to_generate. AI generation is added in the next phases.
+      Saving the trusted source will automatically generate Romanization, English meaning, About, and When to listen.
     </p>
     <button disabled={pending} className="rounded bg-indigo-600 px-5 py-3 font-medium disabled:opacity-50">
-      {pending ? "Saving…" : "Save and confirm source"}
+      {pending ? "Generating AI content…" : "Save source and generate AI content"}
     </button>
     {state.message && <p role="alert" className="text-red-300">{state.message}</p>}
   </form>;

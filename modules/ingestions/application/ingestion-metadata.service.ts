@@ -16,7 +16,9 @@ export class IngestionMetadataService {
 
   async save(ingestionId: unknown, input: SaveDraftMetadataInput, updatedBy?: string) {
     const ingestion = await this.ingestions.getById(ingestionId);
-    if (ingestion.status !== "needs_admin_input") throw new IngestionMetadataStateError();
+    if (ingestion.status !== "needs_admin_input" && ingestion.status !== "ready_for_review") {
+      throw new IngestionMetadataStateError();
+    }
 
     const parsed = SaveDraftMetadataSchema.parse(input);
     const current = await this.drafts.getById(parsed.draftId);

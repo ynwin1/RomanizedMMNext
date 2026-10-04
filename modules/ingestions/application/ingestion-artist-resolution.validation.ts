@@ -31,12 +31,7 @@ export const ConfirmDraftArtistsSchema = z.object({
   draftId: ContentDraftIdSchema,
 }).strict();
 
-export const ReopenDraftAdminInputSchema = z.object({
-  draftId: ContentDraftIdSchema,
-}).strict();
-
 export type ResolveDraftArtistInput = z.infer<typeof ResolveDraftArtistSchema>;
 export type AddDraftArtistInput = z.infer<typeof AddDraftArtistSchema>;
 export type RemoveDraftArtistInput = z.infer<typeof RemoveDraftArtistSchema>;
 export type ConfirmDraftArtistsInput = z.infer<typeof ConfirmDraftArtistsSchema>;
-export type ReopenDraftAdminInput = z.infer<typeof ReopenDraftAdminInputSchema>;

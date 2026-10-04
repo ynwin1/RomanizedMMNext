@@ -30,7 +30,7 @@ test("search metacharacters are literal and matching is case insensitive", () =>
 
 test("pending request filters include legacy missing/null statuses and combine search", () => {
   const pending = requestAdminFilter("", "pending");
-  assert.deepEqual(pending, { $and: [{ $or: [{ status: "pending" }, { status: { $exists: false } }, { status: null }] }] });
+  assert.deepEqual(pending, { $and: [{ $or: [{ status: { $in: ["pending", "reviewing"] } }, { status: { $exists: false } }, { status: null }] }] });
   assert.deepEqual(requestAdminFilter("", "completed"), { $and: [{ status: { $in: ["completed", "added"] } }] });
   assert.deepEqual(requestAdminFilter("", "reviewing"), { $and: [{ status: "reviewing" }] });
   assert.deepEqual(requestAdminFilter(""), {});

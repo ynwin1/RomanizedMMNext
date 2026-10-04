@@ -2,27 +2,61 @@
 
 import { useActionState } from "react";
 import type { ContentDraftRecord } from "@/modules/content-drafts";
-import { saveIngestionMetadataAction } from "./ingestion-actions";
+import { saveIngestionReviewAction } from "./ingestion-actions";
 
-export default function MetadataForm({ ingestionId, draft }: {
+export default function ReviewForm({
+  ingestionId,
+  draft,
+}: {
   ingestionId: string;
   draft: ContentDraftRecord;
 }) {
   const [state, action, pending] = useActionState(
-    saveIngestionMetadataAction.bind(null, ingestionId, draft.id, draft.revision),
+    saveIngestionReviewAction.bind(null, ingestionId, draft.id, draft.revision),
     {},
   );
 
   const fieldClass = "mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100";
 
   return <form action={action} className="mt-6 rounded-xl border border-zinc-800 p-4">
-    <h2 className="text-xl font-semibold">Factual metadata</h2>
-    <p className="mt-1 text-sm text-zinc-400">Genre is required. Other fields are optional and can be cleared.</p>
+    <h2 className="text-xl font-semibold">Final review</h2>
+    <p className="mt-1 text-sm text-zinc-400">
+      Review and polish everything here. Saving does not publish the song.
+    </p>
 
     <label className="mt-4 block">
-      <span className="text-sm text-zinc-300">Genre *</span>
-      <input name="genre" defaultValue={draft.metadata.genre || ""} required className={fieldClass} />
-      {state.errors?.genre?.map(error => <span key={error} className="mt-1 block text-sm text-red-300">{error}</span>)}
+      <span className="text-sm text-zinc-300">Song name *</span>
+      <input name="songName" required defaultValue={draft.identity.songName || ""} className={fieldClass} />
+    </label>
+
+    <label className="mt-4 block">
+      <span className="text-sm text-zinc-300">Burmese lyrics *</span>
+      <textarea name="burmeseLyrics" required rows={14} defaultValue={draft.source.burmeseLyrics || ""} className={fieldClass} />
+    </label>
+
+    <label className="mt-4 block">
+      <span className="text-sm text-zinc-300">Romanization *</span>
+      <textarea name="romanized" required rows={14} defaultValue={draft.generated.romanized || ""} className={fieldClass} />
+    </label>
+
+    <label className="mt-4 block">
+      <span className="text-sm text-zinc-300">English meaning *</span>
+      <textarea name="meaning" required rows={14} defaultValue={draft.generated.meaning || ""} className={fieldClass} />
+    </label>
+
+    <label className="mt-4 block">
+      <span className="text-sm text-zinc-300">About *</span>
+      <input name="about" required defaultValue={draft.generated.about || ""} className={fieldClass} />
+    </label>
+
+    <label className="mt-4 block">
+      <span className="text-sm text-zinc-300">When to listen *</span>
+      <input name="whenToListen" required defaultValue={draft.generated.whenToListen || ""} className={fieldClass} />
+    </label>
+
+    <label className="mt-4 block">
+      <span className="text-sm text-zinc-300">Genre</span>
+      <input name="genre" defaultValue={draft.metadata.genre || ""} className={fieldClass} />
     </label>
 
     <label className="mt-4 block">
@@ -67,7 +101,7 @@ export default function MetadataForm({ ingestionId, draft }: {
       disabled={pending}
       className="mt-5 rounded bg-violet-600 px-5 py-3 font-medium disabled:opacity-50"
     >
-      {pending ? "Saving…" : "Save factual metadata"}
+      {pending ? "Saving review…" : "Save review changes"}
     </button>
   </form>;
 }

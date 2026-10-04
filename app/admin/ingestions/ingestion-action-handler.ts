@@ -9,6 +9,7 @@ import {
 import {
   ContentDraftConflictError,
   SaveDraftMetadataSchema,
+  SaveDraftReviewSchema,
 } from "@/modules/content-drafts";
 import {
   ContentGenerationProviderError,
@@ -29,6 +30,7 @@ import {
   IncompleteAiGenerationError,
 } from "@/modules/ingestions/application/ingestion-generation.error";
 import { IngestionMetadataStateError } from "@/modules/ingestions/application/ingestion-metadata.error";
+import { IngestionReviewStateError } from "@/modules/ingestions/application/ingestion-review.error";
 import {
   DraftArtistResolutionError,
   IngestionArtistResolutionStateError,
@@ -37,7 +39,6 @@ import {
   AddDraftArtistSchema,
   ConfirmDraftArtistsSchema,
   RemoveDraftArtistSchema,
-  ReopenDraftAdminInputSchema,
   ResolveDraftArtistSchema,
 } from "@/modules/ingestions/application/ingestion-artist-resolution.validation";
 import { NotFoundError } from "@/shared/errors/not-found.error";
@@ -52,6 +53,9 @@ const StartIngestionSchema = z.object({ requestId: IngestionRequestIdSchema }).s
 const SaveIngestionMetadataSchema = SaveDraftMetadataSchema.extend({
   ingestionId: IngestionIdSchema,
 }).strict();
+const SaveIngestionReviewSchema = SaveDraftReviewSchema.extend({
+  ingestionId: IngestionIdSchema,
+}).strict();
 const ResolveIngestionArtistSchema = ResolveDraftArtistSchema.extend({
   ingestionId: IngestionIdSchema,
 }).strict();
@@ -62,9 +66,6 @@ const RemoveIngestionArtistSchema = RemoveDraftArtistSchema.extend({
   ingestionId: IngestionIdSchema,
 }).strict();
 const ConfirmIngestionArtistsSchema = ConfirmDraftArtistsSchema.extend({
-  ingestionId: IngestionIdSchema,
-}).strict();
-const ReopenIngestionAdminInputSchema = ReopenDraftAdminInputSchema.extend({
   ingestionId: IngestionIdSchema,
 }).strict();
 
@@ -80,23 +81,32 @@ function youtubeLinks(value: FormDataEntryValue | null): string[] | null {
   return links.length > 0 ? links : null;
 }
 
+function isGenerationFailure(error: unknown) {
+  return (
+    error instanceof ContentGenerationProviderError ||
+    error instanceof InvalidGeneratedContentError ||
+    error instanceof GeneratedContentQualityError ||
+    error instanceof IncompleteAiGenerationError
+  );
+}
+
 export function createIngestionActionHandler(dependencies: {
   authorize: () => Promise<AdminWritePrincipal>;
   workflow: Pick<IngestionWorkflowService, "startAcceptedRequest" | "saveAndConfirmSource">;
   generateAiContent: (ingestionId: string, updatedBy: string) => Promise<unknown>;
   saveMetadata: (ingestionId: string, input: z.infer<typeof SaveDraftMetadataSchema>, updatedBy: string) => Promise<unknown>;
+  saveReview: (ingestionId: string, input: z.infer<typeof SaveDraftReviewSchema>, updatedBy: string) => Promise<unknown>;
   resolveArtist: (ingestionId: string, input: z.infer<typeof ResolveDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
   addArtist: (ingestionId: string, input: z.infer<typeof AddDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
   removeArtist: (ingestionId: string, input: z.infer<typeof RemoveDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
   confirmArtists: (ingestionId: string, input: z.infer<typeof ConfirmDraftArtistsSchema>, updatedBy: string) => Promise<unknown>;
-  reopenAdminInput: (ingestionId: string, input: z.infer<typeof ReopenDraftAdminInputSchema>, updatedBy: string) => Promise<unknown>;
   started: (ingestionId: string) => never;
-  sourceSaved: (ingestionId: string) => never;
   aiGenerated: (ingestionId: string) => never;
+  generationFailed: (ingestionId: string) => never;
   metadataSaved: (ingestionId: string) => never;
+  reviewSaved: (ingestionId: string) => never;
   artistChanged: (ingestionId: string) => never;
   artistsConfirmed: (ingestionId: string) => never;
-  adminInputReopened: (ingestionId: string) => never;
   logFailure: (error: unknown) => void;
 }) {
   const artistError = (error: unknown) =>
@@ -115,16 +125,19 @@ export function createIngestionActionHandler(dependencies: {
       });
       if (!prepared.ok) return { message: "Unable to start ingestion.", errors: prepared.errors };
 
-      let ingestionId: string;
       try {
-        const result = await dependencies.workflow.startAcceptedRequest(prepared.value.requestId, prepared.principal.userId);
-        ingestionId = result.ingestion.id;
+        const result = await dependencies.workflow.startAcceptedRequest(
+          prepared.value.requestId,
+          prepared.principal.userId,
+        );
+        return dependencies.started(result.ingestion.id);
       } catch (error) {
-        if (error instanceof RequestNotAcceptedForIngestionError || error instanceof NotFoundError) return { message: error.message };
+        if (error instanceof RequestNotAcceptedForIngestionError || error instanceof NotFoundError) {
+          return { message: error.message };
+        }
         dependencies.logFailure(error);
         return { message: "Unable to start ingestion. Please try again." };
       }
-      return dependencies.started(ingestionId);
     },
 
     async saveSource(
@@ -153,7 +166,26 @@ export function createIngestionActionHandler(dependencies: {
         dependencies.logFailure(error);
         return { message: "Unable to save Burmese source. Please try again." };
       }
-      return dependencies.sourceSaved(IngestionIdSchema.parse(prepared.value.ingestionId));
+
+      try {
+        await dependencies.generateAiContent(prepared.value.ingestionId, prepared.principal.userId);
+      } catch (error) {
+        dependencies.logFailure(error);
+        if (
+          isGenerationFailure(error) ||
+          error instanceof AiGenerationStateError ||
+          error instanceof RomanizationStateError ||
+          error instanceof MissingTrustedSourceError ||
+          error instanceof ContentDraftConflictError ||
+          error instanceof IngestionConflictError ||
+          error instanceof NotFoundError
+        ) {
+          return dependencies.generationFailed(prepared.value.ingestionId);
+        }
+        return dependencies.generationFailed(prepared.value.ingestionId);
+      }
+
+      return dependencies.aiGenerated(prepared.value.ingestionId);
     },
 
     async generateAiContent(
@@ -180,19 +212,60 @@ export function createIngestionActionHandler(dependencies: {
           error instanceof NotFoundError
         ) return { message: error.message };
 
-        if (
-          error instanceof ContentGenerationProviderError ||
-          error instanceof InvalidGeneratedContentError ||
-          error instanceof GeneratedContentQualityError ||
-          error instanceof IncompleteAiGenerationError
-        ) {
+        if (isGenerationFailure(error)) {
           dependencies.logFailure(error);
-          return { message: "AI generation failed quality or provider checks. You can retry this generation." };
+          return { message: "AI generation failed quality or provider checks. You can retry." };
         }
         dependencies.logFailure(error);
         return { message: "Unable to generate AI content. Please try again." };
       }
       return dependencies.aiGenerated(prepared.value.ingestionId);
+    },
+
+    async saveReview(
+      ingestionId: string,
+      draftId: string,
+      draftRevision: number,
+      _previous: IngestionActionState,
+      form: FormData,
+    ): Promise<IngestionActionState> {
+      const prepared = await prepareValidatedWrite({
+        parse: () => ({
+          ingestionId,
+          draftId,
+          draftRevision,
+          songName: form.get("songName"),
+          burmeseLyrics: form.get("burmeseLyrics"),
+          romanized: form.get("romanized"),
+          meaning: form.get("meaning"),
+          about: form.get("about"),
+          whenToListen: form.get("whenToListen"),
+          genre: nullableText(form.get("genre")),
+          albumName: nullableText(form.get("albumName")),
+          spotifyTrackId: nullableText(form.get("spotifyTrackId")),
+          spotifyLink: nullableText(form.get("spotifyLink")),
+          appleMusicLink: nullableText(form.get("appleMusicLink")),
+          youtubeLinks: youtubeLinks(form.get("youtubeLinks")),
+          imageLink: nullableText(form.get("imageLink")),
+        }),
+        schema: SaveIngestionReviewSchema,
+        authorize: dependencies.authorize,
+      });
+      if (!prepared.ok) return { message: "Please correct the review fields.", errors: prepared.errors };
+
+      const { ingestionId: parsedIngestionId, ...input } = prepared.value;
+      try {
+        await dependencies.saveReview(parsedIngestionId, input, prepared.principal.userId);
+      } catch (error) {
+        if (
+          error instanceof ContentDraftConflictError ||
+          error instanceof IngestionReviewStateError ||
+          error instanceof NotFoundError
+        ) return { message: error.message };
+        dependencies.logFailure(error);
+        return { message: "Unable to save review changes. Please try again." };
+      }
+      return dependencies.reviewSaved(parsedIngestionId);
     },
 
     async saveMetadata(
@@ -311,30 +384,6 @@ export function createIngestionActionHandler(dependencies: {
         return { message: "Unable to remove artist. Please try again." };
       }
       return dependencies.artistChanged(parsedIngestionId);
-    },
-
-    async reopenAdminInput(
-      ingestionId: string,
-      draftId: string,
-      _previous: IngestionActionState,
-      _form: FormData,
-    ): Promise<IngestionActionState> {
-      const prepared = await prepareValidatedWrite({
-        parse: () => ({ ingestionId, draftId }),
-        schema: ReopenIngestionAdminInputSchema,
-        authorize: dependencies.authorize,
-      });
-      if (!prepared.ok) return { message: "Invalid draft.", errors: prepared.errors };
-
-      const { ingestionId: parsedIngestionId, ...input } = prepared.value;
-      try {
-        await dependencies.reopenAdminInput(parsedIngestionId, input, prepared.principal.userId);
-      } catch (error) {
-        if (artistError(error)) return { message: (error as Error).message };
-        dependencies.logFailure(error);
-        return { message: "Unable to reopen admin input. Please try again." };
-      }
-      return dependencies.adminInputReopened(parsedIngestionId);
     },
 
     async confirmArtists(

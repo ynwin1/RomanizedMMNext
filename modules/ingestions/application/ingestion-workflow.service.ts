@@ -20,7 +20,6 @@ function seedPatch(
   request: {
     songName: string;
     artist: string;
-    youtubeLink?: string;
     requestedBy?: string;
   },
 ): ContentDraftPatch | null {
@@ -31,13 +30,10 @@ function seedPatch(
   }
 
   const metadata: NonNullable<ContentDraftPatch["metadata"]> = {};
-
   if (!draft.metadata.requestedBy?.trim() && request.requestedBy?.trim()) {
     metadata.requestedBy = request.requestedBy;
   }
-  if (Object.keys(metadata).length > 0) {
-    patch.metadata = metadata;
-  }
+  if (Object.keys(metadata).length > 0) patch.metadata = metadata;
 
   if (draft.artists.length === 0) {
     patch.artists = [{ kind: "unresolved", name: request.artist }];
@@ -49,9 +45,23 @@ function seedPatch(
 export class IngestionWorkflowService {
   constructor(
     private readonly ingestions: IngestionService,
-    private readonly requests: Pick<SongRequestService, "getAdminDetail">,
+    private readonly requests: Pick<SongRequestService, "getAdminDetail" | "updateStatus">,
     private readonly drafts: Pick<ContentDraftService, "createForIngestion" | "getByIngestionId" | "update">,
   ) {}
+
+  async acceptRequest(
+    songRequestId: unknown,
+    requestRevision: unknown,
+    updatedBy?: string,
+  ): Promise<StartedIngestion> {
+    const accepted = await this.requests.updateStatus(
+      songRequestId,
+      requestRevision,
+      "accepted",
+      updatedBy,
+    );
+    return this.startAcceptedRequest(accepted.id, updatedBy);
+  }
 
   async startAcceptedRequest(songRequestId: unknown, updatedBy?: string): Promise<StartedIngestion> {
     const request = await this.requests.getAdminDetail(songRequestId);

@@ -104,7 +104,7 @@ export class IngestionGenerationService {
       if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
 
       const latest = await this.ingestions.getById(initial.id);
-      await this.ingestions.transition(latest.id, latest.revision, "needs_admin_input", updatedBy);
+      await this.ingestions.transition(latest.id, latest.revision, "ready_for_review", updatedBy);
 
       return {
         ingestion: await this.ingestions.getById(initial.id),
