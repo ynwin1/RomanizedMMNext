@@ -100,6 +100,22 @@ test("SongService analyzes the migration catalogue without writes", async () => 
   assert.equal(report.assessments[0]?.preview?.entries[0]?.kind, "line");
 });
 
+test("SongService builds a preview-only migration repair plan", async () => {
+  const service = new SongService(songRepository({
+    listLyricsMigrationCandidates: async () => [{
+      mmid: 17,
+      songName: "Test Song",
+      burmese: "တစ်\nနှစ်",
+      romanized: "tit\nhnit",
+      meaning: "One",
+    }],
+  }));
+
+  const report = await service.analyzeLyricsMigrationRepairs();
+  assert.equal(report.counts.AI_MEANING_ALIGNMENT, 1);
+  assert.equal(report.plans[0]?.sourceLyricLines, 2);
+});
+
 test("SongService throws NotFoundError for a missing song", async () => {
   const service = new SongService(songRepository({ findByMmid: async () => null }));
   await assert.rejects(() => service.getByMmid(999), NotFoundError);

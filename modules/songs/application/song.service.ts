@@ -18,7 +18,8 @@ import {
 } from "./song.dto";
 import { ISongRepository } from "./song.repository";
 import { buildLyricsMigrationReport } from "./lyrics-migration.validator";
-import type { LyricsMigrationReport } from "../domain/lyrics-migration.types";
+import { buildLyricsMigrationRepairReport } from "./lyrics-migration.repair";
+import type { LyricsMigrationRepairReport, LyricsMigrationReport } from "../domain/lyrics-migration.types";
 
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}
@@ -118,5 +119,9 @@ export class SongService {
 
   async analyzeLyricsMigration(): Promise<LyricsMigrationReport> {
     return buildLyricsMigrationReport(await this.songs.listLyricsMigrationCandidates());
+  }
+
+  async analyzeLyricsMigrationRepairs(): Promise<LyricsMigrationRepairReport> {
+    return buildLyricsMigrationRepairReport(await this.songs.listLyricsMigrationCandidates());
   }
 }
