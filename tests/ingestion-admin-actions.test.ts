@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createIngestionActionHandler } from "@/app/admin/ingestions/ingestion-action-handler";
-import { ContentGenerationProviderError } from "@/modules/content-generation";
+import {
+  ContentGenerationProviderError,
+  GeneratedContentQualityError,
+} from "@/modules/content-generation";
 
 const requestId = "507f1f77bcf86cd799439011";
 const ingestionId = "507f191e810c19729de860ea";
@@ -83,16 +86,38 @@ test("start, source, and full AI generation redirect only after successful workf
   ]);
 });
 
-test("provider failure is logged and returned as retryable full-generation failure", async () => {
+test("provider and quality failures are logged and returned as retryable generation failures", async () => {
   let logged: unknown;
-  const actions = handler({
+  const providerFailure = handler({
     generateAiContent: async () => {
       throw new ContentGenerationProviderError("secret provider detail", true, "http_429");
     },
     logFailure: error => { logged = error; },
   });
 
-  const result = await actions.generateAiContent(ingestionId, {}, new FormData());
-  assert.equal(result.message, "AI generation failed. You can retry this generation.");
+  const providerResult = await providerFailure.generateAiContent(ingestionId, {}, new FormData());
+  assert.equal(
+    providerResult.message,
+    "AI generation failed quality or provider checks. You can retry this generation.",
+  );
   assert.ok(logged instanceof ContentGenerationProviderError);
+
+  const qualityFailure = handler({
+    generateAiContent: async () => {
+      throw new GeneratedContentQualityError([{
+        code: "meaning_sentence_not_capitalized",
+        field: "meaning",
+        lineIndex: 0,
+        message: "Each detected sentence must begin with a capital letter.",
+      }]);
+    },
+    logFailure: error => { logged = error; },
+  });
+
+  const qualityResult = await qualityFailure.generateAiContent(ingestionId, {}, new FormData());
+  assert.equal(
+    qualityResult.message,
+    "AI generation failed quality or provider checks. You can retry this generation.",
+  );
+  assert.ok(logged instanceof GeneratedContentQualityError);
 });

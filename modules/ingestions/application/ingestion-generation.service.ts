@@ -1,6 +1,10 @@
 import type { ContentDraftService } from "@/modules/content-drafts/application/content-draft.service";
 import type { ContentDraftRecord } from "@/modules/content-drafts/domain/content-draft.types";
 import type { ContentGenerationService } from "@/modules/content-generation/application/content-generation.service";
+import {
+  evaluateCompleteGeneratedContent,
+  GeneratedContentQualityError,
+} from "@/modules/content-generation";
 import { IngestionService } from "./ingestion.service";
 import { IngestionConflictError } from "./ingestion-write.error";
 import { IngestionRomanizationService } from "./ingestion-romanization.service";
@@ -21,7 +25,14 @@ function joinGeneratedLines(lines: Array<{ text: string }>): string {
   return lines.map(line => line.text).join("\n");
 }
 
-function completeAiContent(draft: ContentDraftRecord): boolean {
+function completeAiContent(draft: ContentDraftRecord): draft is ContentDraftRecord & {
+  generated: {
+    romanized: string;
+    meaning: string;
+    about: string;
+    whenToListen: string;
+  };
+} {
   const generated = draft.generated;
   return Boolean(
     generated.romanized?.trim() &&
@@ -89,12 +100,15 @@ export class IngestionGenerationService {
       const completedDraft = await this.drafts.getByIngestionId(initial.id);
       if (!completeAiContent(completedDraft)) throw new IncompleteAiGenerationError();
 
+      const quality = evaluateCompleteGeneratedContent(completedDraft.generated);
+      if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
+
       const latest = await this.ingestions.getById(initial.id);
       await this.ingestions.transition(latest.id, latest.revision, "needs_admin_input", updatedBy);
 
       return {
         ingestion: await this.ingestions.getById(initial.id),
-        draft: await this.drafts.getByIngestionId(initial.id),
+        draft: completedDraft,
       };
     } catch (error) {
       try {

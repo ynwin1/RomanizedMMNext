@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ContentGenerationService } from "@/modules/content-generation";
+import {
+  ContentGenerationService,
+  GeneratedContentQualityError,
+} from "@/modules/content-generation";
 import { InvalidGeneratedContentError } from "@/modules/content-generation/application/content-generation.error";
 import { FakeContentGenerationProvider } from "./fakes/fake-content-generation.provider";
 
@@ -60,16 +63,16 @@ test("editorial context also validates continuous generated-line indexes", async
 
 test("content generation rejects line count, index, and blank-line alignment violations", async () => {
   const countMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
-    romanized: { lines: [{ index: 0, text: "ok" }] },
+    romanized: { lines: [{ index: 0, text: "Okay" }] },
   }));
   await assert.rejects(() => countMismatch.romanize(input), InvalidGeneratedContentError);
 
   const indexMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
     romanized: {
       lines: [
-        { index: 0, text: "ok" },
+        { index: 0, text: "Okay" },
         { index: 2, text: "" },
-        { index: 1, text: "ok" },
+        { index: 1, text: "Okay" },
       ],
     },
   }));
@@ -78,13 +81,45 @@ test("content generation rejects line count, index, and blank-line alignment vio
   const blankMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
     meaning: {
       lines: [
-        { index: 0, text: "ok" },
-        { index: 1, text: "invented" },
-        { index: 2, text: "ok" },
+        { index: 0, text: "Okay" },
+        { index: 1, text: "Invented" },
+        { index: 2, text: "Okay" },
       ],
     },
   }));
   await assert.rejects(() => blankMismatch.translateMeaning(input), InvalidGeneratedContentError);
+});
+
+test("content generation rejects output that fails RomanizedMM quality rules", async () => {
+  const lowercase = new ContentGenerationService(new FakeContentGenerationProvider({
+    romanized: {
+      lines: [
+        { index: 0, text: "lowercase start." },
+        { index: 1, text: "" },
+        { index: 2, text: "Valid start." },
+      ],
+    },
+  }));
+
+  await assert.rejects(
+    () => lowercase.romanize(input),
+    GeneratedContentQualityError,
+  );
+
+  const scriptLeak = new ContentGenerationService(new FakeContentGenerationProvider({
+    meaning: {
+      lines: [
+        { index: 0, text: "English မြန်မာ." },
+        { index: 1, text: "" },
+        { index: 2, text: "Valid." },
+      ],
+    },
+  }));
+
+  await assert.rejects(
+    () => scriptLeak.translateMeaning(input),
+    GeneratedContentQualityError,
+  );
 });
 
 test("content generation service rejects invalid or multiline editorial output", async () => {
