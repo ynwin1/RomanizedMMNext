@@ -32,6 +32,10 @@ export const SaveIngestionSourceSchema = z.object({
   burmeseLyrics: z.string().max(200000).refine(value => value.trim().length > 0, "Burmese lyrics are required"),
 }).strict();
 
+export const GenerateRomanizationSchema = z.object({
+  ingestionId: IngestionIdSchema,
+}).strict();
+
 export type CreateIngestionInput = z.infer<typeof CreateIngestionSchema>;
 export type TransitionIngestionCommand = z.infer<typeof TransitionIngestionCommandSchema>;
 export type SaveIngestionSourceCommand = z.infer<typeof SaveIngestionSourceSchema>;

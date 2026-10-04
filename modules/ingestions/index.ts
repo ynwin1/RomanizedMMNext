@@ -18,3 +18,5 @@ export * from "./domain/ingestion-state";
 export * from "./application/ingestion.validation";
 export * from "./application/ingestion-write.error";
 export * from "./application/ingestion-workflow.error";
+export * from "./application/ingestion-romanization.error";
+export * from "./application/ingestion-romanization.service";

@@ -25,6 +25,7 @@ test("content generation service validates deterministic provider results", asyn
   });
 
   assert.equal(romanized.lines[0]?.index, 0);
+  assert.equal(romanized.lines[1]?.text, "");
   assert.equal(meaning.lines[2]?.index, 2);
   assert.equal(editorial.about, "Deterministic test about text.");
   assert.equal(provider.romanizationCalls, 1);
@@ -43,15 +44,40 @@ test("generation input requires continuous zero-based lyric indexes before provi
   assert.equal(provider.romanizationCalls, 0);
 });
 
-test("content generation service rejects provider output outside runtime contract", async () => {
+test("content generation rejects line count, index, and blank-line alignment violations", async () => {
+  const countMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
+    romanized: { lines: [{ index: 0, text: "ok" }] },
+  }));
+  await assert.rejects(() => countMismatch.romanize(input), InvalidGeneratedContentError);
+
+  const indexMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
+    romanized: {
+      lines: [
+        { index: 0, text: "ok" },
+        { index: 2, text: "" },
+        { index: 1, text: "ok" },
+      ],
+    },
+  }));
+  await assert.rejects(() => indexMismatch.romanize(input), InvalidGeneratedContentError);
+
+  const blankMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
+    romanized: {
+      lines: [
+        { index: 0, text: "ok" },
+        { index: 1, text: "invented" },
+        { index: 2, text: "ok" },
+      ],
+    },
+  }));
+  await assert.rejects(() => blankMismatch.romanize(input), InvalidGeneratedContentError);
+});
+
+test("content generation service rejects invalid editorial output", async () => {
   const provider = new FakeContentGenerationProvider({
-    romanized: { lines: [{ index: 0, text: "ok" }, { index: 1, text: "ok" }] },
     editorial: { about: "", whenToListen: "" },
   });
   const service = new ContentGenerationService(provider);
-
-  const structurallyValid = await service.romanize(input);
-  assert.equal(structurallyValid.lines.length, 2);
 
   await assert.rejects(
     () => service.generateEditorialMetadata(input),
