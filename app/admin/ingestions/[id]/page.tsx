@@ -169,12 +169,6 @@ export default async function IngestionPage({ params, searchParams }: {
         />
       </div>
 
-      <div className="mt-6 rounded-xl border border-zinc-800 p-4">
-        <h2 className="font-semibold">Publish</h2>
-        <p className="mt-1 text-sm text-zinc-400">
-          The next publishing PR will turn this reviewed draft into the canonical song and complete the request.
-        </p>
-      </div>
     </>}
 
     {ingestion.status === "approved" &&

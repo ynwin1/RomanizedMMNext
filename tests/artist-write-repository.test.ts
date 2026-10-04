@@ -87,3 +87,37 @@ test("artist repository returns null when optimistic update does not match", asy
   t.mock.method(model, "findOneAndUpdate", () => ({ lean: async () => null }));
   assert.equal(await new MongoArtistRepository().update("artist", 2, content), null);
 });
+
+
+test("publishing adds song reference idempotently with addToSet and advances revision", async t => {
+  t.mock.method(database, "default", async () => {});
+  let filterSeen: unknown;
+  let updateSeen: unknown;
+  let optionsSeen: unknown;
+
+  t.mock.method(model, "findOneAndUpdate", (filter: unknown, update: unknown, options: unknown) => {
+    filterSeen = filter;
+    updateSeen = update;
+    optionsSeen = options;
+    return {
+      lean: async () => ({
+        _id: "a1",
+        slug: "artist",
+        likes: 0,
+        ...content,
+        songs: [17, 200],
+        updatedBy: "admin-1",
+      }),
+    };
+  });
+
+  const saved = await new MongoArtistRepository().addSongReference("artist", 200, "admin-1");
+  assert.equal(saved?.songs.includes(200), true);
+  assert.deepEqual(filterSeen, { slug: "artist" });
+  assert.deepEqual(updateSeen, {
+    $addToSet: { songs: 200 },
+    $set: { updatedBy: "admin-1" },
+    $inc: { __v: 1 },
+  });
+  assert.deepEqual(optionsSeen, { new: true, runValidators: true, upsert: false });
+});

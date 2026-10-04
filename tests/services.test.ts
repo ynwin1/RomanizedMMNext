@@ -35,6 +35,9 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
     listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
     countAdmin: async () => 0,
     create: async input => ({ id: "song-1", ...input }),
+    createPublished: async input => ({ id: "song-1", ...input }),
+    findBySourceIngestionId: async () => null,
+    nextMmid: async () => 18,
     update: async () => song,
     findForEdit: async () => ({ ...song, revision: 0 }),
     findByMmid: async () => song,
@@ -102,6 +105,7 @@ function artistRepository(overrides: Partial<IArtistRepository> = {}): IArtistRe
     listCatalogue: async () => ({ artists: [], totalPages: 0 }),
     create: async () => artist,
     update: async () => artist,
+    addSongReference: async () => artist,
     ...overrides,
   };
 }

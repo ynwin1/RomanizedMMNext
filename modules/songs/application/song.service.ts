@@ -1,7 +1,7 @@
 import { CreateSongSchema, SongContentSchema, SongIdSchema, SongRevisionSchema } from "./song.validation";
 import { SongConflictError } from "./song-write.error";
 import type { SongEditRecord } from "./song.dto";
-import { AdminListQuerySchema, type AdminListQuery } from "@/shared/admin-list";
+import { AdminListQuerySchema } from "@/shared/admin-list";
 import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRecord } from "./song.dto";
 import { NotFoundError } from "@/shared/errors/not-found.error";
@@ -22,6 +22,22 @@ export class SongService {
 
   async createSong(input: unknown, updatedBy?: string): Promise<SongEntity> {
     return this.songs.create(CreateSongSchema.parse(input), updatedBy);
+  }
+
+  async createPublishedSong(
+    input: unknown,
+    sourceIngestionId: string,
+    updatedBy?: string,
+  ): Promise<SongEntity> {
+    return this.songs.createPublished(CreateSongSchema.parse(input), sourceIngestionId, updatedBy);
+  }
+
+  async getPublishedByIngestion(sourceIngestionId: string): Promise<SongEntity | null> {
+    return this.songs.findBySourceIngestionId(sourceIngestionId);
+  }
+
+  async getNextMmid(): Promise<number> {
+    return this.songs.nextMmid();
   }
 
   async getSongForEdit(id: unknown): Promise<SongEditRecord> {
@@ -46,7 +62,6 @@ export class SongService {
   }
 
   async getAdminCount(): Promise<number> {
-    
     return this.songs.countAdmin();
   }
 

@@ -1,6 +1,6 @@
 import type { CreateSongInput, SongContentInput } from "../application/song.validation";
 import type { SongEditRecord } from "../application/song.dto";
-import { DuplicateSongError } from "../application/song-write.error";
+import { DuplicatePublishedSongError, DuplicateSongError } from "../application/song-write.error";
 import { adminPage, type AdminPage, type AdminListQuery } from "@/shared/admin-list";
 import { literalSearch } from "@/shared/literal-search";
 import type { AdminSongRecord } from "../application/song.dto";
@@ -56,12 +56,62 @@ export class MongoSongRepository implements ISongRepository {
       const song = await Song.create({ ...input, ...(updatedBy ? { updatedBy } : {}) });
       return toEntity(song.toObject());
     } catch (error) {
-      if (typeof error === "object" && error !== null && "code" in error && error.code === 11000 &&
-          "keyPattern" in error && typeof error.keyPattern === "object" && error.keyPattern !== null && "mmid" in error.keyPattern) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === 11000 &&
+        "keyPattern" in error &&
+        typeof error.keyPattern === "object" &&
+        error.keyPattern !== null &&
+        "mmid" in error.keyPattern
+      ) {
         throw new DuplicateSongError();
       }
       throw error;
     }
+  }
+
+  async createPublished(
+    input: CreateSongInput,
+    sourceIngestionId: string,
+    updatedBy?: string,
+  ): Promise<SongEntity> {
+    await connectDB();
+    try {
+      const song = await Song.create({
+        ...input,
+        sourceIngestionId,
+        ...(updatedBy ? { updatedBy } : {}),
+      });
+      return toEntity(song.toObject());
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === 11000 &&
+        "keyPattern" in error &&
+        typeof error.keyPattern === "object" &&
+        error.keyPattern !== null
+      ) {
+        if ("sourceIngestionId" in error.keyPattern) throw new DuplicatePublishedSongError();
+        if ("mmid" in error.keyPattern) throw new DuplicateSongError();
+      }
+      throw error;
+    }
+  }
+
+  async findBySourceIngestionId(sourceIngestionId: string): Promise<SongEntity | null> {
+    await connectDB();
+    const song = await Song.findOne({ sourceIngestionId }).lean();
+    return song ? toEntity(song) : null;
+  }
+
+  async nextMmid(): Promise<number> {
+    await connectDB();
+    const latest = await Song.findOne({}).sort({ mmid: -1 }).select("mmid -_id").lean();
+    return (latest?.mmid ?? 0) + 1;
   }
 
   async findForEdit(mmid: number): Promise<SongEditRecord | null> {

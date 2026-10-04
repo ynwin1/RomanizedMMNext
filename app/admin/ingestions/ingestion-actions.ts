@@ -15,6 +15,7 @@ import {
   IngestionMetadataService,
   IngestionReviewService,
 } from "@/modules/ingestions";
+import { publishingService } from "@/modules/publishing";
 import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
 import { createIngestionActionHandler, type IngestionActionState } from "./ingestion-action-handler";
 
@@ -56,6 +57,8 @@ const actions = createIngestionActionHandler({
   generateAiContent,
   saveMetadata,
   saveReview,
+  publishSong: (ingestionId, updatedBy) =>
+    publishingService.publish(ingestionId, updatedBy),
   resolveArtist: (ingestionId, input, updatedBy) =>
     artistWorkflow().resolve(ingestionId, input, updatedBy),
   addArtist: (ingestionId, input, updatedBy) =>
@@ -83,6 +86,12 @@ const actions = createIngestionActionHandler({
   reviewSaved(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId + "?reviewSaved=1");
+  },
+  published(song) {
+    revalidatePath("/admin", "layout");
+    revalidatePath("/en", "layout");
+    const name = song.songName.split("(")[0].trim().replace(/\s/g, "");
+    redirect("/en/song/" + encodeURIComponent(name || "song") + "/" + song.mmid);
   },
   artistChanged(ingestionId) {
     revalidatePath("/admin", "layout");
