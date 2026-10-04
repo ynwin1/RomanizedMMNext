@@ -225,3 +225,54 @@ test("low-risk migration atomically sets lyricsV2 only when absent", async t => 
   t.mock.method(model, "findOneAndUpdate", () => ({ lean: async () => null }));
   assert.equal(await new MongoSongRepository().setLyricsV2IfAbsent(17, lyricsV2, "admin-1"), false);
 });
+
+
+test("reviewed Meaning migration writes only when the legacy snapshot still matches", async t => {
+  t.mock.method(database, "default", async () => {});
+  let filter: unknown;
+  t.mock.method(model, "findOneAndUpdate", (f: unknown) => {
+    filter = f;
+    return { lean: async () => ({ _id: "s1", mmid: 17, ...content, lyricsV2 }) };
+  });
+
+  const expected = {
+    burmese: content.burmese,
+    romanized: content.romanized,
+    meaning: content.meaning,
+  };
+  const repo = new MongoSongRepository();
+  assert.deepEqual(
+    await repo.setLyricsV2IfLegacyMatches(17, expected, lyricsV2, "admin-1"),
+    { status: "saved" },
+  );
+  assert.deepEqual(filter, {
+    mmid: 17,
+    lyricsV2: { $exists: false },
+    ...expected,
+  });
+});
+
+test("reviewed Meaning migration distinguishes existing V2 from stale source", async t => {
+  t.mock.method(database, "default", async () => {});
+  const expected = { burmese: content.burmese, romanized: content.romanized, meaning: content.meaning };
+  t.mock.method(model, "findOneAndUpdate", () => ({ lean: async () => null }));
+
+  t.mock.method(model, "findOne", () => ({
+    select: () => ({ lean: async () => ({ lyricsV2 }) }),
+    lean: async () => ({ lyricsV2 }),
+  }));
+  const repo = new MongoSongRepository();
+  assert.deepEqual(
+    await repo.setLyricsV2IfLegacyMatches(17, expected, lyricsV2, "admin-1"),
+    { status: "already_v2" },
+  );
+
+  t.mock.method(model, "findOne", () => ({
+    select: () => ({ lean: async () => ({}) }),
+    lean: async () => ({}),
+  }));
+  assert.deepEqual(
+    await repo.setLyricsV2IfLegacyMatches(17, expected, lyricsV2, "admin-1"),
+    { status: "stale" },
+  );
+});

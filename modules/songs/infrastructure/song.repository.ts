@@ -9,6 +9,7 @@ import Song, { type ISong } from "./song.model";
 import { ISongRepository } from "../application/song.repository";
 import { SongEntity } from "../domain/song.types";
 import type { LegacyLyricsMigrationCandidate } from "../domain/lyrics-migration.types";
+import type { LegacyLyricsSnapshot, LyricsMeaningAlignmentSaveResult } from "../domain/lyrics-meaning-alignment.types";
 import type { LyricsV2 } from "../domain/lyrics-v2.types";
 import {
   GuessLyricsSong,
@@ -263,5 +264,31 @@ export class MongoSongRepository implements ISongRepository {
       { new: true, runValidators: true, upsert: false },
     ).lean();
     return song !== null;
+  }
+
+  async setLyricsV2IfLegacyMatches(
+    mmid: number,
+    expected: LegacyLyricsSnapshot,
+    lyricsV2: LyricsV2,
+    updatedBy: string,
+  ): Promise<LyricsMeaningAlignmentSaveResult> {
+    await connectDB();
+    const saved = await Song.findOneAndUpdate(
+      {
+        mmid,
+        lyricsV2: { $exists: false },
+        burmese: expected.burmese,
+        romanized: expected.romanized,
+        meaning: expected.meaning,
+      },
+      { $set: { lyricsV2, updatedBy }, $inc: { __v: 1 } },
+      { new: true, runValidators: true, upsert: false },
+    ).lean();
+
+    if (saved) return { status: "saved" };
+
+    const current = await Song.findOne({ mmid }).select("lyricsV2 -_id").lean();
+    if (current?.lyricsV2) return { status: "already_v2" };
+    return { status: "stale" };
   }
 }

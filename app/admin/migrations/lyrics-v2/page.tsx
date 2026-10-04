@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { adminReads } from "../../admin.data";
+import { requireAdmin } from "@/infrastructure/auth";
+import { lyricsMeaningReviewDraftRepository } from "@/modules/songs";
 import type { LyricsMigrationRepairStrategy, LyricsMigrationStatus } from "@/modules/songs";
 import { migrateLowRiskLyricsV2Action } from "./migration-actions";
 
@@ -23,12 +25,20 @@ export default async function LyricsV2MigrationPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await requireAdmin();
   const params = await searchParams;
-  const [report, repairs] = await Promise.all([adminReads.lyricsMigrationReadiness(), adminReads.lyricsMigrationRepairs()]);
+  const [report, repairs, draftMmids] = await Promise.all([
+    adminReads.lyricsMigrationReadiness(),
+    adminReads.lyricsMigrationRepairs(),
+    lyricsMeaningReviewDraftRepository.listMmids(),
+  ]);
+  const draftMmidSet = new Set(draftMmids);
   const migrated = typeof params.migrated === "string" ? params.migrated : undefined;
   const alreadyV2 = typeof params.alreadyV2 === "string" ? params.alreadyV2 : undefined;
   const skippedConcurrent = typeof params.skippedConcurrent === "string" ? params.skippedConcurrent : undefined;
   const migrationError = typeof params.migrationError === "string" ? params.migrationError : undefined;
+  const saveResult = typeof params.saveResult === "string" ? params.saveResult : undefined;
+  const savedMmid = typeof params.mmid === "string" ? params.mmid : undefined;
 
   return (
     <section aria-labelledby="lyrics-v2-migration-heading">
@@ -67,6 +77,11 @@ export default async function LyricsV2MigrationPage({
           {migrationError === "confirmation"
             ? "Type MIGRATE_LOW_RISK exactly before running the migration."
             : "The migration stopped after an unexpected error. It is safe to rerun because writes are idempotent."}
+        </div>
+      )}
+      {saveResult === "meaning-reviewed" && (
+        <div role="status" className="mt-6 rounded border border-emerald-800 bg-emerald-950/40 p-4 text-emerald-200">
+          Reviewed lyricsV2 saved{savedMmid ? ` for MMID ${savedMmid}` : ""}. Its AI review draft has been cleared.
         </div>
       )}
 
@@ -159,9 +174,16 @@ export default async function LyricsV2MigrationPage({
                 </td>
                 <td className="p-4 text-zinc-300">
                   {assessment.preview
-                    ? `${assessment.preview.entries.filter(entry => entry.kind === "line").length} lyric rows`
+                    ? <span className="text-emerald-300">V2 saved · {assessment.preview.entries.filter(entry => entry.kind === "line").length} lyric rows</span>
                     : repair?.strategy === "AI_MEANING_ALIGNMENT"
-                      ? <Link href={`/admin/migrations/lyrics-v2/${assessment.mmid}/meaning-preview`} className="underline decoration-zinc-600 underline-offset-4 hover:text-indigo-300">Generate AI preview</Link>
+                      ? (
+                        <Link
+                          href={`/admin/migrations/lyrics-v2/${assessment.mmid}/meaning-preview`}
+                          className="underline decoration-zinc-600 underline-offset-4 hover:text-indigo-300"
+                        >
+                          {draftMmidSet.has(assessment.mmid) ? "Continue review" : "Generate AI preview"}
+                        </Link>
+                      )
                       : "No automatic preview"}
                 </td>
               </tr>

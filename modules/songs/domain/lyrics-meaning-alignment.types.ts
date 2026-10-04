@@ -27,15 +27,28 @@ export interface MeaningAlignmentResult {
   lines: MeaningAlignmentOutputLine[];
 }
 
+export interface LegacyLyricsSnapshot {
+  burmese: string;
+  romanized: string;
+  meaning: string;
+}
+
+export interface LyricsMeaningAlignmentSaveResult {
+  status: "saved" | "stale" | "already_v2";
+}
+
 export interface LyricsMeaningAlignmentPreview {
   mmid: number;
   songName: string;
   strategy: LyricsMigrationRepairStrategy;
+  legacySnapshot: LegacyLyricsSnapshot;
   lyricsV2: LyricsV2;
   rows: Array<MeaningAlignmentOutputLine & {
     burmese: string;
     romanized: string;
+    edited: boolean;
   }>;
+  cached: boolean;
   counts: {
     reused: number;
     generated: number;

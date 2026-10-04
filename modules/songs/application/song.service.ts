@@ -21,6 +21,8 @@ import { buildLyricsMigrationReport } from "./lyrics-migration.validator";
 import { buildLyricsMigrationRepairReport, planLyricsMigrationRepair } from "./lyrics-migration.repair";
 import { parseLyricsV2 } from "./lyrics-v2.validation";
 import type { LyricsMigrationExecutionResult, LyricsMigrationRepairReport, LyricsMigrationReport } from "../domain/lyrics-migration.types";
+import type { LegacyLyricsSnapshot, LyricsMeaningAlignmentSaveResult } from "../domain/lyrics-meaning-alignment.types";
+import type { LyricsV2 } from "../domain/lyrics-v2.types";
 
 export class SongService {
   constructor(private readonly songs: ISongRepository) {}
@@ -120,6 +122,15 @@ export class SongService {
 
   async getLyricsMigrationCandidate(mmid: number) {
     return (await this.songs.listLyricsMigrationCandidates()).find(song => song.mmid === mmid) ?? null;
+  }
+
+  async saveLyricsV2IfLegacyMatches(
+    mmid: number,
+    expected: LegacyLyricsSnapshot,
+    lyricsV2: LyricsV2,
+    updatedBy: string,
+  ): Promise<LyricsMeaningAlignmentSaveResult> {
+    return this.songs.setLyricsV2IfLegacyMatches(mmid, expected, parseLyricsV2(lyricsV2), updatedBy);
   }
 
   async analyzeLyricsMigration(): Promise<LyricsMigrationReport> {

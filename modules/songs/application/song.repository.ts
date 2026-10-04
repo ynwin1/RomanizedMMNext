@@ -6,6 +6,7 @@ import type { AdminSongRecord } from "./song.dto";
 import type { SongEntity } from "../domain/song.types";
 import type { LyricsV2 } from "../domain/lyrics-v2.types";
 import type { LegacyLyricsMigrationCandidate } from "../domain/lyrics-migration.types";
+import type { LegacyLyricsSnapshot, LyricsMeaningAlignmentSaveResult } from "../domain/lyrics-meaning-alignment.types";
 import type {
   GuessLyricsSong,
   GuessSongRecord,
@@ -37,4 +38,5 @@ export interface ISongRepository {
   findByArtistName(artistName: string): Promise<SongEntity[]>;
   listLyricsMigrationCandidates(): Promise<LegacyLyricsMigrationCandidate[]>;
   setLyricsV2IfAbsent(mmid: number, lyricsV2: LyricsV2, updatedBy: string): Promise<boolean>;
+  setLyricsV2IfLegacyMatches(mmid: number, expected: LegacyLyricsSnapshot, lyricsV2: LyricsV2, updatedBy: string): Promise<LyricsMeaningAlignmentSaveResult>;
 }

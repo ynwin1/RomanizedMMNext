@@ -1,7 +1,9 @@
 import { SongService } from "./application/song.service";
 import { MongoSongRepository } from "./infrastructure/song.repository";
+import { MongoLyricsMeaningReviewDraftRepository } from "./infrastructure/lyrics-meaning-review-draft.repository";
 
 const songRepository = new MongoSongRepository();
+export const lyricsMeaningReviewDraftRepository = new MongoLyricsMeaningReviewDraftRepository();
 
 export const songService = new SongService(songRepository);
 
@@ -20,3 +22,6 @@ export * from "./application/song-write.error";
 export * from "./domain/lyrics-meaning-alignment.types";
 export * from "./application/lyrics-meaning-alignment.provider";
 export * from "./application/lyrics-meaning-alignment.service";
+
+export * from "./domain/lyrics-meaning-review-draft.types";
+export * from "./application/lyrics-meaning-review-draft.repository";
