@@ -39,6 +39,7 @@ function toEntity(song: SongPersistenceRecord): SongEntity {
     romanized: song.romanized,
     burmese: song.burmese,
     meaning: song.meaning,
+    lyricsV2: song.lyricsV2,
     createdAt: song.createdAt,
     updatedAt: song.updatedAt,
     updatedBy: song.updatedBy,

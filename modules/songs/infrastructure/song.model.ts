@@ -1,4 +1,5 @@
 import mongoose, { Schema, Model, models } from "mongoose";
+import type { LyricsV2 } from "../domain/lyrics-v2.types";
 
 export interface ISong extends mongoose.Document {
     mmid: number;
@@ -20,6 +21,7 @@ export interface ISong extends mongoose.Document {
     romanized: string;
     burmese: string;
     meaning: string;
+    lyricsV2?: LyricsV2;
     sourceIngestionId?: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -29,6 +31,18 @@ export interface ISong extends mongoose.Document {
     songStoryEn?: string;
     songStoryMy?: string;
 }
+
+const LyricsV2EntrySchema = new Schema({
+    kind: { type: String, enum: ["line", "break"], required: true },
+    burmese: { type: String },
+    romanized: { type: String },
+    meaning: { type: String },
+}, { _id: false });
+
+const LyricsV2Schema = new Schema({
+    version: { type: Number, enum: [2], required: true },
+    entries: { type: [LyricsV2EntrySchema], required: true },
+}, { _id: false });
 
 const SongSchema: Schema<ISong> = new Schema({
     mmid: { type: Number, required: true, unique: true },
@@ -53,6 +67,7 @@ const SongSchema: Schema<ISong> = new Schema({
     romanized: { type: String, required: true },
     burmese: { type: String, required: true },
     meaning: { type: String, required: true },
+    lyricsV2: { type: LyricsV2Schema },
     sourceIngestionId: { type: String, unique: true, sparse: true, index: true },
     createdAt: { type: Date, default: Date.now },
     updatedBy: { type: String },

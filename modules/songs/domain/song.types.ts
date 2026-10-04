@@ -1,3 +1,5 @@
+import type { LyricsV2 } from "./lyrics-v2.types";
+
 export interface SongArtist {
   name: string;
   slug?: string;
@@ -21,6 +23,7 @@ export interface SongEntity {
   romanized: string;
   burmese: string;
   meaning: string;
+  lyricsV2?: LyricsV2;
   createdAt?: Date;
   updatedAt?: Date;
   updatedBy?: string;
