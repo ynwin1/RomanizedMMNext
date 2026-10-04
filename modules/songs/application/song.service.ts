@@ -6,6 +6,7 @@ import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRecord } from "./song.dto";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { SongEntity } from "../domain/song.types";
+import { withCanonicalLyrics } from "../domain/lyrics.compatibility";
 import {
   GuessLyricsSong,
   GuessSongRecord,
@@ -74,7 +75,7 @@ export class SongService {
   }
 
   async getSongPage(mmid: number): Promise<SongEntity> {
-    return this.getByMmid(mmid);
+    return withCanonicalLyrics(await this.getByMmid(mmid));
   }
 
   async search(query: string): Promise<SongSearchResult[]> {
