@@ -199,3 +199,29 @@ test("published song lookup and next MMID use internal provenance and highest ca
 
   assert.equal(await repo.nextMmid(), 200);
 });
+
+
+test("low-risk migration atomically sets lyricsV2 only when absent", async t => {
+  t.mock.method(database, "default", async () => {});
+  let filter: unknown;
+  let update: unknown;
+  let options: unknown;
+  t.mock.method(model, "findOneAndUpdate", (f: unknown, u: unknown, o: unknown) => {
+    filter = f;
+    update = u;
+    options = o;
+    return { lean: async () => ({ _id: "s1", mmid: 17, ...content, lyricsV2 }) };
+  });
+
+  const migrated = await new MongoSongRepository().setLyricsV2IfAbsent(17, lyricsV2, "admin-1");
+  assert.equal(migrated, true);
+  assert.deepEqual(filter, { mmid: 17, lyricsV2: { $exists: false } });
+  assert.deepEqual(update, {
+    $set: { lyricsV2, updatedBy: "admin-1" },
+    $inc: { __v: 1 },
+  });
+  assert.deepEqual(options, { new: true, runValidators: true, upsert: false });
+
+  t.mock.method(model, "findOneAndUpdate", () => ({ lean: async () => null }));
+  assert.equal(await new MongoSongRepository().setLyricsV2IfAbsent(17, lyricsV2, "admin-1"), false);
+});

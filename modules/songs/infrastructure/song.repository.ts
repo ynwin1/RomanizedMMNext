@@ -9,6 +9,7 @@ import Song, { type ISong } from "./song.model";
 import { ISongRepository } from "../application/song.repository";
 import { SongEntity } from "../domain/song.types";
 import type { LegacyLyricsMigrationCandidate } from "../domain/lyrics-migration.types";
+import type { LyricsV2 } from "../domain/lyrics-v2.types";
 import {
   GuessLyricsSong,
   GuessSongRecord,
@@ -252,5 +253,15 @@ export class MongoSongRepository implements ISongRepository {
       meaning: song.meaning,
       ...(song.lyricsV2 ? { lyricsV2: song.lyricsV2 } : {}),
     }));
+  }
+
+  async setLyricsV2IfAbsent(mmid: number, lyricsV2: LyricsV2, updatedBy: string): Promise<boolean> {
+    await connectDB();
+    const song = await Song.findOneAndUpdate(
+      { mmid, lyricsV2: { $exists: false } },
+      { $set: { lyricsV2, updatedBy }, $inc: { __v: 1 } },
+      { new: true, runValidators: true, upsert: false },
+    ).lean();
+    return song !== null;
   }
 }
