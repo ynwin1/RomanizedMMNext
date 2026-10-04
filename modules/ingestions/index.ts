@@ -20,3 +20,5 @@ export * from "./application/ingestion-write.error";
 export * from "./application/ingestion-workflow.error";
 export * from "./application/ingestion-romanization.error";
 export * from "./application/ingestion-romanization.service";
+export * from "./application/ingestion-generation.error";
+export * from "./application/ingestion-generation.service";

@@ -22,6 +22,8 @@ test("content generation service validates deterministic provider results", asyn
     ...input,
     songName: "Song",
     artistNames: ["Artist"],
+    romanizedLines: romanized.lines,
+    meaningLines: meaning.lines,
   });
 
   assert.equal(romanized.lines[0]?.index, 0);
@@ -44,6 +46,18 @@ test("generation input requires continuous zero-based lyric indexes before provi
   assert.equal(provider.romanizationCalls, 0);
 });
 
+test("editorial context also validates continuous generated-line indexes", async () => {
+  const provider = new FakeContentGenerationProvider();
+  const service = new ContentGenerationService(provider);
+
+  await assert.rejects(() => service.generateEditorialMetadata({
+    ...input,
+    meaningLines: [{ index: 2, text: "bad" }],
+  }));
+
+  assert.equal(provider.editorialCalls, 0);
+});
+
 test("content generation rejects line count, index, and blank-line alignment violations", async () => {
   const countMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
     romanized: { lines: [{ index: 0, text: "ok" }] },
@@ -62,7 +76,7 @@ test("content generation rejects line count, index, and blank-line alignment vio
   await assert.rejects(() => indexMismatch.romanize(input), InvalidGeneratedContentError);
 
   const blankMismatch = new ContentGenerationService(new FakeContentGenerationProvider({
-    romanized: {
+    meaning: {
       lines: [
         { index: 0, text: "ok" },
         { index: 1, text: "invented" },
@@ -70,17 +84,17 @@ test("content generation rejects line count, index, and blank-line alignment vio
       ],
     },
   }));
-  await assert.rejects(() => blankMismatch.romanize(input), InvalidGeneratedContentError);
+  await assert.rejects(() => blankMismatch.translateMeaning(input), InvalidGeneratedContentError);
 });
 
-test("content generation service rejects invalid editorial output", async () => {
-  const provider = new FakeContentGenerationProvider({
+test("content generation service rejects invalid or multiline editorial output", async () => {
+  const empty = new ContentGenerationService(new FakeContentGenerationProvider({
     editorial: { about: "", whenToListen: "" },
-  });
-  const service = new ContentGenerationService(provider);
+  }));
+  await assert.rejects(() => empty.generateEditorialMetadata(input), InvalidGeneratedContentError);
 
-  await assert.rejects(
-    () => service.generateEditorialMetadata(input),
-    InvalidGeneratedContentError,
-  );
+  const multiline = new ContentGenerationService(new FakeContentGenerationProvider({
+    editorial: { about: "Line one\nLine two", whenToListen: "One line" },
+  }));
+  await assert.rejects(() => multiline.generateEditorialMetadata(input), InvalidGeneratedContentError);
 });
