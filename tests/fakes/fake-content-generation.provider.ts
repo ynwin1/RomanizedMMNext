@@ -20,14 +20,20 @@ export class FakeContentGenerationProvider implements ContentGenerationProvider 
   async romanize(input: LyricGenerationInput): Promise<LineGenerationResult> {
     this.romanizationCalls++;
     return this.overrides.romanized ?? {
-      lines: input.lines.map(line => ({ index: line.index, text: "romanized:" + line.text })),
+      lines: input.lines.map(line => ({
+        index: line.index,
+        text: line.text === "" ? "" : "romanized:" + line.text,
+      })),
     };
   }
 
   async translateMeaning(input: LyricGenerationInput): Promise<LineGenerationResult> {
     this.meaningCalls++;
     return this.overrides.meaning ?? {
-      lines: input.lines.map(line => ({ index: line.index, text: "meaning:" + line.text })),
+      lines: input.lines.map(line => ({
+        index: line.index,
+        text: line.text === "" ? "" : "meaning:" + line.text,
+      })),
     };
   }
 

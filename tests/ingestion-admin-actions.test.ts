@@ -1,52 +1,59 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createIngestionActionHandler } from "@/app/admin/ingestions/ingestion-action-handler";
+import { ContentGenerationProviderError } from "@/modules/content-generation";
 
 const requestId = "507f1f77bcf86cd799439011";
 const ingestionId = "507f191e810c19729de860ea";
 
+function handler(overrides: Partial<Parameters<typeof createIngestionActionHandler>[0]> = {}) {
+  return createIngestionActionHandler({
+    authorize: async () => ({ userId: "admin-1" }),
+    workflow: {
+      startAcceptedRequest: async () => ({ ingestion: { id: ingestionId } as any, draft: {} as any }),
+      saveAndConfirmSource: async () => ({ ingestion: { id: ingestionId } as any, draft: {} as any }),
+    },
+    generateRomanization: async () => ({}),
+    started: id => { throw new Error("started:" + id); },
+    sourceSaved: id => { throw new Error("source:" + id); },
+    romanized: id => { throw new Error("romanized:" + id); },
+    logFailure: () => {},
+    ...overrides,
+  });
+}
+
 test("ingestion admin actions authorize before workflow writes", async () => {
   let calls = 0;
   const denied = new Error("auth redirect");
-  const handler = createIngestionActionHandler({
+  const actions = handler({
     authorize: async () => { throw denied; },
-    workflow: {
-      startAcceptedRequest: async () => { calls++; throw new Error("unexpected"); },
-      saveAndConfirmSource: async () => { calls++; throw new Error("unexpected"); },
-    },
-    started: () => { throw new Error("unexpected"); },
-    sourceSaved: () => { throw new Error("unexpected"); },
-    logFailure: () => {},
+    generateRomanization: async () => { calls++; },
   });
 
-  await assert.rejects(() => handler.start(requestId, {}, new FormData()), error => error === denied);
+  await assert.rejects(() => actions.start(requestId, {}, new FormData()), error => error === denied);
   const form = new FormData(); form.set("burmeseLyrics", "မြန်မာစာ");
-  await assert.rejects(() => handler.saveSource(ingestionId, 0, 0, {}, form), error => error === denied);
+  await assert.rejects(() => actions.saveSource(ingestionId, 0, 0, {}, form), error => error === denied);
+  await assert.rejects(() => actions.generateRomanization(ingestionId, {}, new FormData()), error => error === denied);
   assert.equal(calls, 0);
 });
 
 test("source action validates lyrics before calling workflow", async () => {
   let calls = 0;
-  const handler = createIngestionActionHandler({
-    authorize: async () => ({ userId: "admin-1" }),
+  const actions = handler({
     workflow: {
       startAcceptedRequest: async () => { throw new Error("unused"); },
       saveAndConfirmSource: async () => { calls++; throw new Error("unexpected"); },
     },
-    started: () => { throw new Error("unused"); },
-    sourceSaved: () => { throw new Error("unexpected"); },
-    logFailure: () => {},
   });
   const form = new FormData(); form.set("burmeseLyrics", "   ");
-  const result = await handler.saveSource(ingestionId, 0, 0, {}, form);
+  const result = await actions.saveSource(ingestionId, 0, 0, {}, form);
   assert.match(result.message ?? "", /valid Burmese source/);
   assert.equal(calls, 0);
 });
 
-test("start and source actions redirect only after successful workflow", async () => {
+test("start, source, and romanization redirect only after successful workflow", async () => {
   const calls: string[] = [];
-  const handler = createIngestionActionHandler({
-    authorize: async () => ({ userId: "admin-1" }),
+  const actions = handler({
     workflow: {
       startAcceptedRequest: async (_requestId, actor) => {
         assert.equal(actor, "admin-1"); calls.push("start");
@@ -57,13 +64,35 @@ test("start and source actions redirect only after successful workflow", async (
         return { ingestion: { id: ingestionId } as any, draft: {} as any };
       },
     },
+    generateRomanization: async (_id, actor) => {
+      assert.equal(actor, "admin-1"); calls.push("romanize");
+    },
     started: id => { calls.push("started:" + id); throw new Error("start redirect"); },
     sourceSaved: id => { calls.push("saved:" + id); throw new Error("source redirect"); },
-    logFailure: () => {},
+    romanized: id => { calls.push("romanized:" + id); throw new Error("romanized redirect"); },
   });
 
-  await assert.rejects(() => handler.start(requestId, {}, new FormData()), /start redirect/);
+  await assert.rejects(() => actions.start(requestId, {}, new FormData()), /start redirect/);
   const form = new FormData(); form.set("burmeseLyrics", "မြန်မာစာ");
-  await assert.rejects(() => handler.saveSource(ingestionId, 2, 3, {}, form), /source redirect/);
-  assert.deepEqual(calls, ["start", "started:" + ingestionId, "source", "saved:" + ingestionId]);
+  await assert.rejects(() => actions.saveSource(ingestionId, 2, 3, {}, form), /source redirect/);
+  await assert.rejects(() => actions.generateRomanization(ingestionId, {}, new FormData()), /romanized redirect/);
+  assert.deepEqual(calls, [
+    "start", "started:" + ingestionId,
+    "source", "saved:" + ingestionId,
+    "romanize", "romanized:" + ingestionId,
+  ]);
+});
+
+test("provider failure is logged and returned as retryable user-facing generation failure", async () => {
+  let logged: unknown;
+  const actions = handler({
+    generateRomanization: async () => {
+      throw new ContentGenerationProviderError("secret provider detail", true, "http_429");
+    },
+    logFailure: error => { logged = error; },
+  });
+
+  const result = await actions.generateRomanization(ingestionId, {}, new FormData());
+  assert.equal(result.message, "Romanization failed. You can retry this generation.");
+  assert.ok(logged instanceof ContentGenerationProviderError);
 });
