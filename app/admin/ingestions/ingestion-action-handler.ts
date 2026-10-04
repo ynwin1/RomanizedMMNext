@@ -32,6 +32,11 @@ import {
 import { IngestionMetadataStateError } from "@/modules/ingestions/application/ingestion-metadata.error";
 import { IngestionReviewStateError } from "@/modules/ingestions/application/ingestion-review.error";
 import {
+  DraftNotPublishableError,
+  PublicationMmidAllocationError,
+  PublicationStateError,
+} from "@/modules/publishing";
+import {
   DraftArtistResolutionError,
   IngestionArtistResolutionStateError,
 } from "@/modules/ingestions/application/ingestion-artist-resolution.error";
@@ -96,6 +101,7 @@ export function createIngestionActionHandler(dependencies: {
   generateAiContent: (ingestionId: string, updatedBy: string) => Promise<unknown>;
   saveMetadata: (ingestionId: string, input: z.infer<typeof SaveDraftMetadataSchema>, updatedBy: string) => Promise<unknown>;
   saveReview: (ingestionId: string, input: z.infer<typeof SaveDraftReviewSchema>, updatedBy: string) => Promise<unknown>;
+  publishSong: (ingestionId: string, updatedBy: string) => Promise<{ mmid: number; songName: string }>;
   resolveArtist: (ingestionId: string, input: z.infer<typeof ResolveDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
   addArtist: (ingestionId: string, input: z.infer<typeof AddDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
   removeArtist: (ingestionId: string, input: z.infer<typeof RemoveDraftArtistSchema>, updatedBy: string) => Promise<unknown>;
@@ -105,6 +111,7 @@ export function createIngestionActionHandler(dependencies: {
   generationFailed: (ingestionId: string) => never;
   metadataSaved: (ingestionId: string) => never;
   reviewSaved: (ingestionId: string) => never;
+  published: (song: { mmid: number; songName: string }) => never;
   artistChanged: (ingestionId: string) => never;
   artistsConfirmed: (ingestionId: string) => never;
   logFailure: (error: unknown) => void;
@@ -265,6 +272,26 @@ export function createIngestionActionHandler(dependencies: {
         dependencies.logFailure(error);
         return { message: "Unable to save review changes. Please try again." };
       }
+
+      if (form.get("intent") === "publish") {
+        let song: { mmid: number; songName: string };
+        try {
+          song = await dependencies.publishSong(parsedIngestionId, prepared.principal.userId);
+        } catch (error) {
+          if (
+            error instanceof DraftNotPublishableError ||
+            error instanceof PublicationStateError ||
+            error instanceof PublicationMmidAllocationError ||
+            error instanceof NotFoundError
+          ) {
+            return { message: error.message };
+          }
+          dependencies.logFailure(error);
+          return { message: "Unable to publish this song. Please try again." };
+        }
+        return dependencies.published(song);
+      }
+
       return dependencies.reviewSaved(parsedIngestionId);
     },
 

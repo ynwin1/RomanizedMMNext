@@ -13,4 +13,5 @@ export interface IArtistRepository {
   listCatalogue(page: number, limit: number): Promise<ArtistCataloguePage>;
   create(input: CreateArtistInput, updatedBy?: string): Promise<ArtistEntity>;
   update(slug: string, revision: number, input: ArtistContentInput, updatedBy?: string): Promise<ArtistEntity | null>;
+  addSongReference(slug: string, mmid: number, updatedBy?: string): Promise<ArtistEntity | null>;
 }

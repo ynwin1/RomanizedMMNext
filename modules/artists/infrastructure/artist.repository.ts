@@ -117,6 +117,20 @@ export class MongoArtistRepository implements IArtistRepository {
     return null;
   }
 
+  async addSongReference(slug: string, mmid: number, updatedBy?: string): Promise<ArtistEntity | null> {
+    await connectDB();
+    const artist = await Artist.findOneAndUpdate(
+      { slug },
+      {
+        $addToSet: { songs: mmid },
+        ...(updatedBy ? { $set: { updatedBy } } : {}),
+        $inc: { __v: 1 },
+      },
+      { new: true, runValidators: true, upsert: false },
+    ).lean();
+    return artist ? toEntity(artist) : null;
+  }
+
   async listCatalogue(page: number, limit: number): Promise<ArtistCataloguePage> {
     await connectDB();
     const [artists, totalArtistCount] = await Promise.all([

@@ -16,7 +16,11 @@ const content = {
 const song = { id: "s1", mmid: 17, ...content };
 function repository(overrides: Partial<ISongRepository> = {}): ISongRepository {
   return {
-    create: async input => ({ id: "s1", ...input }), update: async () => song,
+    create: async input => ({ id: "s1", ...input }),
+    createPublished: async input => ({ id: "s1", ...input }),
+    findBySourceIngestionId: async () => null,
+    nextMmid: async () => 18,
+    update: async () => song,
     findForEdit: async () => ({ ...song, revision: 0 }),
     findByMmid: async () => song, listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),
     countAdmin: async () => 0, searchByTitle: async () => [], findRandom: async () => null,
@@ -38,11 +42,16 @@ test("song validation preserves lyric whitespace and normalizes metadata", () =>
   assert.equal(parsed.mmid, 17);
   assert.equal(parsed.songName, "Song");
   assert.equal(parsed.lyrics, content.lyrics);
+  assert.equal(CreateSongSchema.safeParse({
+    ...content,
+    mmid: 18,
+    artistName: [{ name: "Name Only Artist" }],
+  }).success, true);
 });
 
 test("song validation rejects missing content, unsafe URLs, malformed artists, and immutable fields", () => {
   for (const change of [
-    { lyrics: "   " }, { artistName: [] }, { artistName: [{ name: "Artist" }] },
+    { lyrics: "   " }, { artistName: [] }, { artistName: [{ name: "" }] },
     { artistName: [{ name: "Artist", slug: "Invalid Slug" }] }, { imageLink: "javascript:alert(1)" },
     { youtubeLink: ["ftp://example.com"] }, { createdAt: new Date() }, { id: "injected" },
   ]) assert.equal(CreateSongSchema.safeParse({ ...content, mmid: 17, ...change }).success, false);

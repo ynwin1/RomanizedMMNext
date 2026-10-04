@@ -4,9 +4,17 @@ export class SongConflictError extends Error {
     this.name = "SongConflictError";
   }
 }
+
 export class DuplicateSongError extends Error {
   constructor() {
     super("This song ID already exists. Choose another ID.");
     this.name = "DuplicateSongError";
+  }
+}
+
+export class DuplicatePublishedSongError extends Error {
+  constructor() {
+    super("This ingestion already has a published song.");
+    this.name = "DuplicatePublishedSongError";
   }
 }

@@ -32,6 +32,16 @@ class MemorySongs implements ISongRepository {
     return entity;
   }
 
+  async createPublished(input: Parameters<ISongRepository["create"]>[0], _sourceIngestionId: string, updatedBy?: string) {
+    return this.create(input, updatedBy);
+  }
+
+  async findBySourceIngestionId() { return null; }
+
+  async nextMmid() {
+    return Math.max(0, ...this.records.keys()) + 1;
+  }
+
   async findForEdit(mmid: number): Promise<SongEditRecord | null> {
     const song = this.records.get(mmid);
     return song ? { ...song, revision: song.revision } : null;
@@ -96,6 +106,18 @@ class MemoryArtists implements IArtistRepository {
   async findBySlug(slug: string) { return this.records.get(slug) ?? null; }
   async findFirstBySlugs(slugs: string[]) { return slugs.map(slug => this.records.get(slug)).find(Boolean) ?? null; }
   async listCatalogue() { return { artists: [], totalPages: 0 }; }
+
+  async addSongReference(slug: string, mmid: number, updatedBy?: string) {
+    const artist = this.records.get(slug);
+    if (!artist) return null;
+    const next = {
+      ...artist,
+      songs: artist.songs.includes(mmid) ? artist.songs : [...artist.songs, mmid],
+      updatedBy,
+    };
+    this.records.set(slug, next);
+    return next;
+  }
 }
 
 class MemoryRequests implements ISongRequestRepository {

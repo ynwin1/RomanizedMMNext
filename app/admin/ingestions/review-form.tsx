@@ -97,11 +97,23 @@ export default function ReviewForm({
 
     {state.message && <p role="alert" className="mt-4 text-red-300">{state.message}</p>}
 
-    <button
-      disabled={pending}
-      className="mt-5 rounded bg-violet-600 px-5 py-3 font-medium disabled:opacity-50"
-    >
-      {pending ? "Saving review…" : "Save review changes"}
-    </button>
+    <div className="mt-5 flex flex-wrap gap-3">
+      <button
+        name="intent"
+        value="save"
+        disabled={pending}
+        className="rounded border border-zinc-700 px-5 py-3 font-medium disabled:opacity-50"
+      >
+        {pending ? "Saving…" : "Save review changes"}
+      </button>
+      <button
+        name="intent"
+        value="publish"
+        disabled={pending}
+        className="rounded bg-emerald-600 px-5 py-3 font-medium disabled:opacity-50"
+      >
+        {pending ? "Publishing…" : "Publish song"}
+      </button>
+    </div>
   </form>;
 }

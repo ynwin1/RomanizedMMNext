@@ -30,6 +30,17 @@ export class ArtistService {
     throw new ArtistConflictError();
   }
 
+  async addSongReference(slug: unknown, mmid: unknown, updatedBy?: string): Promise<ArtistEntity> {
+    const artistSlug = ArtistSlugSchema.parse(slug);
+    const songId = Number(mmid);
+    if (!Number.isSafeInteger(songId) || songId <= 0) {
+      throw new Error("Invalid song ID");
+    }
+    const artist = await this.artists.addSongReference(artistSlug, songId, updatedBy);
+    if (!artist) throw new NotFoundError("Artist not found", "ARTIST_NOT_FOUND");
+    return artist;
+  }
+
   async getAdminList(input: unknown = {}): Promise<AdminPage<AdminArtistRecord>> {
     const query = AdminListQuerySchema.parse(input);
     return this.artists.listAdmin(query);

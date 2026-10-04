@@ -20,6 +20,7 @@ export interface ISong extends mongoose.Document {
     romanized: string;
     burmese: string;
     meaning: string;
+    sourceIngestionId?: string;
     createdAt?: Date;
     updatedAt?: Date;
     updatedBy?: string;
@@ -35,7 +36,7 @@ const SongSchema: Schema<ISong> = new Schema({
     artistName: { type: [
             {
                 name: { type: String, required: true },
-                slug: { type: String, required: true, unique: true}
+                slug: { type: String, required: false },
             },
         ]
     },
@@ -52,6 +53,7 @@ const SongSchema: Schema<ISong> = new Schema({
     romanized: { type: String, required: true },
     burmese: { type: String, required: true },
     meaning: { type: String, required: true },
+    sourceIngestionId: { type: String, unique: true, sparse: true, index: true },
     createdAt: { type: Date, default: Date.now },
     updatedBy: { type: String },
     isRequested: { type: Boolean, default: false },

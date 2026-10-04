@@ -16,6 +16,9 @@ import type {
 
 export interface ISongRepository {
   create(input: CreateSongInput, updatedBy?: string): Promise<SongEntity>;
+  createPublished(input: CreateSongInput, sourceIngestionId: string, updatedBy?: string): Promise<SongEntity>;
+  findBySourceIngestionId(sourceIngestionId: string): Promise<SongEntity | null>;
+  nextMmid(): Promise<number>;
   findForEdit(mmid: number): Promise<SongEditRecord | null>;
   update(mmid: number, revision: number, input: SongContentInput, updatedBy?: string): Promise<SongEntity | null>;
   listAdmin(query: AdminListQuery): Promise<AdminPage<AdminSongRecord>>;

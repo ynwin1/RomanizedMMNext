@@ -20,6 +20,7 @@ function handler(overrides: Partial<Parameters<typeof createIngestionActionHandl
     generateAiContent: async () => ({}),
     saveMetadata: async () => ({}),
     saveReview: async () => ({}),
+    publishSong: async () => ({ mmid: 200, songName: "Published Song" }),
     resolveArtist: async () => ({}),
     addArtist: async () => ({}),
     removeArtist: async () => ({}),
@@ -29,6 +30,7 @@ function handler(overrides: Partial<Parameters<typeof createIngestionActionHandl
     generationFailed: id => { throw new Error("generation-failed:" + id); },
     metadataSaved: id => { throw new Error("metadata:" + id); },
     reviewSaved: id => { throw new Error("review:" + id); },
+    published: song => { throw new Error("published:" + song.mmid); },
     artistChanged: id => { throw new Error("artist:" + id); },
     artistsConfirmed: id => { throw new Error("artists-confirmed:" + id); },
     logFailure: () => {},
@@ -162,4 +164,41 @@ test("review action passes editable generated and factual fields", async () => {
   assert.equal(inputSeen.songName, "Corrected");
   assert.equal(inputSeen.romanized, "Romanized.");
   assert.equal(inputSeen.genre, "Pop");
+});
+
+
+test("publish intent saves the current review before publishing and redirects to the live song", async () => {
+  const calls: string[] = [];
+  const actions = handler({
+    saveReview: async (_id, input) => {
+      assert.equal(input.songName, "Final Song");
+      assert.equal(input.meaning, "Final meaning.");
+      calls.push("save");
+    },
+    publishSong: async (_id, actor) => {
+      assert.equal(actor, "admin-1");
+      calls.push("publish");
+      return { mmid: 200, songName: "Final Song" };
+    },
+    published: song => {
+      calls.push("redirect:" + song.mmid);
+      throw new Error("published redirect");
+    },
+  });
+
+  const form = new FormData();
+  form.set("intent", "publish");
+  form.set("songName", "Final Song");
+  form.set("burmeseLyrics", "စာသား");
+  form.set("romanized", "Romanized.");
+  form.set("meaning", "Final meaning.");
+  form.set("about", "About.");
+  form.set("whenToListen", "When.");
+  form.set("genre", "Pop");
+
+  await assert.rejects(
+    () => actions.saveReview(ingestionId, draftId, 4, {}, form),
+    /published redirect/,
+  );
+  assert.deepEqual(calls, ["save", "publish", "redirect:200"]);
 });

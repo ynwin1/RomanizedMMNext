@@ -28,6 +28,7 @@ function repository(overrides: Partial<IArtistRepository> = {}): IArtistReposito
     listCatalogue: async () => ({ artists: [], totalPages: 0 }),
     create: async input => ({ id: "a1", likes: input.likes ?? 0, ...input }),
     update: async (_slug, _revision, input) => ({ id: "a1", slug: "artist", likes: 0, ...input }),
+    addSongReference: async () => artist,
     ...overrides,
   };
 }
