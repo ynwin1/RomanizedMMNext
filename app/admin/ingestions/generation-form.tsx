@@ -1,14 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { generateRomanizationAction } from "./ingestion-actions";
+import { generateAiContentAction } from "./ingestion-actions";
 
-export default function RomanizationForm({ ingestionId, retry = false }: {
+export default function GenerationForm({ ingestionId, retry = false }: {
   ingestionId: string;
   retry?: boolean;
 }) {
   const [state, action, pending] = useActionState(
-    generateRomanizationAction.bind(null, ingestionId),
+    generateAiContentAction.bind(null, ingestionId),
     {},
   );
 
@@ -17,7 +17,7 @@ export default function RomanizationForm({ ingestionId, retry = false }: {
       disabled={pending}
       className="rounded bg-violet-600 px-5 py-3 font-medium disabled:opacity-50"
     >
-      {pending ? "Generating…" : retry ? "Retry romanization" : "Generate romanization"}
+      {pending ? "Generating AI content…" : retry ? "Retry AI generation" : "Generate AI content"}
     </button>
     {state.message && <p role="alert" className="mt-3 text-red-300">{state.message}</p>}
   </form>;

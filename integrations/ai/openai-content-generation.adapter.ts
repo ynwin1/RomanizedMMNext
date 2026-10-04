@@ -68,6 +68,7 @@ export class OpenAIContentGenerationAdapter implements ContentGenerationProvider
         "Return exactly one output line for every input line.",
         "Keep every input index unchanged and in the same order.",
         "Preserve blank lines as blank text.",
+        "Every sentence must begin with a capital letter.",
         "Preserve section labels, interjections, names, and intentional English text rather than inventing content.",
         "Do not translate meaning. Do not add commentary.",
       ].join(" "),
@@ -84,6 +85,7 @@ export class OpenAIContentGenerationAdapter implements ContentGenerationProvider
         "Return exactly one output line for every input line.",
         "Keep every input index unchanged and in the same order.",
         "Preserve blank lines as blank text.",
+        "Every sentence must begin with a capital letter.",
         "Preserve section labels and interjections where appropriate.",
         "Do not romanize. Do not add commentary outside the corresponding line.",
       ].join(" "),
@@ -97,14 +99,18 @@ export class OpenAIContentGenerationAdapter implements ContentGenerationProvider
       schema: editorialJsonSchema,
       instructions: [
         "Write editorial metadata for RomanizedMM based only on the supplied song context and lyrics.",
-        "about should briefly describe the song's themes or emotional content without inventing factual history.",
-        "whenToListen should be a concise recommendation for situations or moods where the song fits.",
+        "about must be exactly one concise line with no line breaks and should briefly describe the song's themes or emotional content without inventing factual history.",
+        "whenToListen must be exactly one concise line with no line breaks describing situations or moods where the song fits.",
+        "Use the English meaning as the primary semantic reference when it is provided.",
+        "Romanization is pronunciation context only, not a source of new facts.",
         "Do not invent release dates, albums, artist facts, awards, or external metadata.",
       ].join(" "),
       input: JSON.stringify({
         songName: input.songName,
         artistNames: input.artistNames,
         lines: input.lines,
+        romanizedLines: input.romanizedLines,
+        meaningLines: input.meaningLines,
       }),
     });
 

@@ -6,20 +6,24 @@ import { requireAdmin } from "@/infrastructure/auth";
 import { logger } from "@/infrastructure/logging/logger";
 import { contentDraftService } from "@/modules/content-drafts";
 import { ContentGenerationService } from "@/modules/content-generation";
-import { ingestionService, ingestionWorkflowService, IngestionRomanizationService } from "@/modules/ingestions";
+import {
+  ingestionService,
+  ingestionWorkflowService,
+  IngestionGenerationService,
+} from "@/modules/ingestions";
 import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
 import { createIngestionActionHandler, type IngestionActionState } from "./ingestion-action-handler";
 
-async function generateRomanization(ingestionId: string, updatedBy: string) {
+async function generateAiContent(ingestionId: string, updatedBy: string) {
   const generation = new ContentGenerationService(createOpenAIContentGenerationAdapter());
-  const workflow = new IngestionRomanizationService(ingestionService, contentDraftService, generation);
-  return workflow.generate(ingestionId, updatedBy);
+  const workflow = new IngestionGenerationService(ingestionService, contentDraftService, generation);
+  return workflow.generateAll(ingestionId, updatedBy);
 }
 
 const actions = createIngestionActionHandler({
   authorize: requireAdmin,
   workflow: ingestionWorkflowService,
-  generateRomanization,
+  generateAiContent,
   started(ingestionId) {
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId);
@@ -28,14 +32,20 @@ const actions = createIngestionActionHandler({
     revalidatePath("/admin", "layout");
     redirect("/admin/ingestions/" + ingestionId + "?sourceSaved=1");
   },
-  romanized(ingestionId) {
+  aiGenerated(ingestionId) {
     revalidatePath("/admin", "layout");
-    redirect("/admin/ingestions/" + ingestionId + "?romanized=1");
+    redirect("/admin/ingestions/" + ingestionId + "?aiGenerated=1");
   },
-  logFailure(error) { logger.error("Admin ingestion workflow failed", error); },
+  logFailure(error) {
+    logger.error("Admin ingestion workflow failed", error);
+  },
 });
 
-export async function startIngestionAction(requestId: string, previous: IngestionActionState, form: FormData) {
+export async function startIngestionAction(
+  requestId: string,
+  previous: IngestionActionState,
+  form: FormData,
+) {
   return actions.start(requestId, previous, form);
 }
 
@@ -49,10 +59,10 @@ export async function saveIngestionSourceAction(
   return actions.saveSource(ingestionId, ingestionRevision, draftRevision, previous, form);
 }
 
-export async function generateRomanizationAction(
+export async function generateAiContentAction(
   ingestionId: string,
   previous: IngestionActionState,
   form: FormData,
 ) {
-  return actions.generateRomanization(ingestionId, previous, form);
+  return actions.generateAiContent(ingestionId, previous, form);
 }

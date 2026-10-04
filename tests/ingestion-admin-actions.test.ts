@@ -13,27 +13,27 @@ function handler(overrides: Partial<Parameters<typeof createIngestionActionHandl
       startAcceptedRequest: async () => ({ ingestion: { id: ingestionId } as any, draft: {} as any }),
       saveAndConfirmSource: async () => ({ ingestion: { id: ingestionId } as any, draft: {} as any }),
     },
-    generateRomanization: async () => ({}),
+    generateAiContent: async () => ({}),
     started: id => { throw new Error("started:" + id); },
     sourceSaved: id => { throw new Error("source:" + id); },
-    romanized: id => { throw new Error("romanized:" + id); },
+    aiGenerated: id => { throw new Error("generated:" + id); },
     logFailure: () => {},
     ...overrides,
   });
 }
 
-test("ingestion admin actions authorize before workflow writes", async () => {
+test("ingestion admin actions authorize before workflow writes or AI generation", async () => {
   let calls = 0;
   const denied = new Error("auth redirect");
   const actions = handler({
     authorize: async () => { throw denied; },
-    generateRomanization: async () => { calls++; },
+    generateAiContent: async () => { calls++; },
   });
 
   await assert.rejects(() => actions.start(requestId, {}, new FormData()), error => error === denied);
   const form = new FormData(); form.set("burmeseLyrics", "မြန်မာစာ");
   await assert.rejects(() => actions.saveSource(ingestionId, 0, 0, {}, form), error => error === denied);
-  await assert.rejects(() => actions.generateRomanization(ingestionId, {}, new FormData()), error => error === denied);
+  await assert.rejects(() => actions.generateAiContent(ingestionId, {}, new FormData()), error => error === denied);
   assert.equal(calls, 0);
 });
 
@@ -51,7 +51,7 @@ test("source action validates lyrics before calling workflow", async () => {
   assert.equal(calls, 0);
 });
 
-test("start, source, and romanization redirect only after successful workflow", async () => {
+test("start, source, and full AI generation redirect only after successful workflow", async () => {
   const calls: string[] = [];
   const actions = handler({
     workflow: {
@@ -64,35 +64,35 @@ test("start, source, and romanization redirect only after successful workflow", 
         return { ingestion: { id: ingestionId } as any, draft: {} as any };
       },
     },
-    generateRomanization: async (_id, actor) => {
-      assert.equal(actor, "admin-1"); calls.push("romanize");
+    generateAiContent: async (_id, actor) => {
+      assert.equal(actor, "admin-1"); calls.push("generate");
     },
     started: id => { calls.push("started:" + id); throw new Error("start redirect"); },
     sourceSaved: id => { calls.push("saved:" + id); throw new Error("source redirect"); },
-    romanized: id => { calls.push("romanized:" + id); throw new Error("romanized redirect"); },
+    aiGenerated: id => { calls.push("generated:" + id); throw new Error("generation redirect"); },
   });
 
   await assert.rejects(() => actions.start(requestId, {}, new FormData()), /start redirect/);
   const form = new FormData(); form.set("burmeseLyrics", "မြန်မာစာ");
   await assert.rejects(() => actions.saveSource(ingestionId, 2, 3, {}, form), /source redirect/);
-  await assert.rejects(() => actions.generateRomanization(ingestionId, {}, new FormData()), /romanized redirect/);
+  await assert.rejects(() => actions.generateAiContent(ingestionId, {}, new FormData()), /generation redirect/);
   assert.deepEqual(calls, [
     "start", "started:" + ingestionId,
     "source", "saved:" + ingestionId,
-    "romanize", "romanized:" + ingestionId,
+    "generate", "generated:" + ingestionId,
   ]);
 });
 
-test("provider failure is logged and returned as retryable user-facing generation failure", async () => {
+test("provider failure is logged and returned as retryable full-generation failure", async () => {
   let logged: unknown;
   const actions = handler({
-    generateRomanization: async () => {
+    generateAiContent: async () => {
       throw new ContentGenerationProviderError("secret provider detail", true, "http_429");
     },
     logFailure: error => { logged = error; },
   });
 
-  const result = await actions.generateRomanization(ingestionId, {}, new FormData());
-  assert.equal(result.message, "Romanization failed. You can retry this generation.");
+  const result = await actions.generateAiContent(ingestionId, {}, new FormData());
+  assert.equal(result.message, "AI generation failed. You can retry this generation.");
   assert.ok(logged instanceof ContentGenerationProviderError);
 });
