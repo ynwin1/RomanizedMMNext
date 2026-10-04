@@ -118,6 +118,10 @@ export class SongService {
     return this.songs.findByArtistName(artistName);
   }
 
+  async getLyricsMigrationCandidate(mmid: number) {
+    return (await this.songs.listLyricsMigrationCandidates()).find(song => song.mmid === mmid) ?? null;
+  }
+
   async analyzeLyricsMigration(): Promise<LyricsMigrationReport> {
     return buildLyricsMigrationReport(await this.songs.listLyricsMigrationCandidates());
   }
