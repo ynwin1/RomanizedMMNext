@@ -145,16 +145,20 @@ test("admin form decoding requires lyricsV2 and derives legacy lyric compatibili
   assert.equal(songFormInput(value, true).artistName, null);
 });
 
-test("song service validates before write and delegates validated full content", async () => {
+test("song service validates before write and requires lyricsV2", async () => {
   let received: unknown;
   let actor: string | undefined;
   const service = new SongService(repository({ create: async (input, updatedBy) => {
     received = input; actor = updatedBy; return { id: "s1", ...input };
   } }));
   await assert.rejects(() => service.createSong({ ...content, mmid: 0 }));
+  await assert.rejects(() => service.createSong({ ...content, mmid: 17 }), /Lyrics V2 is required/);
   assert.equal(received, undefined);
-  assert.equal((await service.createSong({ ...content, mmid: "17" }, "admin-1")).mmid, 17);
-  assert.deepEqual(received, { ...content, mmid: 17 });
+
+  const created = await service.createSong({ ...content, mmid: "17", lyricsV2 }, "admin-1");
+  assert.equal(created.mmid, 17);
+  assert.equal((received as any).lyricsV2.version, 2);
+  assert.equal((received as any).burmese, "မြန်မာစာ\n\nOh!");
   assert.equal(actor, "admin-1");
 });
 
@@ -229,9 +233,9 @@ test("song service validates and delegates canonical lyricsV2 on create and upda
 
 test("song update distinguishes a missing record from a stale revision", async () => {
   const stale = new SongService(repository({ update: async () => null }));
-  await assert.rejects(() => stale.updateSong(17, 0, content), SongConflictError);
+  await assert.rejects(() => stale.updateSong(17, 0, { ...content, lyricsV2 }), SongConflictError);
   const missing = new SongService(repository({ update: async () => null, findByMmid: async () => null }));
-  await assert.rejects(() => missing.updateSong(17, 0, content), NotFoundError);
+  await assert.rejects(() => missing.updateSong(17, 0, { ...content, lyricsV2 }), NotFoundError);
 });
 
 test("song edit reads and updates validate identifiers, revision, and immutable fields before access", async () => {
@@ -241,8 +245,8 @@ test("song edit reads and updates validate identifiers, revision, and immutable 
     findForEdit: async () => { calls++; return null; },
   }));
   await assert.rejects(() => service.getSongForEdit("bad"));
-  await assert.rejects(() => service.updateSong(17, -1, content));
-  await assert.rejects(() => service.updateSong(17, 0, { ...content, mmid: 99 }));
+  await assert.rejects(() => service.updateSong(17, -1, { ...content, lyricsV2 }));
+  await assert.rejects(() => service.updateSong(17, 0, { ...content, lyricsV2, mmid: 99 }));
   assert.equal(calls, 0);
   await assert.rejects(() => service.getSongForEdit(17), NotFoundError);
 });
@@ -340,4 +344,31 @@ test("song actions require valid lyricsV2 form JSON, derive legacy fields, and r
   const result = await handler.create({}, invalid);
   assert.equal(writes, 1);
   assert.equal(result.message, "Please correct the highlighted fields.");
+});
+
+
+test("all normal song write paths reject legacy-only payloads before repository access", async () => {
+  let writes = 0;
+  const service = new SongService(repository({
+    create: async input => {
+      writes++;
+      return { id: "s1", ...input };
+    },
+    createPublished: async input => {
+      writes++;
+      return { id: "s2", ...input };
+    },
+    update: async () => {
+      writes++;
+      return song;
+    },
+  }));
+
+  await assert.rejects(() => service.createSong({ ...content, mmid: 17 }), /Lyrics V2 is required/);
+  await assert.rejects(
+    () => service.createPublishedSong({ ...content, mmid: 18 }, "507f1f77bcf86cd799439011"),
+    /Lyrics V2 is required/,
+  );
+  await assert.rejects(() => service.updateSong(17, 0, content), /Lyrics V2 is required/);
+  assert.equal(writes, 0);
 });

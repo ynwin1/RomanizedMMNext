@@ -1,6 +1,6 @@
 import type { SongService } from "@/modules/songs/application/song.service";
 import { CreateSongSchema, UpdateSongCommandSchema } from "@/modules/songs/application/song.validation";
-import { DuplicateSongError, SongConflictError } from "@/modules/songs/application/song-write.error";
+import { CanonicalLyricsRequiredError, DuplicateSongError, SongConflictError } from "@/modules/songs/application/song-write.error";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 import { songFormInput, type SongFormState } from "./song-form.data";
@@ -12,8 +12,12 @@ export function createSongActionHandler(dependencies: {
   logFailure: (error: unknown) => void;
 }) {
   function failure(error: unknown): SongFormState {
-    if (error instanceof DuplicateSongError || error instanceof SongConflictError || error instanceof NotFoundError)
-      return { message: error.message };
+    if (
+      error instanceof CanonicalLyricsRequiredError
+      || error instanceof DuplicateSongError
+      || error instanceof SongConflictError
+      || error instanceof NotFoundError
+    ) return { message: error.message };
     dependencies.logFailure(error);
     return { message: "Unable to save the song. Please try again." };
   }
