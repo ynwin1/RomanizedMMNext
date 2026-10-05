@@ -83,6 +83,27 @@ test("song page prefers canonical lyricsV2 without changing repository data", as
   assert.deepEqual(v2Song.burmese, song.burmese);
 });
 
+test("public artist song reads prefer canonical lyricsV2", async () => {
+  const v2Song: SongEntity = {
+    ...song,
+    lyricsV2: {
+      version: 2,
+      entries: [
+        { kind: "line", burmese: "အသစ်", romanized: "a thit", meaning: "New" },
+      ],
+    },
+  };
+  const service = new SongService(songRepository({
+    findByArtistName: async () => [v2Song],
+  }));
+
+  const [artistSong] = await service.getSongsByArtistName("Test Artist");
+  assert.equal(artistSong?.burmese, "အသစ်");
+  assert.equal(artistSong?.romanized, "a thit");
+  assert.equal(artistSong?.meaning, "New");
+  assert.equal(v2Song.burmese, "burmese");
+});
+
 test("SongService analyzes the migration catalogue without writes", async () => {
   const service = new SongService(songRepository({
     listLyricsMigrationCandidates: async () => [

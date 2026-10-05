@@ -8,7 +8,7 @@ import { generateMetadata as generateArtistMetadata } from "@/app/(pages)/[local
 import { loadArtistCatalogueSongs } from "@/app/(pages)/[locale]/(artists)/artist-catalogue/artist-catalogue.data";
 
 test("song page smoke: metadata renders from SongService data", async (t) => {
-  t.mock.method(songService, "getByMmid", async () => ({
+  t.mock.method(songService, "getSongPage", async () => ({
     id: "song-17",
     mmid: 17,
     songName: "Test Song (စမ်းသပ်သီချင်း)",
@@ -20,7 +20,7 @@ test("song page smoke: metadata renders from SongService data", async (t) => {
     whenToListen: "Anytime",
     lyrics: "lyrics",
     romanized: "romanized",
-    burmese: "မြန်မာစာ lyrics long enough for metadata description generation",
+    burmese: "V2 မြန်မာစာ metadata source",
     meaning: "meaning",
   }));
 
@@ -33,6 +33,7 @@ test("song page smoke: metadata renders from SongService data", async (t) => {
   );
 
   assert.match(String(metadata.title), /Test Song Lyrics/);
+  assert.match(String(metadata.description), /V2 မြန်မာစာ metadata source/);
   assert.equal(
     metadata.alternates?.canonical,
     "https://www.romanizedmm.com/en/song/TestSong/17",
