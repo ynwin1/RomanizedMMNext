@@ -11,7 +11,7 @@ import {
 } from "@/modules/songs/application/song-write.error";
 import { CreateSongSchema, type CreateSongInput } from "@/modules/songs/application/song.validation";
 import type { SongEntity } from "@/modules/songs/domain/song.types";
-import type { LyricsV2, LyricsV2Entry } from "@/modules/songs/domain/lyrics-v2.types";
+import { buildLyricsV2FromAlignedText, LyricsV2BuildError } from "@/modules/songs/application/lyrics-v2.builder";
 import {
   DraftNotPublishableError,
   PublicationMmidAllocationError,
@@ -55,63 +55,15 @@ const PublishableDraftSchema = z.object({
   ])).min(1),
 });
 
-function alignedLines(text: string): string[] {
-  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-}
-
-function buildLyricsV2(source: string, romanized: string, meaning: string): LyricsV2 {
-  const sourceLines = alignedLines(source);
-  const romanizedLines = alignedLines(romanized);
-  const meaningLines = alignedLines(meaning);
-
-  if (
-    sourceLines.length !== romanizedLines.length ||
-    sourceLines.length !== meaningLines.length
-  ) {
-    throw new DraftNotPublishableError(
-      "Burmese, Romanized, and Meaning lyrics must have matching line counts before publishing.",
-    );
-  }
-
-  const entries: LyricsV2Entry[] = [];
-  for (let index = 0; index < sourceLines.length; index++) {
-    const burmese = sourceLines[index];
-    const romanizedLine = romanizedLines[index];
-    const meaningLine = meaningLines[index];
-    const sourceBlank = !burmese.trim();
-
-    if (sourceBlank) {
-      if (romanizedLine.trim() || meaningLine.trim()) {
-        throw new DraftNotPublishableError(
-          "Lyric section breaks must be blank across Burmese, Romanized, and Meaning.",
-        );
-      }
-      if (entries.length > 0 && entries[entries.length - 1].kind !== "break") {
-        entries.push({ kind: "break" });
-      }
-      continue;
+function buildPublishableLyricsV2(source: string, romanized: string, meaning: string) {
+  try {
+    return buildLyricsV2FromAlignedText(source, romanized, meaning);
+  } catch (error) {
+    if (error instanceof LyricsV2BuildError) {
+      throw new DraftNotPublishableError(error.message);
     }
-
-    if (!romanizedLine.trim()) {
-      throw new DraftNotPublishableError(
-        "Every Burmese lyric line must have a Romanized line before publishing.",
-      );
-    }
-
-    entries.push({
-      kind: "line",
-      burmese,
-      romanized: romanizedLine,
-      meaning: meaningLine.trim() ? meaningLine : null,
-    });
+    throw error;
   }
-
-  if (entries[entries.length - 1]?.kind === "break") entries.pop();
-  if (!entries.some(entry => entry.kind === "line")) {
-    throw new DraftNotPublishableError("Lyrics must contain at least one lyric line.");
-  }
-
-  return { version: 2, entries };
 }
 
 function mapDraft(draft: ContentDraftRecord, mmid: number): CreateSongInput {
@@ -142,7 +94,7 @@ function mapDraft(draft: ContentDraftRecord, mmid: number): CreateSongInput {
     romanized: value.generated.romanized,
     burmese: value.source.burmeseLyrics,
     meaning: value.generated.meaning,
-    lyricsV2: buildLyricsV2(
+    lyricsV2: buildPublishableLyricsV2(
       value.source.burmeseLyrics,
       value.generated.romanized,
       value.generated.meaning,

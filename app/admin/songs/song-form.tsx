@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
-import { createSongAction, updateSongAction } from "./song-actions";
+import { createSongAction, generateSongAiContentAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
 
 const labels: Record<string, string> = {
@@ -21,13 +21,14 @@ function emptyLine(): LyricsV2Entry {
 }
 
 function LyricsV2Editor({
-  initial,
+  entries,
+  setEntries,
   errorMessages,
 }: {
-  initial: LyricsV2Entry[];
+  entries: LyricsV2Entry[];
+  setEntries: React.Dispatch<React.SetStateAction<LyricsV2Entry[]>>;
   errorMessages?: string[];
 }) {
-  const [entries, setEntries] = useState<LyricsV2Entry[]>(initial);
 
   const replace = (index: number, entry: LyricsV2Entry) =>
     setEntries(current => current.map((item, i) => i === index ? entry : item));
@@ -126,7 +127,37 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
   const [mmid, setMmid] = useState("");
   const [youtube, setYoutube] = useState(song?.youtubeLink?.join("\n") ?? "");
   const [requested, setRequested] = useState(song?.isRequested ?? false);
+  const [lyricsEntries, setLyricsEntries] = useState<LyricsV2Entry[]>(song?.lyricsV2?.entries ?? []);
+  const [sourceLyrics, setSourceLyrics] = useState("");
+  const [aiMessage, setAiMessage] = useState("");
+  const [aiPending, startAiTransition] = useTransition();
   const change = (field: string, value: string) => setValues(previous => ({ ...previous, [field]: value }));
+
+  const autoGenerate = () => {
+    setAiMessage("");
+    if (!sourceLyrics.trim()) {
+      setAiMessage("Paste Burmese lyrics before generating.");
+      return;
+    }
+
+    startAiTransition(async () => {
+      const result = await generateSongAiContentAction({
+        burmeseLyrics: sourceLyrics,
+        songName: values.songName?.trim() || undefined,
+        artistNames: artists.map(artist => artist.name.trim()).filter(Boolean),
+      });
+
+      if (!result.ok) {
+        setAiMessage(result.message);
+        return;
+      }
+
+      setLyricsEntries(result.generated.lyricsV2.entries);
+      change("about", result.generated.about);
+      change("whenToListen", result.generated.whenToListen);
+      setAiMessage("Generated Romanization, Meaning, metadata, and Lyrics V2. Review and edit before saving.");
+    });
+  };
   const errors = (field: string) => state.errors?.[field]?.map((message, index) => <p key={index} className="mt-1 text-sm text-red-300">{message}</p>);
 
   return (
@@ -154,7 +185,34 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           {errors("artistName")}
         </fieldset>
 
-        <LyricsV2Editor initial={song?.lyricsV2?.entries ?? []} errorMessages={state.errors?.lyricsV2} />
+        {!song && (
+          <fieldset className="rounded-xl border border-violet-900 bg-violet-950/20 p-4">
+            <legend className="px-2 font-semibold text-violet-200">AI song setup</legend>
+            <p className="mb-3 text-sm text-zinc-400">
+              Paste the Burmese lyrics as-is. Auto-generate creates aligned Romanization and English Meaning,
+              generates About / When to listen, and builds Lyrics V2 automatically.
+            </p>
+            <textarea
+              rows={14}
+              value={sourceLyrics}
+              onChange={event => setSourceLyrics(event.target.value)}
+              placeholder="Paste Burmese lyrics here…"
+              className={inputClass}
+            />
+            <button
+              type="button"
+              onClick={autoGenerate}
+              disabled={aiPending}
+              className="mt-3 rounded bg-violet-600 px-5 py-3 font-medium hover:bg-violet-500 disabled:opacity-50"
+            >
+              {aiPending ? "Generating…" : "Auto-generate song content"}
+            </button>
+            <p className="mt-2 text-xs text-zinc-500">AI tokens are used only when you click Auto-generate.</p>
+            {aiMessage && <p className="mt-3 text-sm text-violet-200">{aiMessage}</p>}
+          </fieldset>
+        )}
+
+        <LyricsV2Editor entries={lyricsEntries} setEntries={setLyricsEntries} errorMessages={state.errors?.lyricsV2} />
 
         <div className="grid gap-5 md:grid-cols-2">
           {songTextFields.map(field => <label key={field} className={multiline.has(field) ? "block md:col-span-2" : "block"}>
