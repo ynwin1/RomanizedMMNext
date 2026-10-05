@@ -59,6 +59,24 @@ interface CandidateSource {
   ): Promise<LyricsMeaningAlignmentSaveResult>;
 }
 
+export interface LyricsMeaningDraftBatchResult {
+  requested: number;
+  generated: number;
+  skippedExisting: number;
+  skippedIneligible: number;
+  failed: number;
+}
+
+export interface LyricsMeaningAutoAcceptBatchResult {
+  requested: number;
+  generated: number;
+  reusedDraft: number;
+  saved: number;
+  alreadyV2: number;
+  stale: number;
+  failed: number;
+}
+
 export class LyricsMeaningAlignmentService {
   constructor(
     private readonly songs: CandidateSource,
@@ -133,6 +151,110 @@ export class LyricsMeaningAlignmentService {
     );
 
     return this.previewFromDraft(candidate, persisted, false);
+  }
+
+  async generateDraftBatch(
+    mmids: number[],
+    updatedBy: string,
+    limit = 5,
+  ): Promise<LyricsMeaningDraftBatchResult> {
+    const uniqueMmids = [...new Set(mmids)].slice(0, Math.max(0, limit));
+    const result: LyricsMeaningDraftBatchResult = {
+      requested: uniqueMmids.length,
+      generated: 0,
+      skippedExisting: 0,
+      skippedIneligible: 0,
+      failed: 0,
+    };
+
+    for (const mmid of uniqueMmids) {
+      try {
+        if (await this.drafts.findByMmid(mmid)) {
+          result.skippedExisting += 1;
+          continue;
+        }
+
+        const candidate = await this.songs.getLyricsMigrationCandidate(mmid);
+        if (!candidate || candidate.lyricsV2 || planLyricsMigrationRepair(candidate).strategy !== "AI_MEANING_ALIGNMENT") {
+          result.skippedIneligible += 1;
+          continue;
+        }
+
+        await this.preview(mmid, { updatedBy });
+        result.generated += 1;
+      } catch {
+        result.failed += 1;
+      }
+    }
+
+    return result;
+  }
+
+  async generateAndAcceptBatch(
+    mmids: number[],
+    updatedBy: string,
+    limit = 10,
+  ): Promise<LyricsMeaningAutoAcceptBatchResult> {
+    const uniqueMmids = [...new Set(mmids)].slice(0, Math.max(0, limit));
+    const result: LyricsMeaningAutoAcceptBatchResult = {
+      requested: uniqueMmids.length,
+      generated: 0,
+      reusedDraft: 0,
+      saved: 0,
+      alreadyV2: 0,
+      stale: 0,
+      failed: 0,
+    };
+
+    for (const mmid of uniqueMmids) {
+      try {
+        const candidate = await this.songs.getLyricsMigrationCandidate(mmid);
+        if (!candidate) {
+          result.failed += 1;
+          continue;
+        }
+        if (candidate.lyricsV2) {
+          result.alreadyV2 += 1;
+          continue;
+        }
+        if (planLyricsMigrationRepair(candidate).strategy !== "AI_MEANING_ALIGNMENT") {
+          result.failed += 1;
+          continue;
+        }
+
+        let draft = await this.drafts.findByMmid(mmid);
+        if (draft) {
+          result.reusedDraft += 1;
+        } else {
+          const preview = await this.preview(mmid, { updatedBy });
+          result.generated += 1;
+          draft = await this.drafts.findByMmid(mmid);
+          if (!draft) {
+            result.failed += 1;
+            continue;
+          }
+          if (!sameSnapshot(draft.legacySnapshot, preview.legacySnapshot)) {
+            result.stale += 1;
+            continue;
+          }
+        }
+
+        const save = await this.saveReviewed(
+          mmid,
+          draft.legacySnapshot,
+          draft.rows.map(row => row.meaning),
+          updatedBy,
+        );
+
+        if (save.status === "saved") result.saved += 1;
+        else if (save.status === "already_v2") result.alreadyV2 += 1;
+        else result.stale += 1;
+      } catch {
+        result.failed += 1;
+      }
+    }
+
+    return result;
   }
 
   async saveDraft(
