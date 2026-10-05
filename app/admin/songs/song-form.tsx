@@ -9,12 +9,11 @@ import { songTextFields } from "./song-form.data";
 const labels: Record<string, string> = {
   songName: "Song name", albumName: "Album", genre: "Genre", spotifyTrackId: "Spotify track ID",
   spotifyLink: "Spotify URL", appleMusicLink: "Apple Music URL", imageLink: "Image URL",
-  about: "About", whenToListen: "When to listen", lyrics: "Lyrics", romanized: "Romanized lyrics",
-  burmese: "Burmese lyrics", meaning: "English meaning", requestedBy: "Requested by",
+  about: "About", whenToListen: "When to listen", requestedBy: "Requested by",
   songStoryEn: "Song story (English)", songStoryMy: "Song story (Burmese)",
 };
-const multiline = new Set(["about", "whenToListen", "lyrics", "romanized", "burmese", "meaning", "songStoryEn", "songStoryMy"]);
-const required = new Set(["songName", "genre", "about", "whenToListen", "lyrics", "romanized", "burmese", "meaning"]);
+const multiline = new Set(["about", "whenToListen", "songStoryEn", "songStoryMy"]);
+const required = new Set(["songName", "genre", "about", "whenToListen"]);
 const inputClass = "w-full rounded border border-zinc-700 bg-zinc-900 p-3 text-zinc-100";
 
 function emptyLine(): LyricsV2Entry {
@@ -41,9 +40,10 @@ function LyricsV2Editor({
 
   return (
     <fieldset className="rounded-xl border border-zinc-800 p-4">
-      <legend className="px-2 font-semibold">Lyrics V2 <span className="text-sm font-normal text-zinc-400">(optional during migration)</span></legend>
+      <legend className="px-2 font-semibold">Lyrics V2 <span className="text-sm font-normal text-emerald-300">(source of truth)</span></legend>
       <p className="mb-4 text-sm text-zinc-400">
         Edit aligned lyric rows directly. Section breaks are explicit rows; English meaning may be intentionally blank.
+        Legacy lyric fields are generated automatically from these rows when you save.
       </p>
       <input
         type="hidden"
@@ -53,7 +53,7 @@ function LyricsV2Editor({
 
       {entries.length === 0 ? (
         <div className="rounded border border-dashed border-zinc-700 p-4 text-sm text-zinc-400">
-          No V2 lyrics yet. Legacy fields below will continue to be saved normally.
+          No V2 lyrics yet. Add at least one aligned lyric row before saving.
         </div>
       ) : (
         <div className="space-y-3">
@@ -112,7 +112,6 @@ function LyricsV2Editor({
       <div className="mt-4 flex flex-wrap gap-2">
         <button type="button" onClick={() => setEntries(current => [...current, emptyLine()])} className="rounded border border-zinc-700 px-3 py-2">Add lyric line</button>
         {entries.length > 0 && <button type="button" onClick={() => setEntries(current => [...current, { kind: "break" }])} className="rounded border border-zinc-700 px-3 py-2">Add section break</button>}
-        {entries.length > 0 && <button type="button" onClick={() => setEntries([])} className="rounded border border-red-900 px-3 py-2 text-red-300">Remove V2 lyrics</button>}
       </div>
       {errorMessages?.map((message, index) => <p key={index} className="mt-2 text-sm text-red-300">{message}</p>)}
     </fieldset>
@@ -161,7 +160,7 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           {songTextFields.map(field => <label key={field} className={multiline.has(field) ? "block md:col-span-2" : "block"}>
             {labels[field]} {required.has(field) && <span className="text-sm text-zinc-400">(required)</span>}
             {multiline.has(field)
-              ? <textarea name={field} rows={["lyrics", "romanized", "burmese", "meaning"].includes(field) ? 8 : 3} value={values[field]} onChange={event => change(field, event.target.value)} required={required.has(field)} className={inputClass} aria-invalid={!!state.errors?.[field]} />
+              ? <textarea name={field} rows={3} value={values[field]} onChange={event => change(field, event.target.value)} required={required.has(field)} className={inputClass} aria-invalid={!!state.errors?.[field]} />
               : <input name={field} type={field.endsWith("Link") ? "url" : "text"} value={values[field]} onChange={event => change(field, event.target.value)} required={required.has(field)} className={inputClass} aria-invalid={!!state.errors?.[field]} />}
             {errors(field)}
           </label>)}

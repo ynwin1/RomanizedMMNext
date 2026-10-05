@@ -52,6 +52,7 @@ function form() {
   for (const [key, text] of Object.entries(content)) if (typeof text === "string") value.set(key, text);
   value.set("mmid", "17");
   value.set("artistName", JSON.stringify(content.artistName));
+  value.set("lyricsV2", JSON.stringify(lyricsV2));
   return value;
 }
 
@@ -107,19 +108,35 @@ test("song validation rejects missing content, unsafe URLs, malformed artists, a
   for (const mmid of [0, -1, 1.2, "bad", Infinity]) assert.equal(CreateSongSchema.safeParse({ ...content, mmid }).success, false);
 });
 
-test("form decoding handles blank optional fields, YouTube lines, malformed artist input, and optional lyricsV2", () => {
+test("admin form decoding requires lyricsV2 and derives legacy lyric compatibility fields from it", () => {
   const value = form();
   value.set("albumName", "");
   value.set("youtubeLink", "https://youtu.be/a\r\n\n https://youtu.be/b ");
+  // Stale legacy fields must never win over V2.
+  value.set("lyrics", "stale lyrics");
+  value.set("burmese", "stale burmese");
+  value.set("romanized", "stale romanized");
+  value.set("meaning", "stale meaning");
+
   const parsed = songFormInput(value, true);
   assert.equal(parsed.albumName, undefined);
   assert.deepEqual(parsed.youtubeLink, ["https://youtu.be/a", "https://youtu.be/b"]);
-  assert.equal(parsed.lyrics, content.lyrics);
-  assert.equal(parsed.lyricsV2, undefined);
+  assert.deepEqual(parsed.lyricsV2, {
+    version: 2,
+    entries: [
+      { kind: "line", burmese: "မြန်မာစာ", romanized: "myanmar sar", meaning: "Burmese words" },
+      { kind: "break" },
+      { kind: "line", burmese: "Oh!", romanized: "Oh!", meaning: null },
+    ],
+  });
+  assert.equal(parsed.lyrics, "မြန်မာစာ\n\nOh!");
+  assert.equal(parsed.burmese, "မြန်မာစာ\n\nOh!");
+  assert.equal(parsed.romanized, "myanmar sar\n\nOh!");
+  assert.equal(parsed.meaning, "Burmese words\n\n");
   assert.equal(songFormInput(value, false).mmid, undefined);
 
-  value.set("lyricsV2", JSON.stringify(lyricsV2));
-  assert.deepEqual(songFormInput(value, true).lyricsV2, lyricsV2);
+  value.delete("lyricsV2");
+  assert.equal(songFormInput(value, true).lyricsV2, null);
 
   value.set("lyricsV2", "{");
   assert.equal(songFormInput(value, true).lyricsV2, null);
@@ -245,7 +262,7 @@ test("song action failures surface validation and conflicts without success redi
 });
 
 
-test("song actions accept valid lyricsV2 form JSON and reject malformed JSON before writes", async () => {
+test("song actions require valid lyricsV2 form JSON, derive legacy fields, and reject malformed or missing V2 before writes", async () => {
   let writes = 0;
   let received: unknown;
   const handler = createSongActionHandler({
@@ -270,6 +287,16 @@ test("song actions accept valid lyricsV2 form JSON and reject malformed JSON bef
   await assert.rejects(() => handler.create({}, valid), /success redirect/);
   assert.equal(writes, 1);
   assert.deepEqual((received as any).lyricsV2.entries[1], { kind: "break" });
+  assert.equal((received as any).burmese, "မြန်မာစာ\n\nOh!");
+  assert.equal((received as any).romanized, "myanmar sar\n\nOh!");
+  assert.equal((received as any).meaning, "Burmese words\n\n");
+  assert.equal((received as any).lyrics, "မြန်မာစာ\n\nOh!");
+
+  const missing = form();
+  missing.delete("lyricsV2");
+  const missingResult = await handler.create({}, missing);
+  assert.equal(writes, 1);
+  assert.equal(missingResult.message, "Please correct the highlighted fields.");
 
   const invalid = form();
   invalid.set("lyricsV2", "{");
