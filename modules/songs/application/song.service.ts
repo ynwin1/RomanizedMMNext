@@ -1,5 +1,5 @@
 import { CreateSongSchema, SongContentSchema, SongIdSchema, SongRevisionSchema } from "./song.validation";
-import { SongConflictError } from "./song-write.error";
+import { CanonicalLyricsRequiredError, SongConflictError } from "./song-write.error";
 import type { SongEditRecord } from "./song.dto";
 import { AdminListQuerySchema } from "@/shared/admin-list";
 import type { AdminPage } from "@/shared/admin-list";
@@ -70,7 +70,7 @@ export class SongService {
   }
 
   private withCanonicalWriteLyrics<T extends { lyricsV2?: LyricsV2 } & Record<string, unknown>>(content: T): T {
-    if (!content.lyricsV2) return content;
+    if (!content.lyricsV2) throw new CanonicalLyricsRequiredError();
     return {
       ...content,
       ...legacyLyricsFromV2(content.lyricsV2),

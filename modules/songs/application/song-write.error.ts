@@ -18,3 +18,11 @@ export class DuplicatePublishedSongError extends Error {
     this.name = "DuplicatePublishedSongError";
   }
 }
+
+
+export class CanonicalLyricsRequiredError extends Error {
+  constructor() {
+    super("Lyrics V2 is required for song writes.");
+    this.name = "CanonicalLyricsRequiredError";
+  }
+}
