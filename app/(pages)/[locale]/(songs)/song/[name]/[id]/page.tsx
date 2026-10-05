@@ -33,7 +33,7 @@ export async function generateMetadata(
             throw new Error("Missing required parameters: id or locale");
         }
 
-        const songQ = await songService.getByMmid(Number(id));
+        const songQ = await songService.getSongPage(Number(id));
 
         const { engName, mmName } = extractSongName(songQ.songName);
 

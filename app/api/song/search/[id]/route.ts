@@ -18,7 +18,7 @@ export async function GET(
   }
 
   try {
-    const { id: songId, ...song } = await songService.getByMmid(mmid);
+    const { id: songId, ...song } = await songService.getSongPage(mmid);
     return Response.json({ success: true, data: { _id: songId, ...song } });
   } catch (error) {
     if (error instanceof NotFoundError) {

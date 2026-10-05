@@ -117,7 +117,7 @@ export class SongService {
   }
 
   async getSongsByArtistName(artistName: string): Promise<SongEntity[]> {
-    return this.songs.findByArtistName(artistName);
+    return (await this.songs.findByArtistName(artistName)).map(withCanonicalLyrics);
   }
 
   async getLyricsMigrationCandidate(mmid: number) {

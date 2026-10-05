@@ -387,7 +387,7 @@ test("song-by-id API rejects non-positive ids", async () => {
 });
 
 test("song-by-id API preserves its success contract", async (t) => {
-  t.mock.method(songService, "getByMmid", async () => ({
+  t.mock.method(songService, "getSongPage", async () => ({
     id: "mongo-id",
     mmid: 17,
     songName: "Song",
@@ -426,7 +426,7 @@ test("song-by-id API preserves its success contract", async (t) => {
 });
 
 test("song-by-id API returns stable 500 errors without leaking internals", async (t) => {
-  t.mock.method(songService, "getByMmid", async () => {
+  t.mock.method(songService, "getSongPage", async () => {
     throw new Error("mongodb://secret-host/internal");
   });
 

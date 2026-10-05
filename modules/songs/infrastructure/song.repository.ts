@@ -8,6 +8,7 @@ import connectDB from "@/infrastructure/database/mongodb";
 import Song, { type ISong } from "./song.model";
 import { ISongRepository } from "../application/song.repository";
 import { SongEntity } from "../domain/song.types";
+import { getCanonicalLyrics } from "../domain/lyrics.compatibility";
 import type { LegacyLyricsMigrationCandidate } from "../domain/lyrics-migration.types";
 import type { LegacyLyricsSnapshot, LyricsMeaningAlignmentSaveResult } from "../domain/lyrics-meaning-alignment.types";
 import type { LyricsV2 } from "../domain/lyrics-v2.types";
@@ -218,9 +219,18 @@ export class MongoSongRepository implements ISongRepository {
 
   async listGuessLyricsSongs(): Promise<GuessLyricsSong[]> {
     await connectDB();
-    return Song.find({})
-      .select("songName romanized burmese -_id")
+    const songs = await Song.find({})
+      .select("songName romanized burmese meaning lyricsV2 -_id")
       .lean();
+
+    return songs.map(song => {
+      const lyrics = getCanonicalLyrics(song);
+      return {
+        songName: song.songName,
+        romanized: lyrics.romanized,
+        burmese: lyrics.burmese,
+      };
+    });
   }
 
   async listGuessSongRecords(): Promise<GuessSongRecord[]> {
