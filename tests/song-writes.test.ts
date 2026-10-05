@@ -158,6 +158,43 @@ test("song service validates before write and delegates validated full content",
   assert.equal(actor, "admin-1");
 });
 
+test("song service makes lyricsV2 authoritative for every write path", async () => {
+  const received: unknown[] = [];
+  const stale = {
+    ...content,
+    lyrics: "stale lyrics",
+    burmese: "stale burmese",
+    romanized: "stale romanized",
+    meaning: "stale meaning",
+    lyricsV2,
+  };
+  const service = new SongService(repository({
+    create: async input => {
+      received.push(input);
+      return { id: "s1", ...input };
+    },
+    createPublished: async input => {
+      received.push(input);
+      return { id: "s2", ...input };
+    },
+    update: async (_mmid, _revision, input) => {
+      received.push(input);
+      return { ...song, ...input };
+    },
+  }));
+
+  await service.createSong({ ...stale, mmid: 17 });
+  await service.createPublishedSong({ ...stale, mmid: 18 }, "507f1f77bcf86cd799439011");
+  await service.updateSong(17, 0, stale);
+
+  for (const value of received as any[]) {
+    assert.equal(value.lyrics, "မြန်မာစာ\n\nOh!");
+    assert.equal(value.burmese, "မြန်မာစာ\n\nOh!");
+    assert.equal(value.romanized, "myanmar sar\n\nOh!");
+    assert.equal(value.meaning, "Burmese words\n\n");
+  }
+});
+
 test("song service validates and delegates canonical lyricsV2 on create and update", async () => {
   const received: unknown[] = [];
   const service = new SongService(repository({

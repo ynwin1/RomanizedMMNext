@@ -6,7 +6,7 @@ import type { AdminPage } from "@/shared/admin-list";
 import type { AdminSongRecord } from "./song.dto";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { SongEntity } from "../domain/song.types";
-import { withCanonicalLyrics } from "../domain/lyrics.compatibility";
+import { legacyLyricsFromV2, withCanonicalLyrics } from "../domain/lyrics.compatibility";
 import {
   GuessLyricsSong,
   GuessSongRecord,
@@ -28,7 +28,8 @@ export class SongService {
   constructor(private readonly songs: ISongRepository) {}
 
   async createSong(input: unknown, updatedBy?: string): Promise<SongEntity> {
-    return this.songs.create(CreateSongSchema.parse(input), updatedBy);
+    const content = CreateSongSchema.parse(input);
+    return this.songs.create(this.withCanonicalWriteLyrics(content), updatedBy);
   }
 
   async createPublishedSong(
@@ -36,7 +37,12 @@ export class SongService {
     sourceIngestionId: string,
     updatedBy?: string,
   ): Promise<SongEntity> {
-    return this.songs.createPublished(CreateSongSchema.parse(input), sourceIngestionId, updatedBy);
+    const content = CreateSongSchema.parse(input);
+    return this.songs.createPublished(
+      this.withCanonicalWriteLyrics(content),
+      sourceIngestionId,
+      updatedBy,
+    );
   }
 
   async getPublishedByIngestion(sourceIngestionId: string): Promise<SongEntity | null> {
@@ -56,11 +62,19 @@ export class SongService {
   async updateSong(id: unknown, revision: unknown, input: unknown, updatedBy?: string): Promise<SongEntity> {
     const mmid = SongIdSchema.parse(id);
     const expectedRevision = SongRevisionSchema.parse(revision);
-    const content = SongContentSchema.parse(input);
+    const content = this.withCanonicalWriteLyrics(SongContentSchema.parse(input));
     const song = await this.songs.update(mmid, expectedRevision, content, updatedBy);
     if (song) return song;
     if (!(await this.songs.findByMmid(mmid))) throw new NotFoundError("Song not found", "SONG_NOT_FOUND");
     throw new SongConflictError();
+  }
+
+  private withCanonicalWriteLyrics<T extends { lyricsV2?: LyricsV2 } & Record<string, unknown>>(content: T): T {
+    if (!content.lyricsV2) return content;
+    return {
+      ...content,
+      ...legacyLyricsFromV2(content.lyricsV2),
+    };
   }
 
   async getAdminList(input: unknown = {}): Promise<AdminPage<AdminSongRecord>> {
