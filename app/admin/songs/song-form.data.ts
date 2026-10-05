@@ -1,3 +1,6 @@
+import { legacyLyricsFromV2 } from "@/modules/songs/domain/lyrics.compatibility";
+import { parseLyricsV2 } from "@/modules/songs/application/lyrics-v2.validation";
+
 export interface SongFormState {
   message?: string;
   errors?: Record<string, string[]>;
@@ -5,7 +8,7 @@ export interface SongFormState {
 
 export const songTextFields = [
   "songName", "albumName", "genre", "spotifyTrackId", "spotifyLink", "appleMusicLink", "imageLink",
-  "about", "whenToListen", "lyrics", "romanized", "burmese", "meaning", "requestedBy", "songStoryEn", "songStoryMy",
+  "about", "whenToListen", "requestedBy", "songStoryEn", "songStoryMy",
 ] as const;
 
 const optional = new Set<string>([
@@ -26,10 +29,16 @@ export function songFormInput(form: FormData, create: boolean): Record<string, u
 
   const lyricsV2 = form.get("lyricsV2");
   if (typeof lyricsV2 === "string" && lyricsV2.trim()) {
-    try { input.lyricsV2 = JSON.parse(lyricsV2); }
-    catch { input.lyricsV2 = null; }
+    try {
+      const parsedLyricsV2 = parseLyricsV2(JSON.parse(lyricsV2));
+      input.lyricsV2 = parsedLyricsV2;
+      Object.assign(input, legacyLyricsFromV2(parsedLyricsV2));
+    } catch {
+      input.lyricsV2 = null;
+    }
   } else {
-    input.lyricsV2 = undefined;
+    // Admin writes are V2-first. Missing V2 intentionally fails SongContentSchema validation.
+    input.lyricsV2 = null;
   }
 
   const youtube = form.get("youtubeLink");

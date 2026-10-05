@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getCanonicalLyrics, withCanonicalLyrics } from "@/modules/songs/domain/lyrics.compatibility";
+import { getCanonicalLyrics, legacyLyricsFromV2, withCanonicalLyrics } from "@/modules/songs/domain/lyrics.compatibility";
 import type { SongEntity } from "@/modules/songs/domain/song.types";
 
 const baseSong: SongEntity = {
@@ -78,4 +78,23 @@ test("withCanonicalLyrics keeps the song shape while replacing only display lyri
   assert.equal(canonical.romanized, "a thit");
   assert.equal(canonical.meaning, "New");
   assert.deepEqual(canonical.lyricsV2, song.lyricsV2);
+});
+
+
+test("legacy compatibility fields are deterministically derived from lyricsV2", () => {
+  const lyricsV2 = {
+    version: 2 as const,
+    entries: [
+      { kind: "line" as const, burmese: "တစ်", romanized: "tit", meaning: "One" },
+      { kind: "break" as const },
+      { kind: "line" as const, burmese: "နှစ်", romanized: "hnit", meaning: null },
+    ],
+  };
+
+  assert.deepEqual(legacyLyricsFromV2(lyricsV2), {
+    lyrics: "တစ်\n\nနှစ်",
+    burmese: "တစ်\n\nနှစ်",
+    romanized: "tit\n\nhnit",
+    meaning: "One\n\n",
+  });
 });

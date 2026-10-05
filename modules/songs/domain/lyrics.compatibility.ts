@@ -8,7 +8,7 @@ export interface CanonicalLyricsText {
   source: "v2" | "legacy";
 }
 
-function renderLyricsV2Column(
+export function renderLyricsV2Column(
   lyrics: LyricsV2,
   column: "burmese" | "romanized" | "meaning",
 ): string {
@@ -17,6 +17,16 @@ function renderLyricsV2Column(
     if (column === "meaning") return entry.meaning ?? "";
     return entry[column];
   }).join("\n");
+}
+
+export function legacyLyricsFromV2(lyrics: LyricsV2): Pick<CanonicalLyricsText, "burmese" | "romanized" | "meaning"> & { lyrics: string } {
+  const burmese = renderLyricsV2Column(lyrics, "burmese");
+  return {
+    lyrics: burmese,
+    burmese,
+    romanized: renderLyricsV2Column(lyrics, "romanized"),
+    meaning: renderLyricsV2Column(lyrics, "meaning"),
+  };
 }
 
 export function getCanonicalLyrics(song: Pick<SongEntity, "burmese" | "romanized" | "meaning" | "lyricsV2">): CanonicalLyricsText {

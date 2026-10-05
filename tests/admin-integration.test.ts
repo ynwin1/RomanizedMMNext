@@ -171,10 +171,12 @@ function songForm(songName: string) {
   form.set("genre", "Pop");
   form.set("about", "About");
   form.set("whenToListen", "Anytime");
-  form.set("lyrics", "lyrics");
-  form.set("romanized", "romanized");
-  form.set("burmese", "မြန်မာ");
-  form.set("meaning", "meaning");
+  form.set("lyricsV2", JSON.stringify({
+    version: 2,
+    entries: [
+      { kind: "line", burmese: "မြန်မာ", romanized: "myanmar", meaning: "Myanmar" },
+    ],
+  }));
   return form;
 }
 
@@ -214,6 +216,10 @@ test("admin integration flow covers protected reads, song/artist create+edit, an
   const songEdit = await songs.getSongForEdit(17);
   await assert.rejects(() => songActions.update(17, songEdit.revision, {}, songForm("Edited Song")), /saved-song:17/);
   assert.equal((await songs.getSongForEdit(17)).songName, "Edited Song");
+  assert.equal((await songs.getSongForEdit(17)).burmese, "မြန်မာ");
+  assert.equal((await songs.getSongForEdit(17)).romanized, "myanmar");
+  assert.equal((await songs.getSongForEdit(17)).meaning, "Myanmar");
+  assert.equal((await songs.getSongForEdit(17)).lyrics, "မြန်မာ");
   assert.equal((await songs.getSongForEdit(17)).updatedBy, admin.userId);
 
   const artistActions = createArtistActionHandler({
