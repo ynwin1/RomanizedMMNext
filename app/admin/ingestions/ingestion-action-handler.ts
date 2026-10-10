@@ -48,6 +48,7 @@ import {
 } from "@/modules/ingestions/application/ingestion-artist-resolution.validation";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
+import { generationFailureMessage } from "./generation-failure-message";
 
 export interface IngestionActionState {
   message?: string;
@@ -221,7 +222,7 @@ export function createIngestionActionHandler(dependencies: {
 
         if (isGenerationFailure(error)) {
           dependencies.logFailure(error);
-          return { message: "AI generation failed quality or provider checks. You can retry." };
+          return { message: generationFailureMessage(error) };
         }
         dependencies.logFailure(error);
         return { message: "Unable to generate AI content. Please try again." };
