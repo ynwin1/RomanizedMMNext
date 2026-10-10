@@ -147,7 +147,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     
     
     return (
-        <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">\n            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
+        <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
             <SearchBar />
 
             <div className="flex flex-row justify-center items-center gap-4 max-md:gap-6 max-md:flex-col">
