@@ -7,6 +7,7 @@ import { songService } from "@/modules/songs";
 import { AdminSongGenerationService } from "@/modules/admin";
 import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
 import { logger } from "@/infrastructure/logging/logger";
+import { directSongGenerationFailureMessage } from "./song-generation-error";
 import { createSongActionHandler } from "./song-action-handler";
 import type { SongFormState } from "./song-form.data";
 
@@ -43,7 +44,7 @@ export async function generateSongAiContentAction(input: {
     logger.error("Admin direct song AI generation failed", error);
     return {
       ok: false as const,
-      message: error instanceof Error ? error.message : "Unable to generate song content.",
+      message: directSongGenerationFailureMessage(error),
     };
   }
 }
