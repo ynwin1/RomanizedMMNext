@@ -77,6 +77,13 @@ export class IngestionGenerationService {
         ? { lines: generatedLines(draft.generated.meaning) }
         : await this.generation.translateMeaning(sourceInput);
 
+      // Checkpoint completed translation before editorial generation. A retry after an
+      // editorial-provider failure should not pay to translate the same lines again.
+      if (!draft.generated.meaning?.trim()) {
+        await this.drafts.update(draft.id, draft.revision, { generated: { meaning: joinGeneratedLines(meaning.lines) } }, updatedBy);
+        draft = await this.drafts.getByIngestionId(initial.id);
+      }
+
       const editorial = draft.generated.about?.trim() && draft.generated.whenToListen?.trim()
         ? { about: draft.generated.about, whenToListen: draft.generated.whenToListen }
         : await this.generation.generateEditorialMetadata({
@@ -88,7 +95,6 @@ export class IngestionGenerationService {
           });
 
       const generatedPatch = {
-        ...(draft.generated.meaning?.trim() ? {} : { meaning: joinGeneratedLines(meaning.lines) }),
         ...(draft.generated.about?.trim() ? {} : { about: editorial.about }),
         ...(draft.generated.whenToListen?.trim() ? {} : { whenToListen: editorial.whenToListen }),
       };
