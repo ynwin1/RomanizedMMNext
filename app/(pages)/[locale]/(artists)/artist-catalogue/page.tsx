@@ -34,28 +34,31 @@ const Page = async ({ params, searchParams }: ArtistCataloguePageProps) => {
   const translator = await getTranslations("ArtistCatalogue");
 
   return (
-    <main className="flex flex-col items-center justify-center mb-8">
-      <h1 className="text-3xl font-bold mt-8">{translator("title")}</h1>
-      <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg">
-        {translator("description")}
-      </h3>
-      <ItemsPerPageSelector />
-      <div className="w-full flex flex-col items-center gap-4 mt-8">
+    <main className="mx-auto w-full max-w-5xl px-4 pb-14 pt-10 sm:px-6">
+      <header className="mb-8 border-b border-[#514335] pb-8">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#DAA276]">Explore the collection</p>
+        <h1 className="text-3xl font-bold tracking-tight text-[#F3EDE3] sm:text-4xl">{translator("title")}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-relaxed text-[#CBBEAE]">{translator("description")}</p>
+      </header>
+      <div className="mb-4 flex justify-end">
+        <ItemsPerPageSelector />
+      </div>
+      <div className="w-full">
         {artists.map((artist) => {
           const artistSongs = (artist.songs ?? [])
             .map((mmid) => songsByMmid.get(mmid))
             .filter((song) => song !== undefined);
 
           return (
-            <div key={artist.slug} className="flex align-center justify-center">
+            <div key={artist.slug} className="w-full">
               <ArtistCard locale={locale} artist={artist} songs={artistSongs} />
             </div>
           );
         })}
       </div>
-      <div className="flex w-full mt-8 mb-8 justify-center">
+      <nav aria-label="Artist catalogue pages" className="mt-10 flex justify-center">
         <Pagination totalPages={totalPages} />
-      </div>
+      </nav>
     </main>
   );
 };

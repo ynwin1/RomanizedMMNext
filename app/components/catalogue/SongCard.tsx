@@ -1,47 +1,35 @@
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
 
 interface SongCardProps {
   locale: string;
   song: {
     songName: string;
-    artistName: {name: string, slug?: string}[];
+    artistName: {name: string; slug?: string}[];
     mmid: string;
     imageLink: string;
   };
 }
 
-const SongCard: React.FC<SongCardProps> = ({ locale, song }) => {
-  // Song name localization logic
-  const engName = song.songName.split('(')[0];
-  const burmeseName = song.songName.split('(')[1]?.replace(/[()]/g, '').trim();
-  const nameToDisplay = locale === 'en' ? engName : burmeseName || engName;
-
-  // Artist display logic (show up to 3)
-  const artistNames = song.artistName.map(artist => artist.name);
-  const displayedArtists = artistNames.join(', ').slice(0, 25);
-  const moreArtists = song.artistName.length > 3;
-
-  const songURL = `/${locale}/song/${engName.replace(/\s/g, '')}/${song.mmid}`;
+const SongCard = ({locale, song}: SongCardProps) => {
+  const engName = song.songName.split("(")[0].trim();
+  const burmeseName = song.songName.split("(")[1]?.replace(/[()]/g, "").trim();
+  const displayName = locale === "my" ? burmeseName || engName : engName;
+  const songURL = `/${locale}/song/${engName.replace(/\s/g, "")}/${song.mmid}`;
 
   return (
-    <div className="bg-black border-2 border-white rounded-2xl shadow-lg overflow-hidden flex flex-col items-center p-4 transition-transform hover:scale-105 hover:shadow-2xl w-64 max-md:w-[80vw]">
-      <img
-        src={song.imageLink}
-        alt={nameToDisplay}
-        className="w-full h-40 object-cover rounded-xl mb-4 border border-gray-200"
-      />
-      <div className="font-bold text-lg text-center mb-2 line-clamp-2">{nameToDisplay}</div>
-      <div className="text-white text-sm text-center mb-4">
-        {displayedArtists}
-        {moreArtists && '…'}
+    <Link href={songURL} className="group flex min-w-0 flex-col overflow-hidden border border-[#514335] bg-[#211E1B] transition-colors hover:border-[#DAA276] hover:bg-[#29241F] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DAA276]">
+      {song.imageLink ? (
+        <img src={song.imageLink} alt="" loading="lazy" className="aspect-square w-full object-cover" />
+      ) : (
+        <div aria-hidden="true" className="flex aspect-square items-center justify-center bg-[#302A24] text-5xl text-[#DAA276]">♫</div>
+      )}
+      <div className="flex min-h-28 flex-1 flex-col gap-2 p-4">
+        <h2 className="line-clamp-2 break-words text-lg font-semibold leading-snug text-[#F3EDE3] group-hover:text-[#DAA276]">{displayName}</h2>
+        <p className="line-clamp-2 text-sm leading-relaxed text-[#CBBEAE]">{song.artistName.map(artist => artist.name).join(", ")}</p>
+        <span className="mt-auto pt-2 text-xs font-semibold uppercase tracking-wider text-[#DAA276]">Read lyrics →</span>
       </div>
-      <Link href={songURL} className="w-full">
-        <button className="w-full bg-blue-600 text-white rounded-xl px-4 py-2 font-semibold hover:bg-blue-400 transition-colors">
-          View
-        </button>
-      </Link>
-    </div>
+    </Link>
   );
 };
 
