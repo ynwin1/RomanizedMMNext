@@ -73,8 +73,6 @@ class MemorySongs implements ISongRepository {
   async listGuessSongRecords() { return []; }
   async findByArtistName() { return []; }
   async listLyricsMigrationCandidates() { return []; }
-  async setLyricsV2IfAbsent() { return true; }
-  async setLyricsV2IfLegacyMatches() { return { status: "saved" as const }; }
 }
 
 class MemoryArtists implements IArtistRepository {
@@ -270,10 +268,6 @@ test("denied integration reads never touch content services", async () => {
       contentCalls++;
       return { total: 0, counts: { SAFE: 0, WARNING: 0, INVALID: 0, MANUAL_REVIEW: 0 }, assessments: [] };
     },
-    analyzeLyricsMigrationRepairs: async () => {
-      contentCalls++;
-      return { total: 0, counts: { READY: 0, DETERMINISTIC_REPAIR: 0, AI_MEANING_ALIGNMENT: 0, AI_ROMANIZATION_REPAIR: 0, MANUAL_REVIEW: 0 }, plans: [] };
-    },
   }, {
     getAdminCount: async () => { contentCalls++; return 0; },
     getAdminList: async () => { contentCalls++; return adminPage([], 0, { page: 1, limit: 20, q: "" }); },
@@ -286,6 +280,5 @@ test("denied integration reads never touch content services", async () => {
   await assert.rejects(() => reads.listArtists({}), /denied/);
   await assert.rejects(() => reads.listRequests({}), /denied/);
   await assert.rejects(() => reads.lyricsMigrationReadiness(), /denied/);
-  await assert.rejects(() => reads.lyricsMigrationRepairs(), /denied/);
   assert.equal(contentCalls, 0);
 });

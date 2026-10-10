@@ -18,10 +18,7 @@ import {
 } from "./song.dto";
 import { ISongRepository } from "./song.repository";
 import { buildLyricsMigrationReport } from "./lyrics-migration.validator";
-import { buildLyricsMigrationRepairReport, planLyricsMigrationRepair } from "./lyrics-migration.repair";
-import { parseLyricsV2 } from "./lyrics-v2.validation";
-import type { LyricsMigrationExecutionResult, LyricsMigrationRepairReport, LyricsMigrationReport } from "../domain/lyrics-migration.types";
-import type { LegacyLyricsSnapshot, LyricsMeaningAlignmentSaveResult } from "../domain/lyrics-meaning-alignment.types";
+import type { LyricsMigrationReport } from "../domain/lyrics-migration.types";
 import type { LyricsV2 } from "../domain/lyrics-v2.types";
 
 export class SongService {
@@ -134,53 +131,9 @@ export class SongService {
     return (await this.songs.findByArtistName(artistName)).map(withCanonicalLyrics);
   }
 
-  async getLyricsMigrationCandidate(mmid: number) {
-    return (await this.songs.listLyricsMigrationCandidates()).find(song => song.mmid === mmid) ?? null;
-  }
-
-  async saveLyricsV2IfLegacyMatches(
-    mmid: number,
-    expected: LegacyLyricsSnapshot,
-    lyricsV2: LyricsV2,
-    updatedBy: string,
-  ): Promise<LyricsMeaningAlignmentSaveResult> {
-    return this.songs.setLyricsV2IfLegacyMatches(mmid, expected, parseLyricsV2(lyricsV2), updatedBy);
-  }
-
   async analyzeLyricsMigration(): Promise<LyricsMigrationReport> {
     return buildLyricsMigrationReport(await this.songs.listLyricsMigrationCandidates());
   }
 
-  async analyzeLyricsMigrationRepairs(): Promise<LyricsMigrationRepairReport> {
-    return buildLyricsMigrationRepairReport(await this.songs.listLyricsMigrationCandidates());
-  }
 
-  async migrateLowRiskLyricsV2(updatedBy: string): Promise<LyricsMigrationExecutionResult> {
-    const candidates = await this.songs.listLyricsMigrationCandidates();
-    const result: LyricsMigrationExecutionResult = {
-      eligible: 0,
-      migrated: 0,
-      alreadyV2: 0,
-      skippedConcurrent: 0,
-    };
-
-    for (const candidate of candidates) {
-      const plan = planLyricsMigrationRepair(candidate);
-      if (plan.strategy !== "READY" && plan.strategy !== "DETERMINISTIC_REPAIR") continue;
-      if (!plan.preview) continue;
-
-      result.eligible += 1;
-      if (candidate.lyricsV2) {
-        result.alreadyV2 += 1;
-        continue;
-      }
-
-      const lyricsV2 = parseLyricsV2(plan.preview);
-      const migrated = await this.songs.setLyricsV2IfAbsent(candidate.mmid, lyricsV2, updatedBy);
-      if (migrated) result.migrated += 1;
-      else result.skippedConcurrent += 1;
-    }
-
-    return result;
-  }
 }
