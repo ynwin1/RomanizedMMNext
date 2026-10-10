@@ -1,107 +1,127 @@
 "use client";
-import React, {useEffect} from 'react'
-import {useSearchParams, usePathname, useRouter } from "next/navigation";
+import React, {useEffect, useState} from "react";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useTranslations} from "next-intl";
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface LyricsSectionProps {
-    romanized: string,
-    burmese: string,
-    meaning: string,
-    selectedOption: string,
-    hasTimestamps: boolean,
-    customRenderer: (lyrics: string) => React.ReactNode,
-    onOptionChange: (option: string) => void
+  romanized: string;
+  burmese: string;
+  meaning: string;
+  selectedOption: string;
+  hasTimestamps: boolean;
+  customRenderer: (lyrics: string) => React.ReactNode;
+  onOptionChange: (option: string) => void;
 }
 
-const LyricsSection = ({ romanized, burmese, meaning, selectedOption, hasTimestamps, customRenderer, onOptionChange }: LyricsSectionProps) => {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const { replace } = useRouter();
+const modes = ["romanized", "burmese", "meaning"] as const;
+const FONT_MIN = 14;
+const FONT_MAX = 32;
+const LINE_MIN = 1.2;
+const LINE_MAX = 2.6;
+const DEFAULT_FONT = 18;
+const DEFAULT_LINE = 1.9;
+const SETTINGS_KEY = "RomanizedMM_lyricsReadingSettings";
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const fontSizeLabel = (size: number) => size <= 16 ? "Small" : size <= 20 ? "Comfortable" : size <= 25 ? "Large" : "Extra large";
 
-    const translator = useTranslations("MusicPage");
+const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestamps, customRenderer, onOptionChange}: LyricsSectionProps) => {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const {replace} = useRouter();
+  const translator = useTranslations("MusicPage");
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT);
+  const [lineSpacing, setLineSpacing] = useState(DEFAULT_LINE);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
-    useEffect(() => {
-        const params: URLSearchParams = new URLSearchParams(searchParams);
-        params.set("option", selectedOption);
-        replace(`${pathname}?${params.toString()}`, { scroll: false });
-        // set local storage choice
-        localStorage.setItem("RomanizedMM_lyricsType", selectedOption);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SETTINGS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as {fontSize?: unknown; lineSpacing?: unknown};
+        if (typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)) {
+          setFontSize(clamp(Math.round(parsed.fontSize), FONT_MIN, FONT_MAX));
+        }
+        if (typeof parsed.lineSpacing === "number" && Number.isFinite(parsed.lineSpacing)) {
+          setLineSpacing(Math.round(clamp(parsed.lineSpacing, LINE_MIN, LINE_MAX) * 10) / 10);
+        }
+      }
+    } catch {
+      // Ignore unavailable or malformed browser preferences.
+    }
+    setSettingsLoaded(true);
+  }, []);
 
-        onOptionChange(selectedOption);
-    }, [selectedOption, onOptionChange, replace, pathname, searchParams]);
+  useEffect(() => {
+    if (!settingsLoaded) return;
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({fontSize, lineSpacing}));
+    } catch {
+      // Reading controls still work when storage is unavailable.
+    }
+  }, [fontSize, lineSpacing, settingsLoaded]);
 
-    // Determine which lyrics to display
-    const getLyricsContent = () => {
-        const selectedLyrics = selectedOption === "romanized" 
-            ? romanized 
-            : selectedOption === "burmese" 
-                ? burmese 
-                : meaning;
+  useEffect(() => {
+    const current = searchParams.get("option");
+    if (current !== selectedOption) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("option", selectedOption);
+      replace(`${pathname}?${params.toString()}`, {scroll: false});
+    }
+    localStorage.setItem("RomanizedMM_lyricsType", selectedOption);
+  }, [selectedOption, replace, pathname, searchParams]);
 
-        return customRenderer(selectedLyrics);
-    };
+  const chosenLyrics = selectedOption === "romanized" ? romanized : selectedOption === "burmese" ? burmese : meaning;
 
-    return (
-        <>
-            {/* Radio Buttons */}
-            <div className="flex flex-row border-2 border-white rounded-2xl gap-6 pl-6 pr-6 pt-3 pb-3 max-md:p-2">
-                <div className="gap-2 flex items-center">
-                    <input
-                        type="radio"
-                        id="romanized"
-                        checked={selectedOption === "romanized"}
-                        onChange={() => onOptionChange("romanized")}
-                        className="w-4 h-4"
-                    />
-                    <label htmlFor="romanized" className="hover:text-gray-300">
-                        {translator("romanized")}
-                    </label>
-                </div>
-                <div className="gap-2 flex items-center">
-                    <input
-                        type="radio"
-                        id="burmese"
-                        checked={selectedOption === "burmese"}
-                        onChange={() => onOptionChange("burmese")}
-                        className="w-4 h-4"
-                    />
-                    <label htmlFor="burmese" className="hover:text-gray-300">
-                        {translator("burmese")}
-                    </label>
-                </div>
-                <div className="gap-2 flex items-center">
-                    <input
-                        type="radio"
-                        id="meaning"
-                        checked={selectedOption === "meaning"}
-                        onChange={() => onOptionChange("meaning")}
-                        className="w-4 h-4"
-                    />
-                    <label htmlFor="meaning" className="hover:text-gray-300">
-                        {translator("meaning")}
-                    </label>
-                </div>
-            </div>
-
-            {/* Info stamp for synced lyrics */}
-            {hasTimestamps && (
-                <div className="relative group inline-block">
-                    <span className="text-blue-500 cursor-pointer"><InformationCircleIcon className="w-6 h-6 text-white" /></span>
-                    <div className="absolute rounded-lg border-2 border-white left-1/2 -translate-x-1/2 mt-2 w-max bg-black text-white text-sm rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        {translator("sync")}
-                    </div>
-                </div>
-            )}
-
-            {/* Lyrics */}
-            <p className="text-3xl font-bold">{translator("lyrics")}</p>
-            <div className="text-base leading-[2.2rem] border-2 text-center max-md:text-left border-white p-4 rounded-2xl md:w-[50vw]
-            max-md:w-[90vw] max-md:text-[1rem]
-            ">
-                {getLyricsContent()}
-            </div>
-        </>
-    )
-}
-export default LyricsSection
+  return (
+    <section aria-label={translator("lyrics")} className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-3 sm:px-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div role="group" aria-label="Lyrics language" className="grid grid-cols-3 border-b border-[#514335]">
+          {modes.map(mode => (
+            <button key={mode} type="button" aria-pressed={selectedOption === mode}
+              onClick={() => onOptionChange(mode)}
+              className={`min-h-11 border-b-2 px-2 py-3 text-sm font-semibold transition-colors sm:px-5 ${
+                selectedOption === mode ? "border-[#DAA276] text-[#F3EDE3]" : "border-transparent text-[#CBBEAE] hover:text-[#F3EDE3]"
+              }`}>
+              {translator(mode)}
+            </button>
+          ))}
+        </div>
+        <button type="button" aria-expanded={showSettings} aria-controls="lyrics-reading-settings"
+          onClick={() => setShowSettings(open => !open)}
+          className="min-h-11 self-end border-b border-[#DAA276] px-2 text-sm font-medium text-[#F3EDE3] hover:text-[#DAA276]">
+          Reading settings
+        </button>
+      </div>
+      {showSettings && (
+        <div id="lyrics-reading-settings" role="group" aria-label="Reading settings"
+          className="grid gap-5 border border-[#514335] bg-[#201D1A] p-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-3 text-sm text-[#F3EDE3]">
+            <span className="flex justify-between gap-3"><span>Text size</span><output>{fontSizeLabel(fontSize)}</output></span>
+            <input type="range" aria-label="Lyrics font size" min={FONT_MIN} max={FONT_MAX} step={1}
+              value={fontSize} onChange={event => setFontSize(Number(event.target.value))}
+              className="w-full accent-[#DAA276]" />
+            <span className="flex justify-between text-xs text-[#CBBEAE]"><span>Smaller</span><span>Larger</span></span>
+          </label>
+          <label className="flex flex-col gap-3 text-sm text-[#F3EDE3]">
+            <span className="flex justify-between gap-3"><span>Line spacing</span><output>{lineSpacing.toFixed(1)}×</output></span>
+            <input type="range" aria-label="Lyrics line spacing" min={LINE_MIN} max={LINE_MAX} step={0.1}
+              value={lineSpacing} onChange={event => setLineSpacing(Number(event.target.value))}
+              className="w-full accent-[#DAA276]" />
+          </label>
+          <button type="button" onClick={() => {setFontSize(DEFAULT_FONT); setLineSpacing(DEFAULT_LINE);}}
+            className="min-h-11 justify-self-start border-b border-[#DAA276] px-2 text-sm font-semibold text-[#F3EDE3] hover:text-[#DAA276]">
+            Reset to defaults
+          </button>
+        </div>
+      )}
+      {hasTimestamps && <p className="text-center text-xs leading-relaxed text-[#CBBEAE]">{translator("sync")}</p>}
+      <h2 className="text-center text-2xl font-semibold tracking-tight text-[#F3EDE3]">{translator("lyrics")}</h2>
+      <div className="min-w-0 whitespace-pre-wrap break-words border border-[#514335] bg-[#201D1A] px-4 py-6 text-left text-[#F3EDE3] sm:px-8 sm:py-8 sm:text-center"
+        style={{fontSize: `${fontSize}px`, lineHeight: lineSpacing}}>
+        {customRenderer(chosenLyrics)}
+      </div>
+    </section>
+  );
+};
+export default LyricsSection;

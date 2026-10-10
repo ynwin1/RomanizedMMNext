@@ -93,25 +93,25 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
         setPlayerVisible(isVisible);
     };
 
-    // Render highlighted synced lyrics
+    // Only timestamped lines with an available player are interactive.
     const renderSyncedLyrics = () => (
-        <div className="w-full overflow-x-hidden">
-          {parsedLyrics.map((lyric, index) => (
-            <div
-              key={index}
-              onClick={() => handleLyricClick(lyric.startTime)}
-              className={
-                `
-                transition-all duration-300 ease-in-out overflow-x-hidden
-                ${playerVisible ? 'hover:text-blue-500 hover:cursor-pointer' : ''}
-                ${index === activeLyricIndex && playerVisible ? 'active font-bold text-green-600' : ''}
-                `
-              }
-            >
-              {lyric.text}
-              <br/>
-            </div>
-          ))}
+        <div className="w-full">
+            {parsedLyrics.map((lyric, index) => {
+                const seekable = playerVisible && lyric.startTime >= 0;
+                const active = seekable && index === activeLyricIndex;
+                const className = `block w-full whitespace-pre-wrap break-words py-1 text-inherit transition-colors ${
+                    active ? "font-semibold text-[#DAA276]" : seekable ? "hover:text-[#E8A572]" : ""
+                }`;
+                return seekable ? (
+                    <button type="button" key={index} className={className + " cursor-pointer text-left sm:text-center"}
+                        aria-label={`Seek to lyric: ${lyric.text}`}
+                        onClick={() => handleLyricClick(lyric.startTime)}>
+                        {lyric.text || "\u00a0"}
+                    </button>
+                ) : (
+                    <div key={index} className={className}>{lyric.text || "\u00a0"}</div>
+                );
+            })}
         </div>
     );
 
