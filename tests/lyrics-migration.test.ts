@@ -84,7 +84,7 @@ test("migration assessment recognizes songs already on V2 without reinterpreting
     lyricsV2,
   }));
   assert.equal(result.status, "SAFE");
-  assert.equal(result.diagnostics[0]?.code, "ALREADY_V2");
+  assert.deepEqual(result.diagnostics, []);
   assert.deepEqual(result.preview, lyricsV2);
 });
 
@@ -104,4 +104,53 @@ test("migration report aggregates deterministic status counts", () => {
     MANUAL_REVIEW: 1,
   });
   assert.deepEqual(report.assessments.map(item => item.mmid), [1, 2, 3, 4]);
+});
+
+test("health detects invalid canonical V2 even if legacy strings look valid", () => {
+  const result = assessLyricsMigration(candidate({
+    lyricsV2: {
+      version: 2,
+      entries: [
+        { kind: "break" },
+        { kind: "line", burmese: "တစ်", romanized: "tit", meaning: "One" },
+      ],
+    },
+  }));
+  assert.equal(result.status, "INVALID");
+  assert.equal(result.preview, undefined);
+  assert.ok(result.diagnostics.some(item => item.code === "INVALID_LYRICS_V2"));
+});
+
+test("health warns on missing V2 meanings without consulting obsolete legacy fields", () => {
+  const result = assessLyricsMigration(candidate({
+    burmese: "",
+    romanized: "",
+    meaning: "",
+    lyricsV2: {
+      version: 2,
+      entries: [
+        { kind: "line", burmese: "တစ်", romanized: "tit", meaning: null },
+        { kind: "break" },
+        { kind: "line", burmese: "နှစ်", romanized: "hnit", meaning: "Two" },
+      ],
+    },
+  }));
+  assert.equal(result.status, "WARNING");
+  assert.deepEqual(result.diagnostics.map(item => [item.code, item.line]), [["MISSING_MEANING", 1]]);
+});
+
+test("health rejects consecutive V2 breaks and empty romanization", () => {
+  for (const entries of [
+    [
+      { kind: "line" as const, burmese: "တစ်", romanized: "tit", meaning: "One" },
+      { kind: "break" as const },
+      { kind: "break" as const },
+      { kind: "line" as const, burmese: "နှစ်", romanized: "hnit", meaning: "Two" },
+    ],
+    [{ kind: "line" as const, burmese: "တစ်", romanized: "", meaning: "One" }],
+  ]) {
+    const result = assessLyricsMigration(candidate({ lyricsV2: { version: 2, entries } }));
+    assert.equal(result.status, "INVALID");
+    assert.equal(result.diagnostics[0]?.code, "INVALID_LYRICS_V2");
+  }
 });
