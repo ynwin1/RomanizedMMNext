@@ -1,4 +1,5 @@
 import type { LyricsV2, LyricsV2Entry } from "../domain/lyrics-v2.types";
+import { LyricsV2Schema } from "./lyrics-v2.validation";
 import type {
   LegacyLyricsMigrationCandidate,
   LyricsMigrationAssessment,
@@ -17,15 +18,34 @@ function blank(value: string): boolean {
 
 export function assessLyricsMigration(candidate: LegacyLyricsMigrationCandidate): LyricsMigrationAssessment {
   if (candidate.lyricsV2) {
+    const result = LyricsV2Schema.safeParse(candidate.lyricsV2);
+    if (!result.success) {
+      return {
+        mmid: candidate.mmid,
+        songName: candidate.songName,
+        status: "INVALID",
+        diagnostics: result.error.issues.map(issue => ({
+          code: "INVALID_LYRICS_V2" as const,
+          message: `Invalid Lyrics V2 at ${issue.path.join(".") || "root"}: ${issue.message}`,
+        })),
+      };
+    }
+
+    const missingMeaning = result.data.entries.flatMap((entry, index) =>
+      entry.kind === "line" && entry.meaning === null
+        ? [{
+            code: "MISSING_MEANING" as const,
+            line: index + 1,
+            message: `Lyrics V2 entry ${index + 1} has no English meaning.`,
+          }]
+        : [],
+    );
     return {
       mmid: candidate.mmid,
       songName: candidate.songName,
-      status: "SAFE",
-      diagnostics: [{
-        code: "ALREADY_V2",
-        message: "Song already has lyricsV2 and does not require legacy migration.",
-      }],
-      preview: candidate.lyricsV2,
+      status: missingMeaning.length ? "WARNING" : "SAFE",
+      diagnostics: missingMeaning,
+      preview: result.data,
     };
   }
 

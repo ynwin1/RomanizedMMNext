@@ -13,7 +13,7 @@ export interface LegacyLyricsMigrationCandidate {
 
 export interface LyricsMigrationDiagnostic {
   code:
-    | "ALREADY_V2"
+    | "INVALID_LYRICS_V2"
     | "EMPTY_BURMESE"
     | "EMPTY_ROMANIZED"
     | "LINE_COUNT_MISMATCH"
