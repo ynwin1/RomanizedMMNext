@@ -1,5 +1,5 @@
 import React from 'react';
-import {Metadata, ResolvingMetadata} from "next";
+import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import SyncedLyricsPlayer from "@/app/components/sync-lyrics/SyncedLyricsPlayer";
@@ -7,7 +7,8 @@ import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from 'next/image';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
 import SocialShare from "@/app/components/social/SocialShare";
-import {buildArtistNames, extractSongName} from "@/app/lib/utils";
+import {buildArtistNames} from "@/app/lib/utils";
+import {songSeo, jsonLdScriptValue} from "@/app/lib/song-seo";
 import Link from "next/link";
 import {SongPageArtist} from "@/app/lib/types";
 import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
@@ -23,90 +24,32 @@ type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export async function generateMetadata(
-    { params, searchParams }: Props,
-    parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
     try {
         const { id, locale } = await params;
-        if (!id || !locale) {
-            throw new Error("Missing required parameters: id or locale");
-        }
-
-        const songQ = await songService.getSongPage(Number(id));
-
-        const { engName, mmName } = extractSongName(songQ.songName);
-
-        const artistNames = buildArtistNames(songQ.artistName);
-        const titleToDisplay = `${engName} Lyrics - ${artistNames}`;
-        const description = `${titleToDisplay} - Full song lyrics in Burmese with English meaning. ${songQ.burmese.slice(0, 100)}...`;
-
-        const mmid: number = songQ.mmid;
-        const artists: string = buildArtistNames(songQ.artistName);
-
-        const songNameURL = engName.replace(/\s/g, "").trim(); // Remove spaces from song name
-
-        const jsonLd = {
-            "@context": "https://schema.org",
-            "@type": "MusicRecording",
-            "name": engName,
-            "byArtist": {
-                "@type": "MusicGroup",
-                "name": artistNames,
-            },
-            "inAlbum": songQ.albumName ? {
-                "@type": "MusicAlbum",
-                "name": songQ.albumName,
-            } : undefined,
-            "genre": songQ.genre,
-            "description": songQ.about || "A Burmese song",
-            "url": `https://romanizedmm.com/${locale}/song/${songNameURL}/${songQ.mmid}`,
-            "sameAs": [
-                songQ.youtubeLink?.[0],
-                songQ.spotifyLink,
-                songQ.appleMusicLink,
-            ].filter(Boolean), // Removes undefined/empty links
-        };
-
+        if (!["en", "my"].includes(locale)) return { title: "Song" };
+        const song = await songService.getSongPage(Number(id));
+        const seo = songSeo(song, locale);
         return {
-            title: titleToDisplay,
-            description: description,
+            title: seo.title,
+            description: seo.description,
             category: "Music",
-            keywords: [`${engName} Lyrics`, `${mmName} Lyrics`, `${artistNames}`, "Burmese songs", "Myanmar music", "song lyrics"],
-            alternates: {
-                canonical: `https://www.romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
-                languages: {
-                    'en': `https://www.romanizedmm.com/en/song/${songNameURL}/${mmid}`,
-                    'my': `https://www.romanizedmm.com/my/song/${songNameURL}/${mmid}`,
-                }
-            },
-            other: {
-                'application/ld+json': JSON.stringify(jsonLd)
-            },
+            alternates: { canonical: seo.canonical, languages: seo.alternateLanguages },
             openGraph: {
-                title: titleToDisplay,
-                description: description,
+                title: seo.title,
+                description: seo.description,
                 type: "music.song",
-                images: songQ.imageLink ? [
-                    {
-                        url: songQ.imageLink,
-                        width: 800,
-                        height: 600,
-                        alt: titleToDisplay,
-                    },
-                ] : [],
-                locale: locale,
-                alternateLocale: ["en", "my"],
-                url: `https://romanizedmm.com/${locale}/song/${songNameURL}/${mmid}`,
+                images: song.imageLink ? [{ url: song.imageLink, alt: seo.title }] : [],
+                locale,
+                alternateLocale: locale === "en" ? ["my"] : ["en"],
+                url: seo.canonical,
                 siteName: "RomanizedMM",
-                musicians: artists,
+                musicians: buildArtistNames(song.artistName),
             },
         };
     } catch (error) {
         logger.error("Failed to generate song metadata", error);
-        return {
-            title: "Song",
-        };
+        return { title: "Song" };
     }
 }
 
@@ -170,6 +113,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     const translator = await getTranslations("MusicPage");
 
     const artistNames = buildArtistNames(song.artistName);
+    const seo = songSeo(song, locale);
 
     let firstArtist = {
         name: song.artistName[0].name,
@@ -203,7 +147,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     
     
     return (
-        <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
+        <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">\n            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
             <SearchBar />
 
             <div className="flex flex-row justify-center items-center gap-4 max-md:gap-6 max-md:flex-col">

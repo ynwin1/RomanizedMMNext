@@ -29,10 +29,9 @@ test("song page smoke: metadata renders from SongService data", async (t) => {
       params: Promise.resolve({ locale: "en", id: "17", name: "TestSong" }),
       searchParams: Promise.resolve({}),
     },
-    undefined as never,
   );
 
-  assert.match(String(metadata.title), /Test Song Lyrics/);
+  assert.match(String(metadata.title), /စမ်းသပ်သီချင်း \(Test Song\) Lyrics/);
   assert.match(String(metadata.description), /V2 မြန်မာစာ metadata source/);
   assert.equal(
     metadata.alternates?.canonical,
