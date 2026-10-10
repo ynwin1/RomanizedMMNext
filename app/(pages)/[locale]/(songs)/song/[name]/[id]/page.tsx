@@ -1,7 +1,7 @@
 import React from 'react';
+import SearchBar from "@/app/components/searchbar/SearchBar";
 import type {Metadata} from "next";
 import {notFound} from "next/navigation";
-import SearchBar from "@/app/components/searchbar/SearchBar";
 import SyncedLyricsPlayer from "@/app/components/sync-lyrics/SyncedLyricsPlayer";
 import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from 'next/image';
@@ -60,7 +60,7 @@ interface SongPageProps {
 
 export const revalidate: number = 3600; // 24 hours
 
-const ArtistRow = ({ label, artists }: { label: string, artists: SongPageArtist[] }) => (
+const ArtistRow = ({ label, artists, locale }: { label: string, artists: SongPageArtist[], locale: string }) => (
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
         <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
         <div className="flex flex-wrap gap-2">
@@ -79,7 +79,7 @@ const ArtistRow = ({ label, artists }: { label: string, artists: SongPageArtist[
                         key={artist.slug ?? artist.name}
                     >
                         {artist.slug ? (
-                            <Link href={`/en/artist/${artist.slug}`}>{content}</Link>
+                            <Link href={`/${locale}/artist/${artist.slug}`}>{content}</Link>
                         ) : (
                             content
                         )}
@@ -147,56 +147,68 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     
     
     return (
-        <main className="flex flex-col gap-10 mt-5 mb-8 justify-center items-center">
+        <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-6 sm:px-6 lg:pt-10">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
-            <SearchBar />
 
-            <div className="flex flex-row justify-center items-center gap-4 max-md:gap-6 max-md:flex-col">
-                <RandomSongButton locale={locale}/>
-                <SongReportButton songName={song.songName} artist={artistNames} />
-            </div>
-
-            {/* Album Cover */}
-            {song.imageLink &&
-                <Image
-                src={song.imageLink}
-                alt={song.songName}
-                width={160}
-                height={160}
-                className="rounded-2xl hover:scale-105 transition-all duration-300"
-                quality={85}
-                priority={true}
-                />
-            }
-
-            {/* Song Description */}
-            <p className="text-lg text-wrap text-center leading-10 max-md:w-[80vw] md:w-[60vw] max-md:text-[1rem] max-md:leading-8">{song.about}</p>
-
-            {/* About */}
-            <div className="bg-transparent border-2 border-white rounded-3xl p-8 max-w-[50vw] max-md:max-w-[80vw] mx-auto">
-                <h1 className="text-2xl font-bold mb-6 text-center">{song.songName}</h1>
-                <div className="space-y-4">
-                    <ArtistRow label={translator("artist")} artists={song.artistName} />
-                    <DetailRow label={translator("album")} value={song.albumName || ""} />
-                    <DetailRow label={translator("genre")} value={song.genre} />
-                    <DetailRow label={translator("whenToListen")} value={song.whenToListen} />
+            {/* Song identity and details are visible without extra clicks. */}
+            <header className="grid items-center gap-5 border-b border-[#514335] pb-7 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-7">
+                {song.imageLink && (
+                    <Image
+                        src={song.imageLink}
+                        alt={song.songName}
+                        width={132}
+                        height={132}
+                        className="h-28 w-28 rounded-md object-cover sm:h-[132px] sm:w-[132px]"
+                        quality={85}
+                        priority
+                    />
+                )}
+                <div className="min-w-0">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#DAA276]">RomanizedMM · Lyrics</p>
+                    <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-[#F3EDE3] sm:text-4xl">{song.songName}</h1>
+                    <div className="mt-3 text-base text-[#CBBEAE]"><ArtistRow label={translator("artist")} artists={song.artistName} locale={locale} /></div>
+                    {(song.genre || song.albumName) && <p className="mt-2 text-sm text-[#DAA276]">{[song.genre, song.albumName].filter(Boolean).join(" · ")}</p>}
+                    {song.about && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#CBBEAE]">{song.about}</p>}
+                    {song.whenToListen && (
+                        <div className="mt-3 text-sm leading-relaxed text-[#CBBEAE]">
+                            <span className="font-semibold text-[#DAA276]">{translator("whenToListen")}: </span>
+                            {song.whenToListen}
+                        </div>
+                    )}
                 </div>
-            </div>
+            </header>
 
-            {/* Song Requester & Story if available */}
-            <RequestedByBox requestedBy={song.requestedBy} songStoryEn={song.songStoryEn} songStoryMy={song.songStoryMy} locale={locale} />
+            <section aria-label="Song lyrics and playback" id="song-lyrics" className="min-w-0">
+                <SyncedLyricsPlayer extLinks={{youtube: song.youtubeLink, spotify: song.spotifyLink, apple: song.appleMusicLink}} lyrics={{romanized: song.romanized, burmese: song.burmese, meaning: song.meaning, initialOption: option}} />
+            </section>
 
-            {/* About Artist */}
-            {firstArtist.slug && (
-                <AboutArtistCard artist={firstArtist} locale={locale} />
+            {(song.requestedBy || song.songStoryEn || song.songStoryMy) && (
+                <section aria-label="Song request story" className="mx-auto w-full max-w-3xl">
+                    <RequestedByBox requestedBy={song.requestedBy} songStoryEn={song.songStoryEn} songStoryMy={song.songStoryMy} locale={locale} />
+                </section>
             )}
 
-            <SyncedLyricsPlayer extLinks={{youtube: song.youtubeLink, spotify: song.spotifyLink, apple: song.appleMusicLink}} lyrics={{romanized: song.romanized, burmese: song.burmese, meaning: song.meaning, initialOption: option}} />
+            <section aria-labelledby="more-from-artist" className="min-w-0 border-t border-[#514335] pt-8">
+                <h2 id="more-from-artist" className="sr-only">Explore more songs</h2>
+                <MoreSongs artists={cleanedArtistNames} currentSongId={parseInt(id)} locale={locale}/>
+            </section>
 
-            <MoreSongs artists={cleanedArtistNames} currentSongId={parseInt(id)} locale={locale}/>
+            {firstArtist.slug && (
+                <section aria-label="About the artist" className="mx-auto w-full max-w-3xl border-t border-[#514335] pt-8">
+                    <AboutArtistCard artist={firstArtist} locale={locale} />
+                </section>
+            )}
 
-            <SocialShare url={`https://romanizedmm.com/song/${name}/${id}?option=${option}`} title={song.songName} />
+            <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-[#514335] pt-8">
+                <div className="mx-auto w-full max-w-2xl"><SearchBar /></div>
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                    <RandomSongButton locale={locale}/>
+                    <SongReportButton songName={song.songName} artist={artistNames} />
+                </div>
+                <SocialShare url={seo.canonical} title={song.songName} />
+            </aside>
         </main>
-    )
+    );
+
 }
 export default Page

@@ -12,6 +12,7 @@ test("embedded video player loads client-only to avoid ReactPlayer SSR hydration
 
 test("song page has no stray literal backslash-n before the search bar", () => {
   const source = readFileSync(resolve(process.cwd(), "app/(pages)/[locale]/(songs)/song/[name]/[id]/page.tsx"), "utf8");
-  assert.doesNotMatch(source, /items-center">\\n\s*<script/);
-  assert.match(source, /items-center">\s*<script type="application\/ld\+json"/);
+  assert.doesNotMatch(source, /\\\\n\s*<script type="application\/ld\+json"/);
+  assert.match(source, /<script type="application\/ld\+json"/);
+  assert.match(source, /<SearchBar \/>/);
 });
