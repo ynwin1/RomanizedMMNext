@@ -11,6 +11,10 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        surface: "var(--surface)",
+        "surface-raised": "var(--surface-raised)",
+        muted: "var(--muted)",
+        accent: "var(--accent)",
       },
     },
   },
