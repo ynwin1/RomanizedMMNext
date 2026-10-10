@@ -24,8 +24,11 @@ export function buildPublicSitemap(songs: SitemapSongRecord[], artists: SitemapA
     seen.add(song.mmid);
     for (const locale of LANGUAGES) {
       const seo = songSeo({ ...song, artistName: [] }, locale);
+      const updatedAt = song.updatedAt instanceof Date && !Number.isNaN(song.updatedAt.getTime()) && song.updatedAt.getTime() <= Date.now()
+        ? song.updatedAt : undefined;
       routes.push({
         url: seo.canonical,
+        ...(updatedAt ? { lastModified: updatedAt } : {}),
         alternates: { languages: seo.alternateLanguages },
       });
     }

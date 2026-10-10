@@ -201,10 +201,11 @@ export class MongoSongRepository implements ISongRepository {
 
   async listForSitemap(): Promise<SitemapSongRecord[]> {
     await connectDB();
-    const songs = await Song.find().select("mmid songName -_id").lean();
+    const songs = await Song.find().select("mmid songName updatedAt -_id").lean();
     return songs.map(song => ({
       mmid: song.mmid,
       songName: song.songName.split("(")[0].trim().replace(/\s/g, ""),
+      updatedAt: song.updatedAt,
     }));
   }
 

@@ -15,6 +15,7 @@ export interface RandomSongResult {
 export interface SitemapSongRecord {
   mmid: number;
   songName: string;
+  updatedAt?: Date;
 }
 
 export interface SongSummary {
