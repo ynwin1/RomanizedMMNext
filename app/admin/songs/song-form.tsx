@@ -5,6 +5,7 @@ import { useActionState, useState, useTransition } from "react";
 import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
 import { createSongAction, generateSongAiContentAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
+import { requiresGenerationOverwriteConfirmation } from "./song-generation-overwrite";
 
 const labels: Record<string, string> = {
   songName: "Song name", albumName: "Album", genre: "Genre", spotifyTrackId: "Spotify track ID",
@@ -130,6 +131,7 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
   const [lyricsEntries, setLyricsEntries] = useState<LyricsV2Entry[]>(song?.lyricsV2?.entries ?? []);
   const [sourceLyrics, setSourceLyrics] = useState("");
   const [aiMessage, setAiMessage] = useState("");
+  const [confirmAiOverwrite, setConfirmAiOverwrite] = useState(false);
   const [aiPending, startAiTransition] = useTransition();
   const change = (field: string, value: string) => setValues(previous => ({ ...previous, [field]: value }));
 
@@ -140,6 +142,12 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
       return;
     }
 
+    if (requiresGenerationOverwriteConfirmation(lyricsEntries) && !confirmAiOverwrite) {
+      setConfirmAiOverwrite(true);
+      setAiMessage("Existing Lyrics V2 rows will be replaced. Review your edits, then click Confirm replacement to regenerate.");
+      return;
+    }
+    setConfirmAiOverwrite(false);
     startAiTransition(async () => {
       const result = await generateSongAiContentAction({
         burmeseLyrics: sourceLyrics,
@@ -195,7 +203,7 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
             <textarea
               rows={14}
               value={sourceLyrics}
-              onChange={event => setSourceLyrics(event.target.value)}
+              onChange={event => { setSourceLyrics(event.target.value); setConfirmAiOverwrite(false); }}
               placeholder="Paste Burmese lyrics here…"
               className={inputClass}
             />
@@ -205,9 +213,10 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
               disabled={aiPending}
               className="mt-3 rounded bg-violet-600 px-5 py-3 font-medium hover:bg-violet-500 disabled:opacity-50"
             >
-              {aiPending ? "Generating…" : "Auto-generate song content"}
+              {aiPending ? "Generating…" : confirmAiOverwrite ? "Confirm replacement and regenerate" : "Auto-generate song content"}
             </button>
-            <p className="mt-2 text-xs text-zinc-500">AI tokens are used only when you click Auto-generate.</p>
+            {confirmAiOverwrite && <button type="button" onClick={() => { setConfirmAiOverwrite(false); setAiMessage(""); }} className="ml-3 rounded border border-zinc-700 px-4 py-3 text-sm">Cancel replacement</button>}
+            <p className="mt-2 text-xs text-zinc-500">AI tokens are used only when you confirm generation. Existing V2 rows require confirmation before regeneration.</p>
             {aiMessage && <p className="mt-3 text-sm text-violet-200">{aiMessage}</p>}
           </fieldset>
         )}
