@@ -1,99 +1,16 @@
-import {songService, SitemapSongRecord} from "@/modules/songs";
-import {MetadataRoute} from "next";
+import type { MetadataRoute } from "next";
+import { songService, type SitemapSongRecord } from "@/modules/songs";
 import { logger } from "@/infrastructure/logging/logger";
+import { buildPublicSitemap } from "@/app/lib/public-sitemap";
 
-const WEBSITE_URL = 'https://www.romanizedmm.com'
-const LOCALES = ['en', 'my']
-const SONG_OPTIONS = ['english', 'burmese', 'meaning'] // Added 'meaning' option
-
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    let songs: SitemapSongRecord[] = [];
-    try {
-        songs = await songService.getSitemapSongs();
-    } catch (error) {
-        logger.error("Failed to fetch songs for sitemap", error);
-    }
-    const routes: MetadataRoute.Sitemap = [];
-    // Home Pages for each locale
-    LOCALES.forEach(locale => {
-        routes.push({
-            url: `${WEBSITE_URL}/${locale}`,
-            lastModified: new Date(),
-            changeFrequency: "yearly",
-            priority: 0.9,
-        })
-    });
-
-    // About Page for each locale
-    LOCALES.forEach(locale => {
-        routes.push({
-            url: `${WEBSITE_URL}/${locale}/about`,
-            lastModified: new Date(),
-            changeFrequency: 'yearly',
-            priority: 0.9,
-        })
-    });
-    //
-    // // Song Catalog Page for each locale
-    LOCALES.forEach(locale => {
-        routes.push({
-            url: `${WEBSITE_URL}/${locale}/song-catalogue`,
-            lastModified: new Date(),
-            changeFrequency: 'weekly',
-            priority: 0.9,
-        })
-    });
-    //
-    // // Song Request Page for each locale
-    LOCALES.forEach(locale => {
-        routes.push({
-            url: `${WEBSITE_URL}/${locale}/song-request`,
-            lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.9,
-        })
-    });
-
-    // Add main song pages and their variations
-    songs.forEach((song)  => {
-        // Main song pages for each locale
-        LOCALES.forEach(locale => {
-            routes.push({
-                url: `${WEBSITE_URL}/${locale}/song/${song.songName}/${song.mmid}`,
-                lastModified: new Date(),
-                changeFrequency: 'monthly',
-                priority: 0.8,
-                alternates: {
-                    languages: Object.fromEntries(
-                        LOCALES.map(alterLocale => [
-                            alterLocale,
-                            `${WEBSITE_URL}/${alterLocale}/song/${song.songName}/${song.mmid}`
-                        ])
-                    )
-                }
-            })
-
-            // Option variations for each main page
-            SONG_OPTIONS.forEach(option => {
-                routes.push({
-                    url: `${WEBSITE_URL}/${locale}/song/${song.songName}/${song.mmid}?option=${option}`,
-                    lastModified: new Date(),
-                    changeFrequency: 'monthly',
-                    priority: 0.7, // Slightly lower priority than main pages
-                    alternates: {
-                        languages: Object.fromEntries(
-                            LOCALES.map(alterLocale => [
-                                alterLocale,
-                                `${WEBSITE_URL}/${alterLocale}/song/${song.songName}/${song.mmid}?option=${option}`
-                            ])
-                        )
-                    }
-                })
-            })
-        })
-    })
-
-    return routes;
+  let songs: SitemapSongRecord[] = [];
+  try {
+    songs = await songService.getSitemapSongs();
+  } catch (error) {
+    logger.error("Failed to fetch songs for sitemap", error);
+  }
+  return buildPublicSitemap(songs);
 }
