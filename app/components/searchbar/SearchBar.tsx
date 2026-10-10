@@ -1,112 +1,97 @@
 "use client";
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
-import {useDebouncedCallback} from "use-debounce";
-import {redirect, useParams} from "next/navigation";
-import {useTranslations} from "next-intl";
+import { useDebouncedCallback } from "use-debounce";
+import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface OptionType {
-    value: string; // mmid
-    label: string; // songName
-    artistName: string;
+  value: string;
+  label: string;
+  artistName: string;
 }
 
 const colourStyles = {
-    control: (styles: any) => ({
-        ...styles,
-        backgroundColor: "white",
-        borderColor: "#000000",
-        borderWidth: "2px",
-        width: '50vw',
-        borderRadius: '0.5rem',
-        '@media (max-width: 768px)': {
-            width: '85vw',
-        }
-    }),
-    option: (styles: any, { isFocused, isSelected }: any) => ({
-        ...styles,
-        backgroundColor: isFocused ? "#1f1f1f" : isSelected ? "#000000" : "#ffffff",
-        color: isFocused || isSelected ? "white" : "black",
-    }),
-    singleValue: (styles: any) => ({
-        ...styles,
-        color: "white",
-    }),
-    placeholder: (styles: any) => ({
-        ...styles,
-        color: "gray",
-    }),
+  control: (styles: any, state: any) => ({
+    ...styles,
+    backgroundColor: "#24211E",
+    borderColor: state.isFocused ? "#DAA276" : "#6B5C4B",
+    borderWidth: "1px",
+    minHeight: "56px",
+    boxShadow: state.isFocused ? "0 0 0 2px rgba(218,162,118,.23)" : "none",
+    borderRadius: "0.375rem",
+    "&:hover": { borderColor: "#E8A572" },
+  }),
+  input: (styles: any) => ({ ...styles, color: "#F3EDE3" }),
+  menu: (styles: any) => ({ ...styles, backgroundColor: "#24211E", border: "1px solid #6B5C4B", borderRadius: "0.375rem", overflow: "hidden", zIndex: 70 }),
+  option: (styles: any, { isFocused, isSelected }: any) => ({
+    ...styles, backgroundColor: isSelected ? "#68432D" : isFocused ? "#3A322B" : "#24211E",
+    color: "#F3EDE3", cursor: "pointer", padding: "12px 14px",
+  }),
+  singleValue: (styles: any) => ({ ...styles, color: "#F3EDE3" }),
+  placeholder: (styles: any) => ({ ...styles, color: "#CBBEAE" }),
+  clearIndicator: (styles: any) => ({ ...styles, color: "#D0C5B6" }),
 };
 
 const SearchBar = () => {
-    const [mounted, setMounted] = useState(false);
-    const params = useParams();
-    const locale = params.locale;
+  const [mounted, setMounted] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const params = useParams();
+  const router = useRouter();
+  const locale = typeof params.locale === "string" ? params.locale : "en";
+  const translator = useTranslations("SearchBar");
+  useEffect(() => setMounted(true), []);
 
-    const translator = useTranslations("SearchBar");
-
-    const loadOptions = useDebouncedCallback( async (inputValue: string): Promise<OptionType[]> => {
-        if (!inputValue) {
-            return [];
-        }
-
-        // API call to /api/song/search?query=${inputValue}
-        const resp = await fetch(`/api/song/search?query=${inputValue}`);
-        const data = await resp.json();
-
-        if (data.success) {
-            return data.songs.map((song: any) => ({
-                value: song.mmid,
-                label: song.songName,
-                artistName: song.artistName[0]?.name || "Unknown Artist",
-            }));
-        }
-
-        return [];
-    }, 300, { leading: true, trailing: true });
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) {
-        return null;
+  const loadOptions = useDebouncedCallback(async (input: string): Promise<OptionType[]> => {
+    if (!input.trim()) return [];
+    setFailed(false);
+    try {
+      const response = await fetch(`/api/song/search?query=${encodeURIComponent(input.trim())}`);
+      if (!response.ok) throw new Error("Search failed");
+      const data = await response.json();
+      if (!data.success || !Array.isArray(data.songs)) throw new Error("Invalid search response");
+      return data.songs.map((song: any) => ({
+        value: String(song.mmid), label: song.songName,
+        artistName: song.artistName?.[0]?.name || "Unknown Artist",
+      }));
+    } catch {
+      setFailed(true);
+      return [];
     }
+  }, 300);
 
-    const handleChange = (selectedOption: OptionType | null) => {
-        if (!selectedOption) {
-            return;
-        }
+  const handleChange = (selection: OptionType | null) => {
+    if (!selection) return;
+    const slug = selection.label.split("(")[0].trim().replace(/\s/g, "");
+    const option = localStorage.getItem("RomanizedMM_lyricsType") || "burmese";
+    router.push(`/${locale}/song/${encodeURIComponent(slug)}/${selection.value}?option=${encodeURIComponent(option)}`);
+  };
 
-        const { value, label } = selectedOption;
-        // extract english song name
-        const songName = label.split('(')[0].trim().replace(/\s/g, '');
-        const optionType = localStorage.getItem("RomanizedMM_lyricsType") || 'romanized';
-        const url = `/${locale}/song/${songName}/${value}?option=${optionType}`;
-        // Navigate to the song page
-        redirect(url);
-    }
-
-    return (
-        <div>
-            <AsyncSelect
-                cacheOptions
-                loadOptions={loadOptions}
-                placeholder={translator("search")}
-                isClearable
-                styles={colourStyles}
-                noOptionsMessage={() => "No songs found"}
-                components={{ DropdownIndicator:() => null, IndicatorSeparator:() => null }}
-                formatOptionLabel={(option: OptionType) => (
-                    <div>
-                        <span style={{ fontWeight: "bold" }}>{option.label}</span>
-                        <br />
-                        <span style={{ fontSize: "0.9rem", color: "gray" }}>{option.artistName}</span>
-                    </div>
-                )}
-                onChange={(selectedOption: OptionType | null) => handleChange(selectedOption)}
-            />
-        </div>
-    )
-}
-export default SearchBar
+  return (
+    <div className="w-full max-w-2xl px-4">
+      <label className="mb-2 block text-left text-sm font-semibold text-[#F3EDE3]" htmlFor="song-search">Find a song</label>
+      {mounted ? (
+        <AsyncSelect<OptionType>
+          inputId="song-search"
+          instanceId="song-search"
+          cacheOptions
+          loadOptions={loadOptions}
+          placeholder={translator("search")}
+          isClearable
+          styles={colourStyles}
+          noOptionsMessage={({ inputValue }) => failed ? "Search unavailable. Please try again." : inputValue ? "No matching songs found" : "Type a song or artist name"}
+          loadingMessage={() => "Searching songs…"}
+          components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
+          formatOptionLabel={option => (
+            <div><div className="font-semibold">{option.label}</div><div className="text-sm text-[#CBBEAE]">{option.artistName}</div></div>
+          )}
+          onChange={handleChange}
+        />
+      ) : (
+        <input id="song-search" type="search" disabled aria-label="Find a song" placeholder={translator("search")} className="h-14 w-full rounded-md border border-[#6B5C4B] bg-[#24211E] px-4 text-[#F3EDE3] placeholder:text-[#CBBEAE]" />
+      )}
+      {failed && <p role="status" className="mt-2 text-left text-sm text-[#E8A572]">Search is temporarily unavailable. Please retry.</p>}
+    </div>
+  );
+};
+export default SearchBar;

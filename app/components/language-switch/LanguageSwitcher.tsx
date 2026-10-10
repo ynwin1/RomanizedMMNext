@@ -1,40 +1,37 @@
-import React from 'react'
-import {useLocale} from "next-intl";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
+"use client";
+import React from "react";
+import { useLocale } from "next-intl";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+/** Deliberately secondary to discovery navigation: a compact language control. */
 const LanguageSwitcher = () => {
-    const locale = useLocale();
-    const {replace} = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    function switchLanguage(lang: string) {
-        if (lang === locale) return;
+  const locale = useLocale();
+  const { replace } = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-        // Set new language
-        const segments = pathname.split('/').filter(Boolean);
-        segments[0] = lang;
+  const switchLanguage = (lang: string) => {
+    if (lang === locale) return;
+    const segments = pathname.split("/").filter(Boolean);
+    segments[0] = lang;
+    const query = searchParams.toString();
+    replace(`/${segments.join("/")}${query ? `?${query}` : ""}`, { scroll: false });
+  };
 
-        // Reconstruct the URL
-        const newUrl = `/${segments.join('/')}${searchParams ? `?${searchParams.toString()}` : ''}`;
-
-        replace(newUrl, {scroll: false});
-    }
-
-    return (
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-            <button type="button"
-                    className="px-5 py-2.5 text-lg font-medium text-white bg-transparent border border-white rounded-s-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                    onClick={() => switchLanguage('en')}
-            >
-                English
-            </button>
-            <button type="button"
-                    className="px-5 py-2.5 text-lg font-medium text-white bg-transparent border border-white rounded-e-lg hover:bg-gray-900 hover:text-white focus:z-10 focus:ring-2 focus:ring-gray-500 focus:bg-gray-900 focus:text-white dark:border-white dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                    onClick={() => switchLanguage('my')}
-            >
-                မြန်မာ
-            </button>
-        </div>
-    )
-}
+  return (
+    <div className="inline-flex items-center gap-2 text-xs tracking-wide text-[#D0C5B6]">
+      <label htmlFor="site-language" className="sr-only">Site language</label>
+      <select
+        id="site-language"
+        aria-label="Site language"
+        value={locale}
+        onChange={event => switchLanguage(event.target.value)}
+        className="h-10 min-w-[76px] cursor-pointer border-b border-[#766758] bg-[#171613] px-2 text-sm font-medium text-[#F3EDE3] hover:border-[#E8A572] focus-visible:outline-offset-2"
+      >
+        <option value="en">EN</option>
+        <option value="my">မြန်မာ</option>
+      </select>
+    </div>
+  );
+};
 export default LanguageSwitcher;
