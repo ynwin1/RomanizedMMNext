@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useInView } from "react-intersection-observer";
-import ReactPlayer from "react-player";
+import type ReactPlayer from "react-player";
+import dynamic from "next/dynamic";
+
+// react-player accesses browser-specific rendering paths; avoid rendering it during SSR.
+const BrowserReactPlayer = dynamic(() => import("react-player"), {
+    ssr: false,
+    loading: () => <div className="h-full w-full" aria-label="Loading video player" />,
+});
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface YoutubePlayerProps {
@@ -69,7 +76,7 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
         `}
             >
                 <div className="relative w-full h-full">
-                    <ReactPlayer
+                    <BrowserReactPlayer
                         url={links[currentLinkIdx]}
                         width="100%"
                         height="100%"
