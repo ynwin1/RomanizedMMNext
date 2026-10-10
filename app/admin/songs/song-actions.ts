@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { songService } from "@/modules/songs";
 import { AdminSongGenerationService } from "@/modules/admin";
-import { ContentGenerationService } from "@/modules/content-generation";
-import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
+import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
 import { logger } from "@/infrastructure/logging/logger";
 import { createSongActionHandler } from "./song-action-handler";
 import type { SongFormState } from "./song-form.data";
@@ -37,7 +36,7 @@ export async function generateSongAiContentAction(input: {
   await requireAdmin();
   try {
     const service = new AdminSongGenerationService(
-      new ContentGenerationService(createOpenAIContentGenerationAdapter()),
+      createCatalogueContentGenerationService(),
     );
     return { ok: true as const, generated: await service.generate(input) };
   } catch (error) {
