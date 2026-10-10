@@ -69,14 +69,14 @@ const MoreSongs: React.FC<MoreSongsProps> = ({ artists, currentSongId, locale })
 
   }, [JSON.stringify(artists), currentSongId]);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <p role="status" className="text-center text-sm text-[#CBBEAE]">Loading related songs…</p>;
+  if (error) return <p role="status" className="text-center text-sm text-[#CBBEAE]">Related songs are temporarily unavailable.</p>;
   if (!songs.length) return null;
 
   return (
-    <div className="flex flex-col justify-center items-center gap-5 max-md:max-w-[90%] mx-auto">
-      <h2 className="text-2xl font-bold text-white">More Lyrics From {artists[0].name}</h2>
-      <div className={songs.length === 1 ? "flex justify-center" : "grid grid-cols-1 md:grid-cols-2 gap-4"}>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
+      <h2 className="text-xl font-semibold text-[#F3EDE3]">More lyrics from {artists[0]?.name}</h2>
+      <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
         {songs.map((song) => (
           <SongCard
             songName={song.songName}
