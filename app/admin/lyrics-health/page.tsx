@@ -2,6 +2,7 @@ import Link from "next/link";
 import { adminReads } from "../admin.data";
 import { requireAdmin } from "@/infrastructure/auth";
 import type { LyricsMigrationStatus } from "@/modules/songs";
+import { filterLyricsHealth, parseLyricsHealthFilter } from "./lyrics-health-filter";
 
 const statusStyle: Record<LyricsMigrationStatus, string> = {
   SAFE: "border-emerald-800 bg-emerald-950/40 text-emerald-200",
@@ -17,9 +18,17 @@ const statusLabel: Record<LyricsMigrationStatus, string> = {
   INVALID: "Invalid",
 };
 
-export default async function LyricsHealthPage() {
+export default async function LyricsHealthPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; q?: string }>;
+}) {
   await requireAdmin();
+  const params = await searchParams;
+  const selectedStatus = parseLyricsHealthFilter(params.status);
+  const query = typeof params.q === "string" ? params.q.slice(0, 100) : "";
   const report = await adminReads.lyricsMigrationReadiness();
+  const assessments = filterLyricsHealth(report.assessments, selectedStatus, query);
 
   return (
     <section aria-labelledby="lyrics-health-heading">
@@ -57,7 +66,29 @@ export default async function LyricsHealthPage() {
         </p>
       </div>
 
-      <div className="mt-8 overflow-x-auto rounded-xl border border-zinc-800">
+      <form method="get" className="mt-8 flex flex-wrap items-end gap-3 rounded-xl border border-zinc-800 p-4">
+        <label className="flex flex-col gap-2 text-sm text-zinc-300">
+          Health status
+          <select name="status" defaultValue={selectedStatus} className="rounded border border-zinc-700 bg-zinc-950 px-3 py-2">
+            <option value="ISSUES">Issues only</option>
+            <option value="ALL">All songs</option>
+            <option value="WARNING">Warning</option>
+            <option value="MANUAL_REVIEW">Needs review</option>
+            <option value="INVALID">Invalid</option>
+            <option value="SAFE">Healthy</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-2 text-sm text-zinc-300">
+          Song or MMID
+          <input name="q" type="search" maxLength={100} defaultValue={query}
+            placeholder="Search songs" className="rounded border border-zinc-700 bg-zinc-950 px-3 py-2" />
+        </label>
+        <button type="submit" className="rounded bg-indigo-600 px-4 py-2 font-medium hover:bg-indigo-500">Apply filters</button>
+        <Link href="/admin/lyrics-health" className="rounded border border-zinc-700 px-4 py-2 hover:border-indigo-400">Reset</Link>
+        <p className="text-sm text-zinc-400" role="status">{assessments.length} of {report.total} songs shown</p>
+      </form>
+
+      <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-800">
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead className="bg-zinc-900 text-zinc-300">
             <tr>
@@ -69,7 +100,7 @@ export default async function LyricsHealthPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800">
-            {report.assessments.map(assessment => (
+            {assessments.map(assessment => (
               <tr key={assessment.mmid} className="align-top">
                 <td className="p-4 font-mono">{assessment.mmid}</td>
                 <td className="p-4">
@@ -106,9 +137,9 @@ export default async function LyricsHealthPage() {
                 </td>
               </tr>
             ))}
-            {!report.assessments.length && (
+            {!assessments.length && (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-zinc-500">No songs found.</td>
+                <td colSpan={5} className="p-8 text-center text-zinc-500">No songs match these filters.</td>
               </tr>
             )}
           </tbody>
