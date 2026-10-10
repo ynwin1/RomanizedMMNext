@@ -1,52 +1,35 @@
 "use client";
-import {usePathname, useSearchParams} from "next/navigation";
-import Link from "next/link";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useLocale} from "next-intl";
 
+const limits = [10, 20, 30, 40, 50];
+
 const ItemsPerPageSelector = () => {
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    // get items per page list based on limit type
-    const currentLimit = Number(searchParams.get('limit')) || 10;
-    const limitList = [10, 20, 30, 40, 50];
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const locale = useLocale();
+  const current = Number(searchParams.get("limit")) || 10;
 
-    const createItemsPerPageURL = (itemsPerPage: number) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('limit', itemsPerPage.toString());
-        return `${pathname}?${params.toString()}`;
-    }
+  const updateLimit = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("limit", value);
+    params.set("page", "1");
+    router.push(`${pathname}?${params.toString()}`, {scroll: false});
+  };
 
-    const locale = useLocale();
-    const showText = locale === "en" ? `Show ${currentLimit} items` : `${currentLimit} ခုပြပါ`;
-
-    return (
-        <div className="flex flex-col items-center mt-8">
-            <div className="relative">
-                <div className="peer flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-900 rounded-full px-4 py-2 cursor-pointer">
-                    <span className="text-sm font-lg">{showText}</span>
-                </div>
-                <div className="absolute z-10 mt-2 w-40 bg-gray-900 rounded-lg shadow-xl
-                       opacity-0 invisible peer-hover:opacity-100 peer-hover:visible
-                       hover:opacity-100 hover:visible
-                       transition-all duration-200">
-                    <div className="py-1">
-                        {limitList.map((limit) => (
-                            <Link
-                                key={limit}
-                                href={createItemsPerPageURL(limit)}
-                                className={`block px-4 py-2 text-sm ${
-                                    currentLimit === limit
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-gray-300 hover:bg-gray-800'
-                                }`}
-                            >
-                                {limit}
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-export default ItemsPerPageSelector
+  return (
+    <div className="flex items-center gap-3 text-sm text-[#CBBEAE]">
+      <label htmlFor="catalogue-page-size" className="whitespace-nowrap">
+        {locale === "my" ? "တစ်မျက်နှာလျှင်" : "Show"}
+      </label>
+      <select id="catalogue-page-size" aria-label="Items per page" value={current}
+        onChange={event => updateLimit(event.target.value)}
+        className="min-h-11 min-w-20 cursor-pointer border border-[#665342] bg-[#24211E] px-3 py-2 text-[#F3EDE3] [color-scheme:dark] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DAA276]">
+        {limits.map(limit => <option key={limit} value={limit}>{limit}</option>)}
+      </select>
+      <span className="whitespace-nowrap">{locale === "my" ? "ခု" : "per page"}</span>
+    </div>
+  );
+};
+export default ItemsPerPageSelector;
