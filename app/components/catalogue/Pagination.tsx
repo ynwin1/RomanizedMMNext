@@ -1,112 +1,51 @@
 "use client";
-import React from 'react'
+import React from "react";
 import {usePathname, useSearchParams} from "next/navigation";
 import {generatePagination} from "@/app/lib/utils";
-import clsx from "clsx";
 import {ArrowLeftIcon, ArrowRightIcon} from "@heroicons/react/16/solid";
 import Link from "next/link";
 
+const base = "flex h-11 min-w-11 items-center justify-center border text-sm transition-colors";
 const Pagination = ({totalPages}: {totalPages: number}) => {
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const currentPage = Number(searchParams.get('page')) || 1;
-    const allPages = generatePagination(currentPage, totalPages);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  if (totalPages <= 1) return null;
+  const requested = Number(searchParams.get("page")) || 1;
+  const currentPage = Math.min(Math.max(1, requested), totalPages);
+  const allPages = generatePagination(currentPage, totalPages);
+  const pageUrl = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(page));
+    return `${pathname}?${params.toString()}`;
+  };
 
-    const createPageURL = (page: number | string) => {
-        const params = new URLSearchParams(searchParams);
-        params.set('page', page.toString());
-        return `${pathname}?${params.toString()}`;
-    }
-
-    return (
-        <>
-            <div className="inline-flex">
-                <div className="hidden md:block">
-                    <PaginationArrow
-                        direction="left"
-                        href={createPageURL(currentPage-1)}
-                        isDisabled={currentPage <= 1}
-                    />
-                </div>
-
-
-                <div className="flex">
-                    {allPages.map((page, index) => {
-                        let position: 'first' | 'last' | 'single' | 'middle' | undefined;
-
-                        if (index === 0) position = 'first';
-                        if (index === allPages.length - 1) position = 'last';
-                        if (allPages.length === 1) position = 'single';
-                        if (typeof page === 'string' && page === '...') position = 'middle';
-
-                        return (
-                            <PaginationNumber
-                                key={`${index}-${page}`}
-                                href={createPageURL(page)}
-                                page={page}
-                                position={position}
-                                isCurrentPage={currentPage === page}
-                            />
-                        );
-                    })}
-                </div>
-
-                <div className="hidden md:block">
-                    <PaginationArrow
-                        direction="right"
-                        href={createPageURL(currentPage + 1)}
-                        isDisabled={currentPage >= totalPages}
-                    />
-                </div>
-            </div>
-        </>
-    )
-}
-
-function PaginationNumber({href, page, position, isCurrentPage}: {href: string, page: number | string, position: 'first' | 'last' | 'single' | 'middle' | undefined, isCurrentPage: boolean}) {
-    const className = clsx(
-        'flex h-10 w-10 items-center justify-center rounded-md border ',
-        {
-            'rounded-l-md': position === 'first' || position === 'single',
-            'rounded-r-md': position === 'last' || position === 'single',
-            'z-10 bg-[#DAA276] border-[#DAA276] text-[#171613]': isCurrentPage,
-            'hover:border-[#DAA276] hover:text-[#DAA276]': !isCurrentPage && position !== 'middle',
-            'text-[#CBBEAE]': position === 'middle',
-        }
-    );
-
-    return isCurrentPage || position === 'middle' ? (
-        <div className={className}>{page}</div>
-    ) : (
-        <Link href={href} className={className}>
-            {page}
+  return (
+    <div className="flex max-w-full flex-wrap items-center justify-center gap-1" aria-label="Pagination">
+      <PaginationArrow direction="left" href={pageUrl(currentPage - 1)} disabled={currentPage <= 1} />
+      {allPages.map((page, index) => typeof page === "number" ? (
+        <Link key={`${index}-${page}`} href={pageUrl(page)}
+          aria-label={`Page ${page}`} aria-current={page === currentPage ? "page" : undefined}
+          className={`${base} px-3 ${
+            page === currentPage
+              ? "border-[#DAA276] bg-[#DAA276] font-semibold text-[#171613]"
+              : "border-[#514335] bg-[#24211E] text-[#F3EDE3] hover:border-[#DAA276] hover:text-[#DAA276]"
+          }`}>
+          {page}
         </Link>
-    );
-}
+      ) : (
+        <span key={`${index}-ellipsis`} aria-hidden="true" className="flex h-11 min-w-7 items-center justify-center text-[#CBBEAE]">…</span>
+      ))}
+      <PaginationArrow direction="right" href={pageUrl(currentPage + 1)} disabled={currentPage >= totalPages} />
+    </div>
+  );
+};
 
-function PaginationArrow ({href, direction, isDisabled}: {href: string, direction: 'left' | 'right', isDisabled?: boolean}) {
-    const className = clsx(
-        'flex h-10 w-10 items-center justify-center rounded-md border',
-        {
-            'pointer-events-none text-gray-300': isDisabled,
-            'hover:border-[#DAA276] hover:text-[#DAA276]': !isDisabled,
-            'mr-2 md:mr-4': direction === 'left',
-            'ml-2 md:ml-4': direction === 'right'
-        }
-    );
-
-    const icon = direction === 'left' ? (
-        <ArrowLeftIcon className="w-4"/>
-    ) : (
-        <ArrowRightIcon className="w-4"/>
-    )
-
-    return isDisabled ? (
-        <div className={className}>{icon}</div>
-    ) : (
-        <Link className={className} href={href}>
-            {icon}
-        </Link>
-    );
+function PaginationArrow({href, direction, disabled}: {href: string; direction: "left" | "right"; disabled: boolean}) {
+  const label = direction === "left" ? "Previous page" : "Next page";
+  const icon = direction === "left" ? <ArrowLeftIcon className="h-4 w-4" /> : <ArrowRightIcon className="h-4 w-4" />;
+  const style = `${base} border-[#514335] bg-[#24211E] px-3 text-[#F3EDE3] hover:border-[#DAA276] hover:text-[#DAA276]`;
+  return disabled
+    ? <span aria-label={label} aria-disabled="true" className={`${base} cursor-not-allowed border-[#38332E] bg-[#211E1B] px-3 text-[#766F67]`}>{icon}</span>
+    : <Link href={href} aria-label={label} className={style}>{icon}</Link>;
 }
 export default Pagination;
