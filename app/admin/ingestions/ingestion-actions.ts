@@ -6,7 +6,6 @@ import { requireAdmin } from "@/infrastructure/auth";
 import { logger } from "@/infrastructure/logging/logger";
 import { artistService } from "@/modules/artists";
 import { contentDraftService } from "@/modules/content-drafts";
-import { ContentGenerationService } from "@/modules/content-generation";
 import {
   ingestionService,
   ingestionWorkflowService,
@@ -16,11 +15,11 @@ import {
   IngestionReviewService,
 } from "@/modules/ingestions";
 import { publishingService } from "@/modules/publishing";
-import { createOpenAIContentGenerationAdapter } from "@/integrations/ai/openai-content-generation.adapter";
+import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
 import { createIngestionActionHandler, type IngestionActionState } from "./ingestion-action-handler";
 
 async function generateAiContent(ingestionId: string, updatedBy: string) {
-  const generation = new ContentGenerationService(createOpenAIContentGenerationAdapter());
+  const generation = createCatalogueContentGenerationService();
   const workflow = new IngestionGenerationService(ingestionService, contentDraftService, generation);
   return workflow.generateAll(ingestionId, updatedBy);
 }

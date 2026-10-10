@@ -36,6 +36,7 @@ function requireContinuousIndexes(
 
 export const LyricGenerationInputSchema = z.object({
   lines: lyricLines,
+  references: z.array(z.object({ burmese: z.string().min(1).max(200), romanized: z.string().min(1).max(200) }).strict()).max(24).optional(),
 }).strict().superRefine((value, context) => {
   requireContinuousIndexes(value.lines, context, "lines");
 });

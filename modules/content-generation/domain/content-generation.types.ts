@@ -5,6 +5,7 @@ export interface LyricSourceLine {
 
 export interface LyricGenerationInput {
   lines: LyricSourceLine[];
+  references?: Array<{ burmese: string; romanized: string }>;
 }
 
 export interface GeneratedLyricLine {

@@ -41,7 +41,7 @@ const editorialJsonSchema = {
 } as const;
 
 function lyricPayload(input: LyricGenerationInput): string {
-  return JSON.stringify({ lines: input.lines });
+  return JSON.stringify({ lines: input.lines, ...(input.references?.length ? { references: input.references } : {}) });
 }
 
 function parseLineResult(value: unknown): LineGenerationResult {
@@ -71,6 +71,8 @@ export class OpenAIContentGenerationAdapter implements ContentGenerationProvider
         "Every sentence must begin with a capital letter.",
         "Preserve section labels, interjections, names, and intentional English text rather than inventing content.",
         "Do not translate meaning. Do not add commentary.",
+        "When references are provided, use their Burmese-to-Romanized mappings as editorial spelling examples, prioritizing exact Burmese matches.",
+        "Only romanize the input lines. References are context, not additional output lines. Never copy an example whose Burmese text does not match the source.",
       ].join(" "),
       input: lyricPayload(input),
     }));

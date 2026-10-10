@@ -21,11 +21,22 @@ import type {
 } from "../domain/content-generation.types";
 
 export class ContentGenerationService {
-  constructor(private readonly provider: ContentGenerationProvider) {}
+  constructor(
+    private readonly provider: ContentGenerationProvider,
+    private readonly references?: { findRelevant(lines: string[], options: { recentSongs: number; maxReferences: number }): Promise<Array<{ burmese: string; romanized: string }>> },
+  ) {}
 
   async romanize(input: LyricGenerationInput): Promise<LineGenerationResult> {
     const validatedInput = LyricGenerationInputSchema.parse(input);
-    const generated = await this.provider.romanize(validatedInput);
+    // This path is shared by ingestion and direct admin song generation.
+    // Reference lookup is read-only and only occurs when Romanization is requested.
+    const examples = this.references
+      ? await this.references.findRelevant(validatedInput.lines.map(line => line.text), { recentSongs: 7, maxReferences: 12 })
+      : [];
+    const generated = await this.provider.romanize({
+      ...validatedInput,
+      ...(examples.length ? { references: examples.map(({ burmese, romanized }) => ({ burmese, romanized })) } : {}),
+    });
     const aligned = this.validateAlignedLines(validatedInput, generated);
     const quality = evaluateGeneratedLines("romanized", aligned.lines);
     if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
