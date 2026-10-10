@@ -62,9 +62,10 @@ export default async function RootLayout({
             ></script>
         </head>
         <body className={`${lusitana.className} antialiased flex flex-col min-h-screen`}>
+            <a href="#main-content" className="skip-to-content">Skip to main content</a>
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
             <NextIntlClientProvider messages={messages}>
-                <div className="flex-grow">
+                <div id="main-content" className="flex-grow" tabIndex={-1}>
                     {children}
                 </div>
                 <Footer />

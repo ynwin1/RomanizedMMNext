@@ -5,6 +5,11 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --surface: #171717;
+  --surface-raised: #242424;
+  --muted: #b9bdc6;
+  --accent: #60a5fa;
+  --focus-ring: #93c5fd;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,4 +40,30 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(107, 114, 128, 0.7);
+}
+
+/* Phase 13 design foundations: legibility, predictable focus, and reduced motion. */
+html { scroll-behavior: smooth; }
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+::selection { background: #1d4ed8; color: #fff; }
+.skip-to-content {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-160%);
+  padding: 0.75rem 1rem;
+  color: #fff;
+  background: var(--surface-raised);
+  border: 2px solid var(--focus-ring);
+  border-radius: 0.75rem;
+}
+.skip-to-content:focus { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
