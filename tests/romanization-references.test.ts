@@ -41,3 +41,21 @@ test("empty inputs do not query the database, and result count is capped", async
   assert.equal((await service.findRelevant(["1"], { recentSongs: 1000, maxReferences: 1000 })).length, 24);
   assert.equal(calls, 1);
 });
+
+test("related non-exact lines outrank unrelated recent examples", async () => {
+  const service = new RomanizationReferenceService({ recentReviewedSongs: async () => [
+    song(3, [["ခရီး လမ်းမှာ", "kha yee lan hmar"], ["မင်း ကို ချစ်", "min ko chit"]]),
+    song(2, [["မင်း ကို သတိရ", "min ko tha ti ya"]]),
+  ] });
+  const references = await service.findRelevant(["မင်း ကို ပြန်တွေ့"], { maxReferences: 2 });
+  assert.deepEqual(references.map(item => item.mmid), [3, 2]);
+  assert.equal(references[0]?.burmese, "မင်း ကို ချစ်");
+});
+
+test("line normalization handles repeated whitespace for exact matches", async () => {
+  const service = new RomanizationReferenceService({ recentReviewedSongs: async () => [
+    song(5, [["မင်း    ကို", "Min ko"], ["အချစ်", "a chit"]]),
+  ] });
+  const matches = await service.findRelevant([" မင်း ကို "], { maxReferences: 1 });
+  assert.deepEqual(matches, [{ mmid: 5, burmese: "မင်း ကို", romanized: "Min ko" }]);
+});

@@ -30,9 +30,15 @@ export class ContentGenerationService {
     const validatedInput = LyricGenerationInputSchema.parse(input);
     // This path is shared by ingestion and direct admin song generation.
     // Reference lookup is read-only and only occurs when Romanization is requested.
-    const examples = this.references
-      ? await this.references.findRelevant(validatedInput.lines.map(line => line.text), { recentSongs: 7, maxReferences: 12 })
-      : [];
+    let examples: Array<{ burmese: string; romanized: string }> = [];
+    if (this.references) {
+      try {
+        examples = await this.references.findRelevant(validatedInput.lines.map(line => line.text), { recentSongs: 7, maxReferences: 12 });
+      } catch {
+        // Reference retrieval is best-effort: an unavailable catalogue must not block song generation.
+        examples = [];
+      }
+    }
     const generated = await this.provider.romanize({
       ...validatedInput,
       ...(examples.length ? { references: examples.map(({ burmese, romanized }) => ({ burmese, romanized })) } : {}),
