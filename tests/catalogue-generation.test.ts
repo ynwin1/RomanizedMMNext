@@ -45,3 +45,19 @@ test("Romanization works without references and preserves compatibility with exi
   });
   assert.deepEqual(received, { lines: [{ index: 0, text: "မင်း" }] });
 });
+
+test("reference lookup failures do not block Romanization", async () => {
+  let invoked = false;
+  const service = new ContentGenerationService({
+    romanize: async input => {
+      invoked = true;
+      assert.equal(input.references, undefined);
+      return { lines: [{ index: 0, text: "Min" }] };
+    },
+    translateMeaning: async () => ({ lines: [] }),
+    generateEditorialMetadata: async () => ({ about: "About", whenToListen: "Anytime" }),
+  }, { findRelevant: async () => { throw new Error("Database unavailable"); } });
+  const result = await service.romanize({ lines: [{ index: 0, text: "မင်း" }] });
+  assert.equal(invoked, true);
+  assert.equal(result.lines[0]?.text, "Min");
+});
