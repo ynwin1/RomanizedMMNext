@@ -121,7 +121,7 @@ test("explicit retry still returns safe provider/quality failures", async () => 
   });
 
   const providerResult = await providerFailure.generateAiContent(ingestionId, {}, new FormData());
-  assert.equal(providerResult.message, "AI generation failed quality or provider checks. You can retry.");
+  assert.equal(providerResult.message, "AI provider rate limit or quota reached. Check your OpenAI quota and retry when available.");
   assert.ok(logged instanceof ContentGenerationProviderError);
 
   const qualityFailure = handler({
@@ -137,7 +137,7 @@ test("explicit retry still returns safe provider/quality failures", async () => 
   });
 
   const qualityResult = await qualityFailure.generateAiContent(ingestionId, {}, new FormData());
-  assert.equal(qualityResult.message, "AI generation failed quality or provider checks. You can retry.");
+  assert.equal(qualityResult.message, "English Meaning did not pass quality checks. Review the source lyrics, then retry.");
   assert.ok(logged instanceof GeneratedContentQualityError);
 });
 
