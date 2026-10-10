@@ -41,3 +41,19 @@ test("artist profiles appear exactly once per locale with matching language alte
   assert.equal(routes.filter(route => route.url.includes("/artist/example-artist")).length, 2);
   assert.ok(routes.every(route => !route.url.includes("?")));
 });
+
+test("song sitemap uses genuine update timestamps on each locale without inventing dates", () => {
+  const when = new Date("2026-09-01T12:00:00.000Z");
+  const routes = buildPublicSitemap([
+    { mmid: 41, songName: "Song A", updatedAt: when },
+    { mmid: 42, songName: "Song B" },
+    { mmid: 43, songName: "Song C", updatedAt: new Date("invalid") },
+    { mmid: 44, songName: "Song D", updatedAt: new Date("2999-01-01") },
+  ]);
+  const songs = routes.filter(row => row.url.includes("/song/"));
+  assert.equal(songs.length, 8);
+  assert.equal(songs.filter(row => row.url.includes("/SongA/")).length, 2);
+  assert.ok(songs.filter(row => row.url.includes("/SongA/")).every(row => (row.lastModified as Date)?.getTime() === when.getTime()));
+  assert.ok(songs.filter(row => !row.url.includes("/SongA/")).every(row => row.lastModified === undefined));
+  assert.ok(routes.filter(row => !row.url.includes("/song/")).every(row => row.lastModified === undefined));
+});
