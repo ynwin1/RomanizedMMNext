@@ -10,6 +10,7 @@ import {Metadata} from "next";
 import {artistService, ArtistEntity} from "@/modules/artists";
 import {songService, SongEntity} from "@/modules/songs";
 import { logger } from "@/infrastructure/logging/logger";
+import { artistSeo, jsonLdScriptValue } from "@/app/lib/artist-seo";
 
 type Props = {
     params: Promise<{ locale: string, slug: string }>
@@ -28,53 +29,21 @@ export async function generateMetadata(
 
         const artistQ = await artistService.getBySlug(slug);
 
-        const artistName: string = artistQ.name;
-        const artistSlug: string = artistQ.slug;
-        const description: string = `${artistName} (Myanmar) - ${artistQ.biography ? artistQ.biography.slice(0, 150) : ""}...`;
-
-        const jsonLd = {
-            "@context": "https://schema.org",
-            "@type": "MusicRecording",
-            "name": artistName,
-            "byArtist": {
-                "@type": "MusicGroup",
-                "name": artistName,
-            },
-            "url": `https://romanizedmm.com/${locale}/artist/${artistSlug}`,
-        };
-
+        const seo = artistSeo(artistQ, locale);
         return {
-            title: artistName,
-            description: description,
+            title: seo.title,
+            description: seo.description,
             category: "Music",
-            keywords: [`${artistName}`, `${artistSlug}`, "Musician", "Artist", "Myanmar", "Singer", "Band"],
-            alternates: {
-                canonical: `https://www.romanizedmm.com/${locale}/artist/${artistSlug}`,
-                languages: {
-                    'en': `https://www.romanizedmm.com/en/artist/${artistSlug}`,
-                    'my': `https://www.romanizedmm.com/my/artist/${artistSlug}`,
-                }
-            },
-            other: {
-                'application/ld+json': JSON.stringify(jsonLd)
-            },
+            alternates: { canonical: seo.canonical, languages: seo.alternateLanguages },
             openGraph: {
-                title: artistName,
-                description: description,
-                type: "music.song",
-                images: artistQ.imageLink ? [
-                    {
-                        url: artistQ.imageLink,
-                        width: 800,
-                        height: 600,
-                        alt: artistName,
-                    },
-                ] : [],
-                locale: locale,
-                alternateLocale: ["en", "my"],
-                url: `https://www.romanizedmm.com/${locale}/artist/${artistSlug}`,
+                title: seo.title,
+                description: seo.description,
+                type: "profile",
+                images: artistQ.imageLink ? [{ url: artistQ.imageLink, alt: artistQ.name }] : [],
+                locale,
+                alternateLocale: locale === "en" ? ["my"] : ["en"],
+                url: seo.canonical,
                 siteName: "RomanizedMM",
-                musicians: artistName,
             },
         };
     } catch (error) {
@@ -128,6 +97,8 @@ const Page = async ({ params }: ArtistPageProps) => {
         return notFound();
     }
 
+    const seo = artistSeo(artist, locale);
+
     // Request more sentence
     const translator = await getTranslations("ArtistPage");
     let reqMore: string = "";
@@ -139,6 +110,7 @@ const Page = async ({ params }: ArtistPageProps) => {
 
     return (
         <main className="flex flex-col items-center justify-center">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.entity) }} />
             {/* Artist Banner */}
             <div className="relative flex flex-col items-center justify-center md:h-[300px] h-[200px] w-full ">
                 {!!artist.bannerLink ?
