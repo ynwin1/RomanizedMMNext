@@ -51,8 +51,6 @@ function songRepository(overrides: Partial<ISongRepository> = {}): ISongReposito
     listGuessSongRecords: async () => [],
     findByArtistName: async () => [],
     listLyricsMigrationCandidates: async () => [],
-    setLyricsV2IfAbsent: async () => true,
-    setLyricsV2IfLegacyMatches: async () => ({ status: "saved" }),
     ...overrides,
   };
 }
@@ -121,87 +119,6 @@ test("SongService analyzes the migration catalogue without writes", async () => 
   assert.equal(report.total, 1);
   assert.equal(report.counts.SAFE, 1);
   assert.equal(report.assessments[0]?.preview?.entries[0]?.kind, "line");
-});
-
-test("SongService builds a preview-only migration repair plan", async () => {
-  const service = new SongService(songRepository({
-    listLyricsMigrationCandidates: async () => [{
-      mmid: 17,
-      songName: "Test Song",
-      burmese: "တစ်\nနှစ်",
-      romanized: "tit\nhnit",
-      meaning: "One",
-    }],
-  }));
-
-  const report = await service.analyzeLyricsMigrationRepairs();
-  assert.equal(report.counts.AI_MEANING_ALIGNMENT, 1);
-  assert.equal(report.plans[0]?.sourceLyricLines, 2);
-});
-
-test("SongService low-risk migration writes only READY and deterministic previews", async () => {
-  const writes: Array<{ mmid: number; updatedBy: string }> = [];
-  const service = new SongService(songRepository({
-    listLyricsMigrationCandidates: async () => [
-      {
-        mmid: 1,
-        songName: "Ready",
-        burmese: "တစ်",
-        romanized: "tit",
-        meaning: "One",
-      },
-      {
-        mmid: 2,
-        songName: "Deterministic",
-        burmese: "တစ်\n\nနှစ်",
-        romanized: "tit\nhnit",
-        meaning: "One\nTwo",
-      },
-      {
-        mmid: 3,
-        songName: "AI meaning",
-        burmese: "တစ်\nနှစ်",
-        romanized: "tit\nhnit",
-        meaning: "One",
-      },
-      {
-        mmid: 4,
-        songName: "AI romanization",
-        burmese: "တစ်\nနှစ်",
-        romanized: "tit",
-        meaning: "One\nTwo",
-      },
-      {
-        mmid: 5,
-        songName: "Already V2",
-        burmese: "တစ်",
-        romanized: "tit",
-        meaning: "One",
-        lyricsV2: {
-          version: 2,
-          entries: [{ kind: "line", burmese: "တစ်", romanized: "tit", meaning: "One" }],
-        },
-      },
-    ],
-    setLyricsV2IfAbsent: async (mmid, lyricsV2, updatedBy) => {
-      writes.push({ mmid, updatedBy });
-      assert.equal(lyricsV2.version, 2);
-      return mmid !== 2;
-    },
-  }));
-
-  const result = await service.migrateLowRiskLyricsV2("admin-1");
-
-  assert.deepEqual(result, {
-    eligible: 3,
-    migrated: 1,
-    alreadyV2: 1,
-    skippedConcurrent: 1,
-  });
-  assert.deepEqual(writes, [
-    { mmid: 1, updatedBy: "admin-1" },
-    { mmid: 2, updatedBy: "admin-1" },
-  ]);
 });
 
 test("SongService throws NotFoundError for a missing song", async () => {
