@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { parseLyricsWithTimestamps, selectLyricsText } from './lyrics-parser';
 import ExtLinks from '../music-box/ExtLinks';
 import LyricsSection from '../music-box/LyricsSection';
 
@@ -19,36 +20,18 @@ interface SyncedLyricsPlayerProps {
     }
 }
 
-interface ParsedLyric {
-    text: string;
-    startTime: number;
-}
-
 const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
-    const [hasTimestamps, setHasTimestamps] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
-    const [parsedLyrics, setParsedLyrics] = useState<ParsedLyric[]>([]);
     const [activeLyricIndex, setActiveLyricIndex] = useState(0);
 
     const [playerVisible, setPlayerVisible] = useState(true);
     const [selectedOption, setSelectedOption] = useState(lyrics.initialOption);
 
-    // Parse lyrics when selected option changes
-    useEffect(() => {
-        const selectedLyrics = selectedOption === "romanized"
-            ? lyrics.romanized
-            : selectedOption === "burmese"
-                ? lyrics.burmese
-                : lyrics.meaning;
-
-        const parsed = parseLyricsWithTimestamps(selectedLyrics);
-        setParsedLyrics(parsed);
-    }, [selectedOption, lyrics.romanized, lyrics.burmese, lyrics.meaning]);
-
-    // Check if lyrics have timestamps
-    useEffect(() => {
-        setHasTimestamps(parsedLyrics.some(lyric => lyric.startTime >= 0));
-    }, [parsedLyrics]);
+    // Compute the selected text during rendering, including the initial server render.
+    // useEffect runs only in the browser, so it must not populate the first set of lyric lines.
+    const selectedText = selectLyricsText(lyrics, selectedOption);
+    const parsedLyrics = useMemo(() => parseLyricsWithTimestamps(selectedText), [selectedText]);
+    const hasTimestamps = parsedLyrics.some(lyric => lyric.startTime >= 0);
 
     // Highlight active lyric based on current time
     useEffect(() => {
@@ -109,27 +92,6 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
     const handleTogglePlayer = (isVisible: boolean) => {
         setPlayerVisible(isVisible);
     };
-
-    // Parse lyrics with timestamps
-    function parseLyricsWithTimestamps(lyrics: string): ParsedLyric[] {
-        const lines = lyrics.split('\n');
-        const parsed: ParsedLyric[] = [];
-        
-        lines.forEach(line => {
-            const match = line.match(/^\[(\d+):(\d+)\](.*)/);
-            if (match) {
-                const minutes = parseInt(match[1]);
-                const seconds = parseInt(match[2]);
-                const startTime = minutes * 60 + seconds;
-                const text = match[3].trim();
-                parsed.push({ text, startTime });
-            } else {
-                parsed.push({ text: line.trim(), startTime: -1 });
-            }
-        });
-        
-        return parsed;
-    }
 
     // Render highlighted synced lyrics
     const renderSyncedLyrics = () => (
