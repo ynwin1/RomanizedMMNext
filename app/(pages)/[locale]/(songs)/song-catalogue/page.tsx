@@ -20,8 +20,8 @@ export type SongCataloguePageProps = {
 const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
     const { locale } = await params;
     const { page, limit } = await searchParams;
-    const currentPage: number = Number(page) || 1;
-    const limitPerPage: number = limit || 10;
+    const requestedPage = Math.max(1, Number(page) || 1);
+    const limitPerPage: number = Math.min(100, Math.max(1, Number(limit) || 10));
 
     const translator = await getTranslations("SongCatalogue");
 
@@ -38,27 +38,26 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
         .sort((a: any, b: any) => a.sortKey.localeCompare(b.sortKey));
 
     const totalPages: number = Math.ceil(sortedSongs.length / limitPerPage);
+    const currentPage = Math.min(requestedPage, Math.max(1, totalPages));
     const songsToShow = sortedSongs.slice((currentPage - 1) * limitPerPage, currentPage * limitPerPage);
 
     return (
-        <main className="flex flex-col items-center justify-center">
-            <h1 className="text-3xl font-bold mt-8">{translator("title")}</h1>
-            <h3 className="text-xl text-center mt-8 w-60vw max-md:w-[80vw] max-md:text-lg">{translator("description")}</h3>
-            <Link href={`/${locale}/song-request`}>
-                <button className="bg-blue-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-blue-400 mt-8">
-                    {translator("requestSong")}
-                </button>
-            </Link>
-            <ItemsPerPageSelector />
-            <div className="w-full flex flex-wrap justify-center gap-8 mt-8">
-                {songsToShow.map((song: any) => (
-                    <SongCard key={song.mmid} locale={locale} song={song} />
-                ))}
+        <main className="mx-auto w-full max-w-7xl px-4 pb-14 pt-10 sm:px-6">
+            <header className="mb-8 border-b border-[#514335] pb-8">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#DAA276]">Explore the collection</p>
+                <h1 className="text-3xl font-bold tracking-tight text-[#F3EDE3] sm:text-4xl">{translator("title")}</h1>
+                <p className="mt-3 max-w-2xl text-base leading-relaxed text-[#CBBEAE]">{translator("description")}</p>
+                <Link href={`/${locale}/song-request`} className="mt-5 inline-flex min-h-11 items-center border-b border-[#DAA276] text-sm font-semibold text-[#DAA276] hover:text-[#F3EDE3]">{translator("requestSong")} →</Link>
+            </header>
+            <div className="mb-6 flex items-center justify-between gap-4">
+                <p className="text-sm text-[#CBBEAE]">{sortedSongs.length} songs</p>
+                <ItemsPerPageSelector />
             </div>
-            <div className="flex w-full mt-8 mb-8 justify-center">
-                <Pagination totalPages={totalPages} />
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {songsToShow.map((song: any) => <SongCard key={song.mmid} locale={locale} song={song} />)}
             </div>
+            <nav aria-label="Song catalogue pages" className="mt-10 flex justify-center"><Pagination totalPages={totalPages} /></nav>
         </main>
-    )
-}
+    );
+};
 export default Page
