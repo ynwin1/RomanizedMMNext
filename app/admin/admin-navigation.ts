@@ -3,7 +3,7 @@ export const adminNavigation = [
   { href: "/admin/songs", label: "Songs", description: "Manage the song catalogue." },
   { href: "/admin/artists", label: "Artists", description: "Manage artist profiles." },
   { href: "/admin/requests", label: "Requests", description: "Review incoming song requests." },
-  { href: "/admin/migrations/lyrics-v2", label: "Lyrics V2", description: "Review migration readiness." },
+  { href: "/admin/lyrics-health", label: "Lyrics Health", description: "Monitor canonical lyric quality." },
 ] as const;
 
 export function isAdminRouteActive(pathname: string, href: string): boolean {
