@@ -1,19 +1,16 @@
-import React from 'react';
-import Link from 'next/link';
-import {Menu} from "@/app/components/navbar/menu/Menu";
-import Image from 'next/image';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Menu } from "@/app/components/navbar/menu/Menu";
 
-
-export const Navbar = () => {
-    return (
-        <nav className="relative bg-transparent text-white p-4 flex justify-between items-center top-0 z-50">
-            <Link href="/">
-                <div className="flex flex-row items-center gap-2 cursor-pointer hover:opacity-60">
-                    <Image src="/weblogo.png" alt="RomanizedMM" width={40} height={40} className="border-2 border-white rounded-full max-md:w-12 max-md:h-12 cursor-pointer" />
-                    <p className="text-3xl max-md:text-xl font-bold hidden md:block">RomanizedMM</p>
-                </div>
-            </Link>
-            <Menu />
-        </nav>
-    )
-}
+export const Navbar = () => (
+  <nav aria-label="Primary navigation" className="relative z-50 border-b border-[#38332E] bg-[#171613] text-[#F3EDE3]">
+    <div className="mx-auto flex min-h-[68px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <Link href="/" className="flex shrink-0 items-center gap-3 focus-visible:outline-offset-4" aria-label="RomanizedMM home">
+        <Image src="/weblogo.png" alt="" width={42} height={42} className="rounded-full border border-[#5C4837]" />
+        <span className="text-xl font-bold tracking-tight sm:text-[1.45rem]">RomanizedMM</span>
+      </Link>
+      <Menu />
+    </div>
+  </nav>
+);
