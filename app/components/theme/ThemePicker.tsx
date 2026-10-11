@@ -6,10 +6,10 @@ import {PaintBrushIcon, CheckIcon} from "@heroicons/react/24/outline";
 const STORAGE_KEY = "RomanizedMM_theme";
 const DEFAULT_THEME = "royal-heritage";
 const themes = [
-  {id: "royal-heritage", name: "Royal Heritage", description: "Charcoal & antique gold", colors: ["#171613", "#24211E", "#DAA276"]},
-  {id: "midnight-luxury", name: "Midnight Luxury", description: "Black & champagne gold", colors: ["#080808", "#24201A", "#D6AD60"]},
-  {id: "cosmic", name: "Cosmic", description: "Midnight blue & violet", colors: ["#0B1026", "#1E2850", "#B5A5FF"]},
-  {id: "vintage-vinyl", name: "Vintage Vinyl", description: "Espresso & warm amber", colors: ["#261B17", "#493126", "#E8A274"]},
+  {id: "royal-heritage", name: "Bagan Legacy", description: "Charcoal & antique gold", colors: ["#171613", "#24211E", "#DAA276"]},
+  {id: "midnight-luxury", name: "Midnight Mandalay", description: "Black & champagne gold", colors: ["#080808", "#24201A", "#D6AD60"]},
+  {id: "cosmic", name: "Yangon Afterglow", description: "Midnight blue & violet", colors: ["#0B1026", "#1E2850", "#B5A5FF"]},
+  {id: "monsoon-mist", name: "Taunggyi Mist", description: "Warm ivory & sage green", colors: ["#F6F5ED", "#E6EDE5", "#246650"]},
 ] as const;
 
 type ThemeId = typeof themes[number]["id"];
