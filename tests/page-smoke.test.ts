@@ -39,6 +39,19 @@ test("song page smoke: metadata renders from SongService data", async (t) => {
   );
 });
 
+test("song metadata skips database lookups for malformed IDs", async (t) => {
+  let calls = 0;
+  t.mock.method(songService, "getSongPage", async () => { calls++; throw new Error("Unexpected lookup"); });
+  for (const id of ["NaN", "not-a-song", "0", "-2", "1.5", "9007199254740992"]) {
+    const metadata = await generateSongMetadata({
+      params: Promise.resolve({locale: "en", id, name: "invalid"}),
+      searchParams: Promise.resolve({}),
+    });
+    assert.equal(metadata.title, "Song");
+  }
+  assert.equal(calls, 0);
+});
+
 test("artist page smoke: metadata renders from ArtistService data", async (t) => {
   t.mock.method(artistService, "getBySlug", async () => ({
     id: "artist-1",

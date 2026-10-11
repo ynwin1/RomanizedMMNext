@@ -4,7 +4,7 @@ import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 import SyncedLyricsPlayer from "@/app/components/sync-lyrics/SyncedLyricsPlayer";
 import {getTranslations, setRequestLocale} from "next-intl/server";
-import Image from 'next/image';
+import Image from '@/app/components/media/ResilientImage';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
 import SocialShare from "@/app/components/social/SocialShare";
 import {buildArtistNames} from "@/app/lib/utils";
@@ -15,6 +15,8 @@ import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService} from "@/modules/songs";
+import {SongIdSchema} from "@/modules/songs";
+import {NotFoundError} from "@/shared/errors/not-found.error";
 import { logger } from "@/infrastructure/logging/logger";
 
 type Props = {
@@ -26,7 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     try {
         const { id, locale } = await params;
         if (!["en", "my"].includes(locale)) return { title: "Song" };
-        const song = await songService.getSongPage(Number(id));
+        const parsed = /^\d+$/.test(id) ? SongIdSchema.safeParse(id) : null;
+        if (!parsed?.success) return { title: "Song" };
+        const song = await songService.getSongPage(parsed.data);
         const seo = songSeo(song, locale);
         return {
             title: seo.title,
@@ -46,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             },
         };
     } catch (error) {
-        logger.error("Failed to generate song metadata", error);
+        if (!(error instanceof NotFoundError)) logger.error("Failed to generate song metadata", error);
         return { title: "Song" };
     }
 }
@@ -98,12 +102,14 @@ const DetailRow = ({ label, value }: {label: string, value: string}) => (
 const Page = async ({ params, searchParams }: SongPageProps) => {
     const { locale, id, name } = await params;
     const { option = 'burmese' } = await searchParams;
+    const parsed = /^\d+$/.test(id) ? SongIdSchema.safeParse(id) : null;
+    if (!parsed?.success) notFound();
 
     let song;
     try {
-        song = await songService.getSongPage(Number(id));
+        song = await songService.getSongPage(parsed.data);
     } catch (error) {
-        logger.error("Failed to fetch song page data", error);
+        if (!(error instanceof NotFoundError)) logger.error("Failed to fetch song page data", error);
         return notFound();
     }
 
@@ -168,7 +174,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             <section aria-labelledby="more-from-artist" className="min-w-0 border-t border-theme-border pt-8">
                 <h2 id="more-from-artist" className="sr-only">Explore more songs</h2>
-                <MoreSongs artists={cleanedArtistNames} currentSongId={parseInt(id)} locale={locale}/>
+                <MoreSongs artists={cleanedArtistNames} currentSongId={parsed.data} locale={locale}/>
             </section>
 
             <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-theme-border pt-8">

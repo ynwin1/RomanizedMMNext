@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/app/components/media/ResilientImage';
 
 interface AboutArtistCardProps {
     locale: string;
