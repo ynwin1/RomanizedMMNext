@@ -1,18 +1,17 @@
 "use client";
-import React from 'react'
-import {redirect} from "next/navigation";
+import Link from "next/link";
 import {useLocale} from "next-intl";
 
-const FormReturnButton = ({url}: {url: string}) => {
+const FormReturnButton = ({url, label = "Return"}: {url: string; label?: string}) => {
     const locale = useLocale();
 
     return (
-        <button
-            className="bg-accent hover:bg-accent-hover text-on-accent font-bold py-2 px-4 rounded"
-            onClick={() => redirect(`/${locale}${url}`)}
+        <Link
+            href={`/${locale}${url}`}
+            className="inline-flex min-h-11 items-center rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
-            Return
-        </button>
+            {label}
+        </Link>
     )
 }
 export default FormReturnButton

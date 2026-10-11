@@ -20,10 +20,15 @@ const Page = async ({params} : AboutPageProps) => {
     const translator = await getTranslations("AboutPage");
 
     return (
-        <div className="flex flex-col justify-center items-center mt-4">
-            <h1 className="text-3xl font-bold mt-6 ">{translator("title")}</h1>
-            <Image src="/weblogo.png" alt="RomanizedMM" width={180} height={180} className="mt-6 mb-4 border-2 border-theme-border rounded-full"/>
-            <div className="border-2 border-theme-border p-4 rounded-2xl space-y-4 mt-6 leading-8 w-[80vw] text-left text-[1rem] max-md:text-base max-md:w-[90vw]">
+        <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10 text-foreground sm:px-6">
+            <header className="mb-8 border-b border-theme-border pb-8">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-accent">Our story</p>
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{translator("title")}</h1>
+            </header>
+            <div className="mb-7 flex justify-center">
+                <Image src="/weblogo.png" alt="RomanizedMM" width={144} height={144} className="rounded-full border border-theme-border"/>
+            </div>
+            <article className="space-y-4 rounded-xl border border-theme-border bg-surface p-5 text-left text-sm leading-7 text-muted sm:p-8 sm:text-base sm:leading-8 [&_b]:text-foreground [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
                 {locale === "en" ?
                     <>
                         <p>Welcome to RomanizedMM 😍!</p>
@@ -57,9 +62,9 @@ const Page = async ({params} : AboutPageProps) => {
                         <p>ဒီ website လေးကို အားပေးလို့ ကျေးဇူးတင်ပါတယ်။ 🥳</p>
                     </>
                 }
-            </div>
+            </article>
             <CountryStatsUI />
-        </div>
+        </main>
     )
 }
 export default Page

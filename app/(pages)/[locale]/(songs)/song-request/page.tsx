@@ -1,5 +1,3 @@
-import React from 'react'
-import SongRequestForm from "@/app/components/forms/SongRequestForm";
 import {Metadata} from "next";
 import {getTranslations} from "next-intl/server";
 import Link from "next/link";
@@ -20,8 +18,10 @@ export const revalidate = 0;
 
 const Page = async ({params} : SongRequestPageProps) => {
     const { locale } = await params;
-    const songRequests = await songRequestService.getQueue();
-    const lastAddedSongs = await songService.getLatestSongs(5);
+    const [songRequests, lastAddedSongs] = await Promise.all([
+        songRequestService.getQueue(),
+        songService.getLatestSongs(5),
+    ]);
     const translator = await getTranslations("SongRequestPage");
 
     function buildSongNameForURL(songName: string) {
@@ -31,58 +31,51 @@ const Page = async ({params} : SongRequestPageProps) => {
     }
 
     return (
-        <div className="flex flex-col gap-10 items-center justify-center mt-8">
-            <h1 className="text-3xl font-bold">{translator("title")}</h1>
-            <p className="text-lg w-[80vw] text-center">
-                {translator("description")}
-            </p>
-            <p className="text-lg w-[80vw] text-center">
-                {translator("request-proccessing")}
-            </p>
-            {/*<SongRequestForm/>*/}
+        <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-10 text-foreground sm:px-6">
+            <header className="mb-8 border-b border-theme-border pb-8">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-accent">RomanizedMM</p>
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{translator("title")}</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">{translator("overview")}</p>
+            </header>
 
-            {/* Status */}
-            <div className="flex flex-row items-center justify-center border-2 border-theme-border rounded-2xl">
-                <label className="text-lg font-bold p-3">Status:</label>
-                <div className="flex flex-row items-center gap-x-2 p-3">
-                    <h3 className="text-base">Stopped</h3>
-                    <div className="w-4 h-4 bg-red-800 rounded-full"/>
+            <section aria-labelledby="request-status" className="mb-8 rounded-xl border border-theme-border bg-surface p-5 sm:p-6">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h2 id="request-status" className="text-lg font-semibold">{translator("status")}</h2>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-theme-border bg-surface-raised px-3 py-1 text-sm font-medium text-foreground">
+                        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />{translator("paused")}
+                    </span>
                 </div>
-            </div>
-            <div className="flex flex-row items-center justify-center gap-x-8 p-8">
-                <p className="text-base">**{translator("stopMessage")}</p>
-            </div>
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">{translator("stopMessage")}</p>
+            </section>
 
-            {/* Song Queue */}
-            <div className="flex flex-col text-center justify-center items-center w-[60vw] max-md:w-[80vw] border-2 border-theme-border p-4 rounded-2xl mb-6">
-                <p className="text-2xl font-bold mt-2 mb-6 max-md:text-lg">{translator("songsInQueue")}</p>
-                {songRequests.map((songRequest, index) => {
-                    return (
-                        <div key={index} className="flex flex-row justify-center bg-surface-raised mb-6 rounded-2xl p-3 text-foreground w-[40vw] max-md:w-[70vw]">
-                            <p className="text-base">{`${songRequest.songName} - ${songRequest.artist}`}</p>
-                        </div>
-                    );
-                })}
-            </div>
+            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+                <section aria-labelledby="queue-title" className="min-w-0 rounded-xl border border-theme-border bg-surface p-5 sm:p-6">
+                    <div className="mb-5 flex items-center justify-between gap-3 border-b border-theme-border pb-4">
+                        <h2 id="queue-title" className="text-xl font-bold">{translator("songsInQueue")}</h2>
+                        <span className="rounded-full bg-surface-raised px-3 py-1 text-xs font-semibold text-muted">{songRequests.length}</span>
+                    </div>
+                    {songRequests.length ? <ul className="divide-y divide-theme-border">
+                        {songRequests.map((request, index) => <li key={`${request.songName}-${request.artist}-${index}`} className="min-w-0 py-3 first:pt-0 last:pb-0">
+                            <p className="break-words font-medium">{request.songName}</p>
+                            <p className="mt-1 break-words text-sm text-muted">{request.artist}</p>
+                        </li>)}
+                    </ul> : <p className="py-5 text-sm text-muted">{translator("emptyQueue")}</p>}
+                </section>
 
-            {/* Last Added Songs */}
-            <div className="flex flex-col text-center justify-center items-center w-[60vw] max-md:w-[80vw] border-2 border-theme-border p-4 rounded-2xl mb-6">
-                <p className="text-2xl font-bold mt-2 mb-6 max-md:text-lg">{translator("lastCreatedSongs")}</p>
-                {lastAddedSongs.map((lastSong, index) => {
-                    return (
-                        <div key={index} className="flex flex-col justify-center text-center bg-surface-raised mb-6 rounded-2xl p-3 gap-y-2 text-foreground w-[40vw] max-md:w-[70vw]">
-                            <Link href={`song/${buildSongNameForURL(lastSong.songName)}/${lastSong.mmid}`} className="hover:text-accent transition-colors">
-                                <p className="text-base italic">{`${lastSong.songName} - ${lastSong.artistName[0].name}`}</p>
-                            </Link>
-                            {
-                                lastSong.createdAt &&
-                                <p className={"ml-4 text-sm font-bold"}>{new Date(lastSong.createdAt).toLocaleDateString()}</p>
-                            }
-                        </div>
-                    );
-                })}
+                <section aria-labelledby="recent-title" className="min-w-0 rounded-xl border border-theme-border bg-surface p-5 sm:p-6">
+                    <h2 id="recent-title" className="mb-5 border-b border-theme-border pb-4 text-xl font-bold">{translator("lastCreatedSongs")}</h2>
+                    {lastAddedSongs.length ? <ul className="divide-y divide-theme-border">
+                        {lastAddedSongs.map(lastSong => <li key={lastSong.mmid} className="min-w-0 py-3 first:pt-0 last:pb-0">
+                            <Link href={`/${locale}/song/${buildSongNameForURL(lastSong.songName)}/${lastSong.mmid}`} className="block break-words font-medium text-foreground hover:text-accent focus-visible:outline-accent">{lastSong.songName} <span aria-hidden="true" className="text-accent">→</span></Link>
+                            <p className="mt-1 break-words text-sm text-muted">{lastSong.artistName.map(artist => artist.name).join(", ")}</p>
+                        </li>)}
+                    </ul> : <p className="py-5 text-sm text-muted">{translator("noRecent")}</p>}
+                </section>
             </div>
-        </div>
+            <div className="mt-8 text-center">
+                <Link href={`/${locale}/song-catalogue`} className="inline-flex min-h-11 items-center rounded-lg border border-theme-border bg-surface px-5 text-sm font-semibold text-foreground hover:border-accent hover:text-accent">{translator("browseSongs")} <span aria-hidden="true" className="ml-2">→</span></Link>
+            </div>
+        </main>
     )
 }
 export default Page;
