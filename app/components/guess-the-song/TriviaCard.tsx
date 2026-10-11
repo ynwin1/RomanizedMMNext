@@ -66,7 +66,7 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
         });
 
         return (
-            <div className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl w-[4rem] max-md:text-xl">
+            <div className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl w-[4rem] max-md:text-xl">
                 <h1>{seconds}s</h1>
             </div>
         )
@@ -93,12 +93,12 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
         <div className="flex flex-col">
             <div className="flex-grow flex flex-col items-center justify-center py-8">
                 <div className="flex flex-row justify-between gap-x-6 items-center">
-                    <h2 className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl">
+                    <h2 className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl max-md:text-xl">
                         {`Score : ${score}`}
                     </h2>
                     <Timer expiryTimestamp={new Date(expiryTime)} onExpire={() => setTriviaState(TriviaState.End)} />
                     <button
-                        className="text-3xl p-4 text-center mb-6 bg-black bg-opacity-70 rounded-2xl max-md:text-xl hover:bg-red-600"
+                        className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl max-md:text-xl hover:bg-red-600"
                         onClick={() => {
                             setScore(0);
                             setTriviaState(TriviaState.Start);
@@ -120,7 +120,7 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
                     <button
                         key={index}
                         disabled={isSkipping}
-                        className={`text-lg bg-blue-500 text-white p-2 rounded-2xl hover:bg-green-600 w-[40vw] max-md:w-[80vw] max-md:text-sm
+                        className={`text-lg bg-accent text-on-accent p-2 rounded-2xl hover:bg-accent-hover w-[40vw] max-md:w-[80vw] max-md:text-sm
                                 ${isSkipping ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={() => checkCorrectSong(song.mmid)}
                     >

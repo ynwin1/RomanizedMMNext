@@ -54,7 +54,7 @@ const Biography = ({ biography }: { biography: string }) => {
             {biography.length > 200 && (
                 <button 
                     onClick={toggleShowMore} 
-                    className="text-white bg-blue-600 p-2 rounded-lg mt-4 hover:bg-blue-400 transition-all duration-300"
+                    className="text-on-accent bg-accent p-2 rounded-lg mt-4 hover:bg-accent-hover transition-all duration-300"
                 >
                     {showMore ? "Show less" : "Show more"}
                 </button>

@@ -7,6 +7,7 @@ const layout = readFileSync("app/(pages)/[locale]/layout.tsx", "utf8");
 const picker = readFileSync("app/components/theme/ThemePicker.tsx", "utf8");
 const navbar = readFileSync("app/components/navbar/Navbar.tsx", "utf8");
 const adminLayout = readFileSync("app/admin/layout.tsx", "utf8");
+const themeInit = readFileSync("public/theme-init.js", "utf8");
 
 test("four public colour themes define shared semantic palette values", () => {
   for (const name of ["midnight-luxury", "cosmic", "vintage-vinyl"]) {
@@ -20,8 +21,11 @@ test("four public colour themes define shared semantic palette values", () => {
 
 test("theme preference is applied before the public page renders", () => {
   assert.match(layout, /suppressHydrationWarning/);
-  assert.match(layout, /RomanizedMM_theme/);
-  assert.match(layout, /document.documentElement.dataset.theme=theme/);
+  assert.match(layout, /src="\/theme-init.js" strategy="beforeInteractive"/);
+  assert.match(themeInit, /RomanizedMM_theme/);
+  assert.match(themeInit, /document.documentElement.dataset.theme = theme/);
+  assert.doesNotMatch(layout, /dangerouslySetInnerHTML/);
+  assert.match(layout, /adsbygoogle.js\?client=[\s\S]*strategy="afterInteractive"/);
   assert.doesNotMatch(adminLayout, /ThemePicker|RomanizedMM_theme/);
 });
 

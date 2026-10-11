@@ -19,13 +19,13 @@ const ItemsPerPageSelector = () => {
   };
 
   return (
-    <div className="flex items-center gap-3 text-sm text-[#CBBEAE]">
+    <div className="flex items-center gap-3 text-sm text-muted">
       <label htmlFor="catalogue-page-size" className="whitespace-nowrap">
         {locale === "my" ? "တစ်မျက်နှာလျှင်" : "Show"}
       </label>
       <select id="catalogue-page-size" aria-label="Items per page" value={current}
         onChange={event => updateLimit(event.target.value)}
-        className="min-h-11 min-w-20 cursor-pointer border border-[#665342] bg-[#24211E] px-3 py-2 text-[#F3EDE3] [color-scheme:dark] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#DAA276]">
+        className="min-h-11 min-w-20 cursor-pointer border border-theme-border bg-surface px-3 py-2 text-foreground [color-scheme:dark] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
         {limits.map(limit => <option key={limit} value={limit}>{limit}</option>)}
       </select>
       <span className="whitespace-nowrap">{locale === "my" ? "ခု" : "per page"}</span>

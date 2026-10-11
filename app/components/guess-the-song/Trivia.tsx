@@ -21,12 +21,12 @@ const Trivia = ({songs, minScore} : {songs: GuessSongRecord[], minScore: number}
         <div className="z-10">
             {triviaState === TriviaState.Start ?
                 <div className="flex flex-col justify-center items-center mt-6">
-                    <h1 className="border-2 border-orange-200 z-10 text-5xl p-4
-                    text-center mb-10 text-white max-sm:text-2xl max-sm: p-2 rounded-2xl max-md:w-[60vw] bg-black bg-opacity-70 ">
+                    <h1 className="border-2 border-theme-border z-10 text-5xl p-4
+                    text-center mb-10 text-foreground max-sm:text-2xl max-sm: p-2 rounded-2xl max-md:w-[60vw] bg-[var(--overlay)] ">
                         Guess The Song
                     </h1>
                     <div className="flex flex-col justify-center items-center">
-                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-800 w-[6rem] border-2 border-black"
+                        <button className="text-lg bg-accent text-on-accent p-2 rounded-2xl mt-8 hover:bg-accent-hover w-[6rem] border-2 border-theme-border"
                                 onClick={() => setTriviaState(TriviaState.Playing)}>
                             {translator("start")}
                         </button>
@@ -43,12 +43,12 @@ const Trivia = ({songs, minScore} : {songs: GuessSongRecord[], minScore: number}
                         {showSaveCard && score > minScore ?
                             <TriviaScoreForm score={score} gameMode={gameMode} setShowSaveCard={setShowSaveCard}/>
                             :
-                            <h1 className="text-2xl text-white text-center max-md:text-base bg-black bg-opacity-80 p-4 rounded-xl max-md:w-[80vw]">
+                            <h1 className="text-2xl text-foreground text-center max-md:text-base bg-[var(--overlay)] p-4 rounded-xl max-md:w-[80vw]">
                                 Beat the lowest score to get featured on the leaderboard 🎉
                             </h1>
                         }
                         {/* Restart */}
-                        <button className="text-lg bg-blue-500 text-white p-2 rounded-2xl mt-8 hover:bg-blue-700 w-[30vw] max-md:w-[70vw]"
+                        <button className="text-lg bg-accent text-on-accent p-2 rounded-2xl mt-8 hover:bg-accent-hover w-[30vw] max-md:w-[70vw]"
                                 onClick={() => {
                                     setScore(0);
                                     setTriviaState(TriviaState.Start);

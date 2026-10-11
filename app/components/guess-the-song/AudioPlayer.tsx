@@ -129,9 +129,9 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
     <div className="flex flex-col items-center justify-center gap-4">
       {/* Main tap / status display */}
       <h2
-        className={`text-2xl text-white text-center max-md:text-base 
-                    bg-black bg-opacity-80 p-4 rounded-xl max-md:w-[80vw] 
-                    ${!hasError && isReady ? 'cursor-pointer hover:bg-opacity-90' : 'cursor-not-allowed opacity-70'}
+        className={`text-2xl text-foreground text-center max-md:text-base
+                    bg-[var(--overlay)] p-4 rounded-xl max-md:w-[80vw]
+                    ${!hasError && isReady ? 'cursor-pointer hover:bg-surface-raised' : 'cursor-not-allowed opacity-70'}
                     transition-all`}
         onClick={handleClick}
       >
@@ -164,7 +164,7 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
       {/* Replay button */}
       {isPlaying && !hasError && (
         <button
-          className="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition-colors"
+          className="bg-accent text-on-accent px-4 py-2 rounded-xl hover:bg-accent-hover transition-colors"
           onClick={playRandomSnippet}
         >
           🔄 {translator('nextSnippet')}

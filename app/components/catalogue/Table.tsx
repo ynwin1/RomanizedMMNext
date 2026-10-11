@@ -13,11 +13,11 @@ const Table = ({locale, songs}: TableProps) => {
 
     return (
         <table className="border-2 rounded-2xl w-[75vw] max-md:w-[85vw] max-md:text-sm">
-            <thead className="bg-blue-600 text-white">
+            <thead className="bg-accent text-on-accent">
             <tr>
-                <th className="border border-gray-400 p-2 text-left w-[35%]">{translator("song")}</th>
-                <th className="border border-gray-400 p-2 text-left w-[55%]">{translator("artist")}</th>
-                <th className="border border-gray-400 p-2 text-left w-[10%]">{translator("link")}</th>
+                <th className="border border-theme-border p-2 text-left w-[35%]">{translator("song")}</th>
+                <th className="border border-theme-border p-2 text-left w-[55%]">{translator("artist")}</th>
+                <th className="border border-theme-border p-2 text-left w-[10%]">{translator("link")}</th>
             </tr>
             </thead>
             <tbody>
@@ -30,13 +30,13 @@ const Table = ({locale, songs}: TableProps) => {
                 const songURL = `/${locale}/song/${urlSongName}/${song.mmid}`;
                 return (
                     <tr key={song.mmid}>
-                        <td className="border border-gray-400 p-2">
+                        <td className="border border-theme-border p-2">
                             <Link href={songURL}>
-                            <p className="text-white">{nameToDisplay}</p>
+                            <p className="text-foreground">{nameToDisplay}</p>
                             </Link>
                         </td>
-                        <td className="border border-gray-400 p-2">{artistNames}</td>
-                        <td className="border border-gray-400 p-2 hover:bg-gray-600">
+                        <td className="border border-theme-border p-2">{artistNames}</td>
+                        <td className="border border-theme-border p-2 hover:bg-surface-raised">
                             <Link href={songURL}>
                                 <u>View</u>
                             </Link>

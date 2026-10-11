@@ -91,14 +91,14 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
                 {links.length > 1 && inView &&
                 <div className="flex justify-center items-center gap-2 mt-4">
                     <button 
-                    className="transform transition-all duration-300 hover:scale-90 hover:text-blue-500"
+                    className="transform transition-all duration-300 hover:scale-90 hover:text-accent"
                     onClick={() => setCurrentLinkIdx((prev) => Math.max(0, prev - 1))}
                     disabled={currentLinkIdx === 0}
                     >
                         <ChevronLeftIcon className="w-8 h-8" />
                     </button>
                     <button 
-                    className="transform transition-all duration-300 hover:scale-90 hover:text-blue-500" 
+                    className="transform transition-all duration-300 hover:scale-90 hover:text-accent"
                     onClick={() => setCurrentLinkIdx((prev) => Math.min(links.length - 1, prev + 1))}
                     disabled={currentLinkIdx === links.length - 1}
                     >

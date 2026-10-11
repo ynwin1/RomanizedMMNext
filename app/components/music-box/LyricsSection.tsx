@@ -76,12 +76,12 @@ const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestam
   return (
     <section aria-label={translator("lyrics")} className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-3 sm:px-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div role="group" aria-label="Lyrics language" className="grid grid-cols-3 border-b border-[#514335]">
+        <div role="group" aria-label="Lyrics language" className="grid grid-cols-3 border-b border-theme-border">
           {modes.map(mode => (
             <button key={mode} type="button" aria-pressed={selectedOption === mode}
               onClick={() => onOptionChange(mode)}
               className={`min-h-11 border-b-2 px-2 py-3 text-sm font-semibold transition-colors sm:px-5 ${
-                selectedOption === mode ? "border-[#DAA276] text-[#F3EDE3]" : "border-transparent text-[#CBBEAE] hover:text-[#F3EDE3]"
+                selectedOption === mode ? "border-accent text-foreground" : "border-transparent text-muted hover:text-foreground"
               }`}>
               {translator(mode)}
             </button>
@@ -89,35 +89,35 @@ const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestam
         </div>
         <button type="button" aria-expanded={showSettings} aria-controls="lyrics-reading-settings"
           onClick={() => setShowSettings(open => !open)}
-          className="min-h-11 self-end border-b border-[#DAA276] px-2 text-sm font-medium text-[#F3EDE3] hover:text-[#DAA276]">
+          className="min-h-11 self-end border-b border-accent px-2 text-sm font-medium text-foreground hover:text-accent">
           Reading settings
         </button>
       </div>
       {showSettings && (
         <div id="lyrics-reading-settings" role="group" aria-label="Reading settings"
-          className="grid gap-5 border border-[#514335] bg-[#201D1A] p-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-3 text-sm text-[#F3EDE3]">
+          className="grid gap-5 border border-theme-border bg-surface p-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-3 text-sm text-foreground">
             <span className="flex justify-between gap-3"><span>Text size</span><output>{fontSizeLabel(fontSize)}</output></span>
             <input type="range" aria-label="Lyrics font size" min={FONT_MIN} max={FONT_MAX} step={1}
               value={fontSize} onChange={event => setFontSize(Number(event.target.value))}
-              className="w-full accent-[#DAA276]" />
-            <span className="flex justify-between text-xs text-[#CBBEAE]"><span>Smaller</span><span>Larger</span></span>
+              className="w-full accent-accent" />
+            <span className="flex justify-between text-xs text-muted"><span>Smaller</span><span>Larger</span></span>
           </label>
-          <label className="flex flex-col gap-3 text-sm text-[#F3EDE3]">
+          <label className="flex flex-col gap-3 text-sm text-foreground">
             <span className="flex justify-between gap-3"><span>Line spacing</span><output>{lineSpacing.toFixed(1)}×</output></span>
             <input type="range" aria-label="Lyrics line spacing" min={LINE_MIN} max={LINE_MAX} step={0.1}
               value={lineSpacing} onChange={event => setLineSpacing(Number(event.target.value))}
-              className="w-full accent-[#DAA276]" />
+              className="w-full accent-accent" />
           </label>
           <button type="button" onClick={() => {setFontSize(DEFAULT_FONT); setLineSpacing(DEFAULT_LINE);}}
-            className="min-h-11 justify-self-start border-b border-[#DAA276] px-2 text-sm font-semibold text-[#F3EDE3] hover:text-[#DAA276]">
+            className="min-h-11 justify-self-start border-b border-accent px-2 text-sm font-semibold text-foreground hover:text-accent">
             Reset to defaults
           </button>
         </div>
       )}
-      {hasTimestamps && <p className="text-center text-xs leading-relaxed text-[#CBBEAE]">{translator("sync")}</p>}
-      <h2 className="text-center text-2xl font-semibold tracking-tight text-[#F3EDE3]">{translator("lyrics")}</h2>
-      <div className="min-w-0 whitespace-pre-wrap break-words border border-[#514335] bg-[#201D1A] px-4 py-6 text-left text-[#F3EDE3] sm:px-8 sm:py-8 sm:text-center"
+      {hasTimestamps && <p className="text-center text-xs leading-relaxed text-muted">{translator("sync")}</p>}
+      <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground">{translator("lyrics")}</h2>
+      <div className="min-w-0 whitespace-pre-wrap break-words border border-theme-border bg-surface px-4 py-6 text-left text-foreground sm:px-8 sm:py-8 sm:text-center"
         style={{fontSize: `${fontSize}px`, lineHeight: lineSpacing}}>
         {customRenderer(chosenLyrics)}
       </div>

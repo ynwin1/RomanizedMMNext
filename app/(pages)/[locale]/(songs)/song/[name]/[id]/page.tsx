@@ -60,12 +60,12 @@ export const revalidate: number = 3600; // 24 hours
 
 const ArtistRow = ({ label, artists, locale }: { label: string, artists: SongPageArtist[], locale: string }) => (
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-        <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
+        <span className="text-muted font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
         <div className="flex flex-wrap gap-2">
             {artists.map((artist, index) => {
                 const content = (
                     <span className={`md:flex-1 leading-[2rem] -mt-1 
-                    ${artist.slug ? "hover:text-amber-400 hover:cursor-pointer underline" : "" }`}
+                    ${artist.slug ? "hover:text-accent hover:cursor-pointer underline" : "" }`}
                     >
                         {artist.name}
                         {index < artists.length - 1 && ","}
@@ -90,8 +90,8 @@ const ArtistRow = ({ label, artists, locale }: { label: string, artists: SongPag
 
 const DetailRow = ({ label, value }: {label: string, value: string}) => (
     <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-        <span className="text-gray-400 font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
-        <span className="text-white md:flex-1 leading-[2rem] -mt-1">{value}</span>
+        <span className="text-muted font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
+        <span className="text-foreground md:flex-1 leading-[2rem] -mt-1">{value}</span>
     </div>
 );
 
@@ -129,7 +129,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             </div>
 
             {/* Song identity and details are visible without extra clicks. */}
-            <header className="grid items-center gap-5 border-b border-[#514335] pb-7 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-7">
+            <header className="grid items-center gap-5 border-b border-theme-border pb-7 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-7">
                 {song.imageLink && (
                     <Image
                         src={song.imageLink}
@@ -142,14 +142,14 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                     />
                 )}
                 <div className="min-w-0">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#DAA276]">RomanizedMM · Lyrics</p>
-                    <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-[#F3EDE3] sm:text-4xl">{song.songName}</h1>
-                    <div className="mt-3 text-base text-[#CBBEAE]"><ArtistRow label={translator("artist")} artists={song.artistName} locale={locale} /></div>
-                    {(song.genre || song.albumName) && <p className="mt-2 text-sm text-[#DAA276]">{[song.genre, song.albumName].filter(Boolean).join(" · ")}</p>}
-                    {song.about && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#CBBEAE]">{song.about}</p>}
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">RomanizedMM · Lyrics</p>
+                    <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">{song.songName}</h1>
+                    <div className="mt-3 text-base text-muted"><ArtistRow label={translator("artist")} artists={song.artistName} locale={locale} /></div>
+                    {(song.genre || song.albumName) && <p className="mt-2 text-sm text-accent">{[song.genre, song.albumName].filter(Boolean).join(" · ")}</p>}
+                    {song.about && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{song.about}</p>}
                     {song.whenToListen && (
-                        <div className="mt-3 text-sm leading-relaxed text-[#CBBEAE]">
-                            <span className="font-semibold text-[#DAA276]">{translator("whenToListen")}: </span>
+                        <div className="mt-3 text-sm leading-relaxed text-muted">
+                            <span className="font-semibold text-accent">{translator("whenToListen")}: </span>
                             {song.whenToListen}
                         </div>
                     )}
@@ -166,12 +166,12 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 </section>
             )}
 
-            <section aria-labelledby="more-from-artist" className="min-w-0 border-t border-[#514335] pt-8">
+            <section aria-labelledby="more-from-artist" className="min-w-0 border-t border-theme-border pt-8">
                 <h2 id="more-from-artist" className="sr-only">Explore more songs</h2>
                 <MoreSongs artists={cleanedArtistNames} currentSongId={parseInt(id)} locale={locale}/>
             </section>
 
-            <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-[#514335] pt-8">
+            <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-theme-border pt-8">
                 <div className="flex flex-wrap items-center justify-center gap-4">
                     <RandomSongButton locale={locale}/>
                     <SongReportButton songName={song.songName} artist={artistNames} />

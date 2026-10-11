@@ -28,10 +28,10 @@ const SongRequestForm = () => {
                             name="songName"
                             type="string"
                             placeholder={translator("songTitle")}
-                            className="peer text-black block w-[45vw] max-md:w-[80vw] rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                            className="peer bg-surface text-foreground block w-[45vw] max-md:w-[80vw] rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted"
                             aria-describedby="songName-error"
                         />
-                        <MusicalNoteIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <MusicalNoteIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="songName-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.songName &&
@@ -56,10 +56,10 @@ const SongRequestForm = () => {
                             name="artist"
                             type="string"
                             placeholder={translator("artist")}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted"
                             aria-describedby="artist-error"
                         />
-                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="artist-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.artist &&
@@ -84,10 +84,10 @@ const SongRequestForm = () => {
                             name="youtubeLink"
                             type="string"
                             placeholder={translator("youtubeLink")}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted"
                             aria-describedby="youtubeLink-error"
                         />
-                        <PlayIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <PlayIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="youtubeLink-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.youtubeLink &&
@@ -112,10 +112,10 @@ const SongRequestForm = () => {
                             name="details"
                             type="string"
                             placeholder={translator("details")}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted text-foreground"
                             aria-describedby="details-error"
                         />
-                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="details-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.details &&
@@ -140,10 +140,10 @@ const SongRequestForm = () => {
                             name="requestedBy"
                             type="string"
                             placeholder={translator("requestedBy")}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted text-foreground"
                             aria-describedby="requestedBy-error"
                         />
-                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="requestedBy-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.requestedBy &&
@@ -161,7 +161,7 @@ const SongRequestForm = () => {
                 <label htmlFor="songStory" className="mb-2 block text-sm font-medium">
                     <div className="flex flex-col gap-2">
                         {translator("songStory")}
-                        <Link href={"/en/song/KyayZuuParKwal/17"} className={"text-sm text-blue-200 hover:underline"}>
+                        <Link href={"/en/song/KyayZuuParKwal/17"} className={"text-sm text-accent hover:underline"}>
                             ({translator("storyExample")})
                         </Link>
                     </div>
@@ -172,10 +172,10 @@ const SongRequestForm = () => {
                             id="songStory"
                             name="songStory"
                             placeholder={translator("songStory")}
-                            className="peer text-black block w-full px-1 rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            className="peer bg-surface text-foreground block w-full px-1 rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted text-foreground"
                             aria-describedby="songStory-error"
                         />
-                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="songStory-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.songStory &&
@@ -200,10 +200,10 @@ const SongRequestForm = () => {
                             name="notifyEmail"
                             type="email"
                             placeholder="Email"
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500 text-black"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted text-foreground"
                             aria-describedby="notifyEmail-error"
                         />
-                        <EnvelopeIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <EnvelopeIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="notifyEmail-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.notifyEmail &&

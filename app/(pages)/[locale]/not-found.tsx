@@ -8,12 +8,12 @@ const NotFound = () => {
     ];
 
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center bg-black from-white to-gray-100 px-4">
+        <div className="min-h-screen flex flex-col justify-center items-center bg-background from-white to-gray-100 px-4">
             {/* Main Error Message */}
             <div className="text-center mb-8">
-                <h1 className="text-6xl font-bold text-blue-600 mb-4 max-md:text-4xl">404</h1>
-                <h2 className="text-3xl text-white mb-2 max-md:text-xl">Page Not Found</h2>
-                <p className="text-white max-w-md">
+                <h1 className="text-6xl font-bold text-accent mb-4 max-md:text-4xl">404</h1>
+                <h2 className="text-3xl text-foreground mb-2 max-md:text-xl">Page Not Found</h2>
+                <p className="text-foreground max-w-md">
                     Sorry, we couldn't find the page you're looking for. Here are some helpful links:
                 </p>
             </div>
@@ -24,7 +24,7 @@ const NotFound = () => {
                     <Link
                         key={link.href}
                         href={link.href}
-                        className="bg-blue-600 px-6 py-3 text-white rounded-xl hover:bg-blue-700
+                        className="bg-accent px-6 py-3 text-on-accent rounded-xl hover:bg-accent-hover
                      transition-colors duration-200 shadow-sm hover:shadow-md
                      max-md:px-4 max-md:py-2"
                     >
@@ -34,11 +34,11 @@ const NotFound = () => {
             </div>
 
             {/* Additional Help */}
-            <div className="mt-12 text-center text-white">
+            <div className="mt-12 text-center text-foreground">
                 <p>Still can't find what you're looking for?</p>
                 <Link
                     href="/en/song-catalogue"
-                    className="text-white hover:text-blue-800 underline mt-2 inline-block"
+                    className="text-foreground hover:text-accent underline mt-2 inline-block"
                 >
                     Try searching for songs in our catalogue
                 </Link>

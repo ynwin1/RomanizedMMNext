@@ -8,6 +8,7 @@ import {routing} from '@/i18n/routing';
 import {GoogleAnalytics} from "@/app/components/google-analytics/GoogleAnalytics";
 import Footer from "@/app/components/footer/Footer";
 import CountryCounter from "@/app/components/country-counter/country-counter";
+import Script from "next/script";
 
 export const metadata: Metadata = {
     title: {
@@ -54,15 +55,13 @@ export default async function RootLayout({
 
     return (
         <html lang={locale} className="h-full" suppressHydrationWarning>
-        <head>
-            <script dangerouslySetInnerHTML={{__html: `(function(){try{var theme=localStorage.getItem('RomanizedMM_theme');if(['royal-heritage','midnight-luxury','cosmic','vintage-vinyl'].includes(theme)){document.documentElement.dataset.theme=theme;}}catch(e){}})();`}} />
-            <script
-                async
-                src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1042163793764562"
-                crossOrigin="anonymous"
-            ></script>
-        </head>
         <body className={`${lusitana.className} antialiased flex flex-col min-h-screen`}>
+            <Script src="/theme-init.js" strategy="beforeInteractive" />
+            <Script
+                src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1042163793764562"
+                strategy="afterInteractive"
+                crossOrigin="anonymous"
+            />
             <a href="#main-content" className="skip-to-content">Skip to main content</a>
             <GoogleAnalytics gaId="G-2HM6B3Q5D0" />
             <NextIntlClientProvider messages={messages}>
