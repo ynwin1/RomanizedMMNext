@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import type { ContentDraftRecord } from "@/modules/content-drafts";
 import { saveIngestionReviewAction } from "./ingestion-actions";
+import SpotifyTrackImport from "../spotify-track-import";
 
 export default function ReviewForm({
   ingestionId,
@@ -15,14 +16,37 @@ export default function ReviewForm({
     saveIngestionReviewAction.bind(null, ingestionId, draft.id, draft.revision),
     {},
   );
+  const formRef = useRef<HTMLFormElement>(null);
+  const [suggestedArtists, setSuggestedArtists] = useState<string[]>([]);
+
+  function setFormField(name: string, value: string) {
+    const field = formRef.current?.elements.namedItem(name);
+    if (field instanceof HTMLInputElement) field.value = value;
+  }
 
   const fieldClass = "mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100";
 
-  return <form action={action} className="mt-6 rounded-xl border border-zinc-800 p-4">
+  return <form ref={formRef} action={action} className="mt-6 rounded-xl border border-zinc-800 p-4">
     <h2 className="text-xl font-semibold">Final review</h2>
     <p className="mt-1 text-sm text-zinc-400">
       Review and polish everything here. Saving does not publish the song.
     </p>
+
+    <div className="mt-4">
+      <SpotifyTrackImport onApply={track => {
+        setFormField("songName", track.name);
+        setFormField("albumName", track.albumName);
+        setFormField("imageLink", track.imageLink);
+        setFormField("spotifyTrackId", track.trackId);
+        setFormField("spotifyLink", track.spotifyLink);
+        const genre = formRef.current?.elements.namedItem("genre");
+        if (genre instanceof HTMLInputElement && !genre.value.trim()) setFormField("genre", track.genres[0] || "");
+        setSuggestedArtists(track.artists.map(artist => artist.name));
+      }} />
+      {suggestedArtists.length > 0 && <p role="status" className="mt-2 text-sm text-amber-300">
+        Spotify artists: {suggestedArtists.join(", ")}. Match or add these in the separate Artists section before publishing.
+      </p>}
+    </div>
 
     <label className="mt-4 block">
       <span className="text-sm text-zinc-300">Song name *</span>
