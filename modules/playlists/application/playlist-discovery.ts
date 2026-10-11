@@ -6,7 +6,7 @@ export interface PlaylistGenreGroup {
   playlists: PlaylistEntity[];
 }
 
-/** Load at most five published selections per genre, even on the all-genres page. */
+/** Keep the all-genres overview short; offer up to five on a dedicated genre view. */
 export async function loadPlaylistDiscovery(
   requestedGenre: unknown,
   listPublishedByGenre: (genre: PlaylistGenre, limit: number) => Promise<PlaylistEntity[]>,
@@ -14,9 +14,10 @@ export async function loadPlaylistDiscovery(
   const parsed = PlaylistGenreSchema.safeParse(requestedGenre);
   const selectedGenre = parsed.success ? parsed.data : null;
   const genres = selectedGenre ? [selectedGenre] : [...PLAYLIST_GENRES];
+  const limit = selectedGenre ? 5 : 3;
   const results = await Promise.all(genres.map(async genre => ({
     genre,
-    playlists: (await listPublishedByGenre(genre, 5)).slice(0, 5),
+    playlists: (await listPublishedByGenre(genre, limit)).slice(0, limit),
   })));
   return {selectedGenre, groups: results.filter(group => group.playlists.length > 0)};
 }

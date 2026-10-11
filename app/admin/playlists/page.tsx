@@ -8,7 +8,10 @@ export default async function PlaylistsPage() {
   return <section>
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div><h1 className="text-3xl font-bold">Playlists</h1><p className="mt-2 text-sm text-zinc-400">Curate public Spotify playlists by genre.</p></div>
-      <Link href="/admin/playlists/new" className="rounded bg-indigo-600 px-4 py-3 font-medium hover:bg-indigo-500">Add playlist</Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/admin/playlists/submissions" className="rounded border border-indigo-400 px-4 py-3 font-medium text-indigo-300">Review submissions</Link>
+        <Link href="/admin/playlists/new" className="rounded bg-indigo-600 px-4 py-3 font-medium hover:bg-indigo-500">Add playlist</Link>
+      </div>
     </div>
     <div className="overflow-x-auto rounded-xl border border-zinc-800">
       <table className="w-full min-w-[680px] text-left text-sm">

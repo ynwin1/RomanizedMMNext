@@ -4,6 +4,7 @@ import {notFound} from "next/navigation";
 import {playlistService, PLAYLIST_GENRES, type PlaylistGenre} from "@/modules/playlists";
 import {loadPlaylistDiscovery} from "@/modules/playlists/application/playlist-discovery";
 import PlaylistCard from "@/app/components/playlists/PlaylistCard";
+import PlaylistSubmissionForm from "@/app/components/playlists/PlaylistSubmissionForm";
 
 export const revalidate = 900;
 
@@ -95,5 +96,6 @@ export default async function PlaylistsPage({params, searchParams}: Props) {
         {my ? "အမျိုးအစားအားလုံး ကြည့်ရန်" : "Browse all genres"}
       </Link>}
     </section>}
+    <PlaylistSubmissionForm locale={locale} />
   </main>;
 }

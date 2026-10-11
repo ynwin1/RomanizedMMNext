@@ -11,7 +11,7 @@ const row = (genre: PlaylistGenre, i: number): PlaylistEntity => ({
   genres: [genre], status: "published", revision: 0, sortOrder: i,
 });
 
-test("playlist discovery lists all curated genres, hides empty groups, and caps sections at five", async () => {
+test("playlist discovery lists all curated genres, hides empty groups, and caps overview sections at three", async () => {
   const calls: {genre: string; limit: number}[] = [];
   const {selectedGenre, groups} = await loadPlaylistDiscovery(undefined, async (genre, limit) => {
     calls.push({genre, limit});
@@ -19,9 +19,20 @@ test("playlist discovery lists all curated genres, hides empty groups, and caps 
   });
   assert.equal(selectedGenre, null);
   assert.deepEqual(calls.map(call => call.genre), [...PLAYLIST_GENRES]);
-  assert.ok(calls.every(call => call.limit === 5));
+  assert.ok(calls.every(call => call.limit === 3));
   assert.equal(groups.length, 1);
   assert.equal(groups[0].genre, "rock");
+  assert.equal(groups[0].playlists.length, 3);
+});
+
+test("exploring one genre shows up to five playlists", async () => {
+  const calls: number[] = [];
+  const {groups} = await loadPlaylistDiscovery("jazz-blues", async (genre, limit) => {
+    calls.push(limit);
+    return Array.from({length: 8}, (_, index) => row(genre, index));
+  });
+  assert.deepEqual(calls, [5]);
+  assert.equal(groups.length, 1);
   assert.equal(groups[0].playlists.length, 5);
 });
 
