@@ -9,10 +9,11 @@ test("homepage hero preserves search and locale-aware discovery links", () => {
   assert.match(home, /<SearchBar \/>/);
   assert.match(home, /href={`\/\$\{locale\}\/song-catalogue`}/);
   assert.match(home, /href={`\/\$\{locale\}\/artist-catalogue`}/);
-  assert.match(home, /aria-label="Start exploring Myanmar music"/);
+  assert.match(home, /aria-label="Explore Myanmar music"/);
 });
-test("homepage does not autoplay background video or duplicate footer", () => {
-  assert.doesNotMatch(home, /<Player|RMBG\.mp4|<Footer/);
+test("homepage uses a contained video component without duplicate footer", () => {
+  assert.doesNotMatch(home, /<Footer|fixed inset-0/);
+  assert.match(home, /<HomeVideo \/>/);
   assert.match(home, /<Navbar \/>/);
   assert.match(home, /bg-\[#171613\]/);
 });
