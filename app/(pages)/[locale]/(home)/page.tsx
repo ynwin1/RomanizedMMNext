@@ -107,14 +107,35 @@ export default async function Home({params}: HomeProps) {
                         )}
                     </div>
                 </section>
-                <section aria-labelledby="more-music-heading" className="mx-auto flex max-w-7xl flex-col gap-5 border-t border-[#514335] px-4 py-12 sm:px-6 sm:py-14 md:flex-row md:items-center md:justify-between">
-                    <div>
-                        <h2 id="more-music-heading" className="text-xl font-semibold text-[#F3EDE3] sm:text-2xl">Looking for more Myanmar music?</h2>
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-[#CBBEAE]">Discover songs by your favourite artists, or explore something you haven't heard before.</p>
+                <section aria-labelledby="explore-more-heading" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
+                    <div className="mb-8">
+                        <p className="mb-2 text-sm font-medium text-[#DAA276]">Something more to try</p>
+                        <h2 id="explore-more-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">Explore RomanizedMM</h2>
+                        <p className="mt-2 max-w-2xl text-sm leading-7 text-[#CBBEAE]">There's more to do than searching for lyrics.</p>
                     </div>
-                    <Link href={`/${locale}/artist-catalogue`} className="inline-flex min-h-11 shrink-0 items-center self-start border-b border-[#DAA276] font-semibold text-[#DAA276] hover:text-[#F3EDE3]">
-                        Browse artists →
-                    </Link>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <article className="flex h-full flex-col border border-[#514335] bg-[#24211E] p-6 sm:p-8">
+                            <p className="mb-3 text-sm font-semibold text-[#DAA276]">Music games</p>
+                            <h3 className="text-xl font-semibold">Know your Myanmar songs?</h3>
+                            <p className="mt-3 flex-1 text-sm leading-7 text-[#CBBEAE]">Guess the song from a short clip or complete the missing lyrics.</p>
+                            <Link href={`/${locale}/game-modes`} className="mt-6 inline-flex min-h-11 items-center self-start border-b border-[#DAA276] text-sm font-semibold text-[#DAA276] hover:text-[#F3EDE3]">Play the games →</Link>
+                        </article>
+                        <article className="flex h-full flex-col border border-[#514335] bg-[#24211E] p-6 sm:p-8">
+                            <p className="mb-3 text-sm font-semibold text-[#DAA276]">Song requests</p>
+                            <h3 className="text-xl font-semibold">Can't find a song?</h3>
+                            <p className="mt-3 flex-1 text-sm leading-7 text-[#CBBEAE]">Tell us which Myanmar song you'd like to see added to the collection.</p>
+                            <Link href={`/${locale}/song-request`} className="mt-6 inline-flex min-h-11 items-center self-start border-b border-[#DAA276] text-sm font-semibold text-[#DAA276] hover:text-[#F3EDE3]">Request a song →</Link>
+                        </article>
+                    </div>
+                </section>
+                <section aria-labelledby="more-music-heading" className="border-t border-[#514335] bg-[#201D1A]">
+                    <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 sm:py-16 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                        <div>
+                            <h2 id="more-music-heading" className="text-xl font-semibold text-[#F3EDE3] sm:text-2xl">Keep exploring Myanmar music</h2>
+                            <p className="mt-2 max-w-xl text-sm leading-7 text-[#CBBEAE]">Browse more songs and get to know the artists behind them.</p>
+                        </div>
+                        <Link href={`/${locale}/artist-catalogue`} className="inline-flex min-h-11 items-center self-start border-b border-[#DAA276] text-sm font-semibold text-[#DAA276] hover:text-[#F3EDE3]">Browse artists →</Link>
+                    </div>
                 </section>
             </main>
         </div>
