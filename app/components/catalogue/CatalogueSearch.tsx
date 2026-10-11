@@ -5,7 +5,7 @@ import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {MagnifyingGlassIcon, XMarkIcon} from "@heroicons/react/24/outline";
 import {normalizeCatalogueQuery} from "./catalogue-filter";
 
-export default function CatalogueSearch({initialQuery, locale}: {initialQuery: string; locale: string}) {
+export default function CatalogueSearch({initialQuery, locale, mode = "songs"}: {initialQuery: string; locale: string; mode?: "songs" | "artists"}) {
   const [query, setQuery] = useState(initialQuery);
   const pathname = usePathname();
   const router = useRouter();
@@ -28,12 +28,14 @@ export default function CatalogueSearch({initialQuery, locale}: {initialQuery: s
   };
 
   return (
-    <form role="search" aria-label="Search the song catalogue" onSubmit={submit} className="flex min-w-0 flex-1 items-stretch gap-2">
+    <form role="search" aria-label={mode === "artists" ? "Search the artist catalogue" : "Search the song catalogue"} onSubmit={submit} className="flex min-w-0 flex-1 items-stretch gap-2">
       <div className="relative min-w-0 flex-1">
         <MagnifyingGlassIcon aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
-        <input type="search" aria-label="Search songs or artists" value={query} maxLength={100}
+        <input type="search" aria-label={mode === "artists" ? "Search artists" : "Search songs or artists"} value={query} maxLength={100}
           onChange={event => setQuery(event.target.value)}
-          placeholder={locale === "my" ? "သီချင်း သို့မဟုတ် အဆိုတော် ရှာရန်" : "Search songs or artists"}
+          placeholder={mode === "artists"
+            ? locale === "my" ? "အဆိုတော်အမည် ရှာရန်" : "Search artists by name"
+            : locale === "my" ? "သီချင်း သို့မဟုတ် အဆိုတော် ရှာရန်" : "Search songs or artists"}
           className="h-11 w-full min-w-0 rounded-lg border border-theme-border bg-surface py-2 pl-10 pr-3 text-sm text-foreground placeholder:text-muted focus-visible:outline-accent" />
       </div>
       {initialQuery && (

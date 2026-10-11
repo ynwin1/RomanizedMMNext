@@ -18,3 +18,16 @@ test("artist discovery is accessible and does not require profile biographies", 
   assert.match(card, /songs.length \?/);
   assert.doesNotMatch(card, /bg-gradient/);
 });
+
+test("artist catalogue searches all records, preserves pagination, and has an empty state", () => {
+  const page = readFileSync("app/(pages)/[locale]/(artists)/artist-catalogue/page.tsx", "utf8");
+  const repository = readFileSync("modules/artists/infrastructure/artist.repository.ts", "utf8");
+  const search = readFileSync("app/components/catalogue/CatalogueSearch.tsx", "utf8");
+  assert.match(page, /mode="artists"/);
+  assert.match(page, /grid-cols-1 gap-4 lg:grid-cols-2/);
+  assert.match(page, /No artists found/);
+  assert.match(page, /getCatalogue\([\s\S]*?query,/);
+  assert.match(repository, /Artist\.find\(filter\)/);
+  assert.match(repository, /Artist\.countDocuments\(filter\)/);
+  assert.match(search, /params\.set\("page", "1"\)/);
+});

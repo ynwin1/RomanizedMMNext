@@ -10,7 +10,7 @@ export interface IArtistRepository {
   findBySlug(slug: string): Promise<ArtistEntity | null>;
   findForEdit(slug: string): Promise<ArtistEditRecord | null>;
   findFirstBySlugs(slugs: string[]): Promise<ArtistEntity | null>;
-  listCatalogue(page: number, limit: number): Promise<ArtistCataloguePage>;
+  listCatalogue(page: number, limit: number, query?: string): Promise<ArtistCataloguePage>;
   create(input: CreateArtistInput, updatedBy?: string): Promise<ArtistEntity>;
   update(slug: string, revision: number, input: ArtistContentInput, updatedBy?: string): Promise<ArtistEntity | null>;
   addSongReference(slug: string, mmid: number, updatedBy?: string): Promise<ArtistEntity | null>;

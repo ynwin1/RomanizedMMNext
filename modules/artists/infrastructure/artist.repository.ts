@@ -1,6 +1,7 @@
 import { adminPage, type AdminPage, type AdminListQuery } from "@/shared/admin-list";
 import { literalSearch } from "@/shared/literal-search";
 import type { AdminArtistRecord, ArtistCataloguePage, ArtistCatalogueRecord, ArtistEditRecord } from "../application/artist.dto";
+import {artistCatalogueNamePattern} from "../application/artist-catalogue-search";
 import connectDB from "@/infrastructure/database/mongodb";
 import Artist, { type IArtist } from "./artist.model";
 import { IArtistRepository } from "../application/artist.repository";
@@ -131,16 +132,18 @@ export class MongoArtistRepository implements IArtistRepository {
     return artist ? toEntity(artist) : null;
   }
 
-  async listCatalogue(page: number, limit: number): Promise<ArtistCataloguePage> {
+  async listCatalogue(page: number, limit: number, query = ""): Promise<ArtistCataloguePage> {
     await connectDB();
+    const namePattern = artistCatalogueNamePattern(query);
+    const filter = namePattern ? {name: namePattern} : {};
     const [artists, totalArtistCount] = await Promise.all([
-      Artist.find({})
+      Artist.find(filter)
         .sort({ name: 1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .select("name slug imageLink musicGenre type songs biography -_id")
         .lean(),
-      Artist.countDocuments({}),
+      Artist.countDocuments(filter),
     ]);
 
     return {
