@@ -1,6 +1,8 @@
 import Link from "next/link";
 import SearchBar from "@/app/components/searchbar/SearchBar";
 import HomeVideo from "@/app/components/home/HomeVideo";
+import SongOfTheDay from "@/app/components/home/SongOfTheDay";
+import { songOfTheDayId } from "@/app/components/home/song-of-day";
 import SongCard from "@/app/components/catalogue/SongCard";
 import {songService} from "@/modules/songs";
 import {Navbar} from "@/app/components/navbar/Navbar";
@@ -45,7 +47,12 @@ export default async function Home({params}: HomeProps) {
     const {locale} = await params;
     setRequestLocale(locale);
     // Query only the newest additions rather than loading the entire song catalogue.
-    const recentSongs = await songService.getLatestSongs(6);
+    const [recentSongs, catalogue] = await Promise.all([
+        songService.getLatestSongs(6),
+        songService.getCatalogueSongs(),
+    ]);
+    const featuredId = songOfTheDayId(catalogue, new Date());
+    const featuredSong = featuredId === null ? null : await songService.getByMmid(featuredId);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -107,7 +114,8 @@ export default async function Home({params}: HomeProps) {
                         )}
                     </div>
                 </section>
-                <section aria-labelledby="explore-more-heading" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20">
+                {featuredSong && <SongOfTheDay song={featuredSong} locale={locale} />}
+                <section aria-labelledby="explore-more-heading" className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12">
                     <div className="mb-8">
                         <p className="mb-2 text-sm font-medium text-accent">Something more to try</p>
                         <h2 id="explore-more-heading" className="text-2xl font-bold tracking-tight sm:text-3xl">Explore RomanizedMM</h2>
