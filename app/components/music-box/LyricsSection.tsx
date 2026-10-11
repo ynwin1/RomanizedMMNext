@@ -14,11 +14,11 @@ interface LyricsSectionProps {
 }
 
 const modes = ["romanized", "burmese", "meaning"] as const;
-const FONT_MIN = 14;
+const FONT_MIN = 12;
 const FONT_MAX = 32;
 const LINE_MIN = 1.2;
 const LINE_MAX = 2.6;
-const DEFAULT_FONT = 18;
+const DEFAULT_FONT = 16;
 const DEFAULT_LINE = 1.9;
 const SETTINGS_KEY = "RomanizedMM_lyricsReadingSettings";
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));

@@ -14,5 +14,5 @@ test("song page has no stray literal backslash-n before the search bar", () => {
   const source = readFileSync(resolve(process.cwd(), "app/(pages)/[locale]/(songs)/song/[name]/[id]/page.tsx"), "utf8");
   assert.doesNotMatch(source, /\\\\n\s*<script type="application\/ld\+json"/);
   assert.match(source, /<script type="application\/ld\+json"/);
-  assert.match(source, /<SearchBar \/>/);
+  assert.match(source, /<SearchBar showLabel={false} \/>/);
 });
