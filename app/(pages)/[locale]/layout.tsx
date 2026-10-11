@@ -53,8 +53,9 @@ export default async function RootLayout({
     const messages = await getMessages();
 
     return (
-        <html lang={locale} className="h-full">
+        <html lang={locale} className="h-full" suppressHydrationWarning>
         <head>
+            <script dangerouslySetInnerHTML={{__html: `(function(){try{var theme=localStorage.getItem('RomanizedMM_theme');if(['royal-heritage','midnight-luxury','cosmic','vintage-vinyl'].includes(theme)){document.documentElement.dataset.theme=theme;}}catch(e){}})();`}} />
             <script
                 async
                 src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1042163793764562"
