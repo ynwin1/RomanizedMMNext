@@ -37,14 +37,15 @@ const Page = async () => {
         minScore = await triviaService.getMinimumScore(gameMode);
     } catch (e) {
         logger.error("Failed to load Guess The Song data", e);
-        throw new Error("Failed to fetch songs in GuessTheLyrics. Please try again later.");
+        throw new Error("Failed to fetch songs in GuessTheSong. Please try again later.");
     }
 
     return (
-        <main className="flex flex-col justify-center items-center gap-6 min-h-screen">
-            <div className="fixed inset-0 w-full h-full">
+        <main className="relative isolate flex min-h-[calc(100vh-5rem)] w-full flex-col items-center px-4 py-8 sm:px-6">
+            <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 opacity-20 motion-reduce:hidden">
                 <Player src="/GTL.mp4" />
             </div>
+            <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-background opacity-60" />
             <Trivia songs={allSongs} minScore={minScore}/>
         </main>
     )

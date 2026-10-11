@@ -30,67 +30,67 @@ const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}
     }
 
     return (
-        <div className="flex flex-col justify-center items-center px-4 mt-8 ">
-            <h1 className="text-3xl text-foreground text-center p-4 max-md:text-xl">
-                <u>{translator("leaderboard")}</u>
-            </h1>
-            <div>
-                <table className="w-[50vw] max-md:w-[80vw] bg-surface backdrop-blur-sm">
+        <section aria-label={translator("leaderboard")} className="mt-6 w-full rounded-2xl border border-theme-border bg-surface p-4 sm:p-6">
+            <h2 className="mb-5 text-xl font-bold text-foreground sm:text-2xl">{translator("leaderboard")}</h2>
+            <div className="w-full overflow-x-auto rounded-lg border border-theme-border">
+                <table className="w-full min-w-[310px] border-collapse bg-surface text-sm">
                     <thead>
-                    <tr className="bg-accent">
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
+                    <tr className="bg-surface-raised text-foreground">
+                        <th className="py-3 px-3 sm:px-4 text-left text-xs font-semibold uppercase tracking-wider hidden sm:table-cell">
                             {translator("rank")}
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase">
+                        <th className="py-3 px-3 sm:px-4 text-left text-xs font-semibold uppercase">
                             {translator("name")}
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                        <th className="py-3 px-3 sm:px-4 text-left text-xs font-semibold uppercase tracking-wider">
                             <span className="hidden sm:block">{translator("country")}</span>
                             <span className="block sm:hidden">📍</span>
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider">
+                        <th className="py-3 px-3 sm:px-4 text-left text-xs font-semibold uppercase tracking-wider">
                             <span className="hidden sm:block">{translator("score")}</span>
                             <span className="block sm:hidden">{translator("score")}</span>
                         </th>
-                        <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
+                        <th className="py-3 px-3 sm:px-4 text-left text-xs font-semibold uppercase tracking-wider hidden md:table-cell">
                             {translator("date")}
                         </th>
                     </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-theme-border">
                     {allScores.map((score, index) => (
                         <tr key={index} className="hover:bg-surface-raised transition-colors">
-                            <td className="py-4 px-2 md:px-6 text-foreground hidden md:table-cell">
+                            <td className="px-3 py-3 text-muted hidden sm:table-cell sm:px-4">
                                 {index + 1}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-foreground break-words">
+                            <td className="break-words px-3 py-3 font-medium text-foreground sm:px-4">
                                 {score.userName}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-foreground break-words">
+                            <td className="break-words px-3 py-3 text-foreground sm:px-4">
                                 {score.country}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-foreground">
+                            <td className="px-3 py-3 font-semibold tabular-nums text-accent sm:px-4">
                                 {score.score}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-foreground hidden md:table-cell">
+                            <td className="px-3 py-3 text-muted hidden md:table-cell sm:px-4">
                                 {new Date(score.date).toLocaleDateString()}
                             </td>
                         </tr>
                     ))}
+                    {allScores.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted">No scores yet. Be the first on the leaderboard!</td></tr>}
                     </tbody>
                 </table>
             </div>
-            <p className="text-lg w-[50vw] max-md:w-[80vw] mt-4 bg-[var(--overlay)] rounded-2xl p-4">
+            <p className="mt-4 text-xs leading-relaxed text-muted">
                 Emojis do not appear on Windows. Installing this Chrome extension &nbsp;
                 <a href="https://chromewebstore.google.com/detail/country-flag-fixer/jhcpefjbhmbkgjgipkhndplfbhdecijh"
                    target="_blank"
+                   rel="noopener noreferrer"
                    className="text-accent"
                 >
                     <u>Flag Fixer</u>
                 </a>
                 &nbsp; fixes the issue.
             </p>
-        </div>
+        </section>
     );
 }
 export default Leaderboard

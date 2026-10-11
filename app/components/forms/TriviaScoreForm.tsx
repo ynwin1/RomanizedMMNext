@@ -23,12 +23,12 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
     }, [state.message]);
 
     return (
-        <form action={formAction}>
-            <div className="rounded-xl bg-[var(--overlay)] p-4 w-[40vw] max-md:w-[80vw]">
-                <h1 className="text-lg font-semibold mb-4">
-                    <p>{`You scored ${score} points.`}</p>
-                    <p>Save your score!</p>
-                </h1>
+        <form action={formAction} className="w-full max-w-lg text-left">
+            <div className="rounded-xl border border-theme-border bg-surface-raised p-4 sm:p-6">
+                <div className="mb-5 text-foreground">
+                    <h2 className="text-xl font-bold">{`You scored ${score} points!`}</h2>
+                    <p className="mt-1 text-sm text-muted">Save your score to the leaderboard.</p>
+                </div>
                 {/* Name */}
                 <div className="mb-4">
                     <label htmlFor="userName" className="mb-2 block text-sm font-medium">
@@ -39,7 +39,7 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
                         name="userName"
                         type="text"
                         placeholder="Enter your name"
-                        className="block w-full bg-surface text-foreground rounded-md border border-theme-border py-2 pl-3 text-sm outline-2 placeholder:text-muted"
+                        className="block min-h-11 w-full rounded-lg border border-theme-border bg-surface px-3 text-sm text-foreground placeholder:text-muted focus-visible:outline-accent"
                         aria-describedby="name-error"
                     />
                     <div id="name-error" aria-live="polite" aria-atomic="true">
@@ -57,8 +57,9 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
                         Where are you from?
                     </label>
                     <select
+                        id="country"
                         name="country"
-                        className="block bg-surface text-foreground w-full rounded-md border border-theme-border py-2 pl-3 text-sm outline-2 placeholder:text-muted"
+                        className="block min-h-11 w-full rounded-lg border border-theme-border bg-surface px-3 text-sm text-foreground focus-visible:outline-accent"
                         defaultValue={Object.keys(countryFlags)[0]}
                         aria-describedby="country-error"
                         required
@@ -87,7 +88,7 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
                         id="score"
                         name="score"
                         type="number"
-                        className="block bg-surface text-foreground w-full rounded-md border border-theme-border py-2 pl-3 text-sm outline-2 placeholder:text-muted"
+                        className="block min-h-11 w-full rounded-lg border border-theme-border bg-surface px-3 text-sm text-foreground focus-visible:outline-accent"
                         defaultValue={score}
                         aria-describedby="score-error"
                         readOnly

@@ -25,25 +25,28 @@ const Trivia = ({songs, minScore} : {songs: GuessLyricsSong[], minScore: number}
     const [showSaveCard, setShowSaveCard] = useState<boolean>(true);
 
     const translator = useTranslations("GuessTheLyrics");
+    const gameCopy = useTranslations("GameModes");
 
     const gameMode = GameMode.GuessTheLyrics;
 
     return (
-        <div className="z-10">
+        <div className="relative z-10 w-full max-w-3xl">
             {triviaState === TriviaState.Start ?
-                <div className="flex flex-col justify-center items-center mt-6">
-                    <h1 className="border-2 border-theme-border z-10 text-5xl p-4
-                    text-center mb-10 text-foreground max-sm:text-2xl max-sm: p-2 rounded-2xl max-md:w-[60vw] bg-[var(--overlay)] ">
-                        Guess The Lyrics
+                <div className="flex flex-col items-center rounded-2xl border border-theme-border bg-surface p-5 text-center sm:p-8">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-accent">RomanizedMM games</p>
+                    <h1 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                        {gameCopy("guessLyrics.title")}
                     </h1>
+                    <p className="mb-6 max-w-md text-sm leading-relaxed text-muted">{gameCopy("guessLyrics.instructions")}</p>
+                    {!songs.length && <p role="status" className="mb-3 text-sm text-muted">{gameCopy("unavailable")}</p>}
                     <div className="flex flex-col justify-center items-center">
                         <LyricsSelector lyricsChoice={lyricsChoice} setLyricsChoice={setLyricsChoice} />
-                        <button className="text-lg bg-accent text-on-accent p-2 rounded-2xl mt-8 hover:bg-accent-hover w-[6rem] border-2 border-theme-border"
+                        <button className="mt-6 min-h-11 rounded-lg bg-accent px-8 text-base font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={!songs.length}
                                 onClick={() => setTriviaState(TriviaState.Playing)}>
                             {translator("start")}
                         </button>
                     </div>
-                    <Leaderboard refresh={showSaveCard} gameMode={gameMode} />
                 </div>
                 :
                 triviaState === TriviaState.Playing ?
@@ -51,16 +54,16 @@ const Trivia = ({songs, minScore} : {songs: GuessLyricsSong[], minScore: number}
                         <TriviaCard key={score} lyricsChoice={lyricsChoice} songs={songs} score={score} setScore={setScore} setTriviaState={setTriviaState}/>
                     </>
                     :
-                    <div className="flex flex-col justify-center items-center">
+                    <div className="flex flex-col items-center rounded-2xl border border-theme-border bg-surface p-5 text-center sm:p-8">
                         {showSaveCard && score > minScore ?
                             <TriviaScoreForm score={score} setShowSaveCard={setShowSaveCard} gameMode={gameMode}/>
                             :
-                            <h1 className="text-2xl text-foreground text-center max-md:text-base bg-[var(--overlay)] p-4 rounded-xl max-md:w-[80vw]">
+                            <h2 className="text-lg font-semibold text-foreground">
                                 Beat the lowest score to get featured on the leaderboard 🎉
-                            </h1>
+                            </h2>
                         }
                         {/* Restart */}
-                        <button className="text-lg bg-accent text-on-accent p-2 rounded-2xl mt-8 hover:bg-accent-hover w-[30vw] max-md:w-[70vw]"
+                        <button className="mt-6 min-h-11 w-full max-w-xs rounded-lg bg-accent px-6 font-semibold text-on-accent hover:bg-accent-hover"
                                 onClick={() => {
                                     setScore(0);
                                     setTriviaState(TriviaState.Start);
@@ -68,10 +71,9 @@ const Trivia = ({songs, minScore} : {songs: GuessLyricsSong[], minScore: number}
                                 }}>
                             Restart
                         </button>
-                        {/* Leaderboard */}
-                        <Leaderboard refresh={showSaveCard} gameMode={gameMode}/>
                     </div>
             }
+            {triviaState !== TriviaState.Playing && <Leaderboard refresh={showSaveCard} gameMode={gameMode} />}
         </div>
     )
 }
@@ -134,23 +136,23 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
         });
 
         return (
-            <div className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl w-[4rem] max-md:text-xl">
-                <h1>{seconds}s</h1>
+            <div aria-label={`${seconds} seconds remaining`} className="rounded-lg border border-theme-border bg-surface-raised px-4 py-3 text-center text-lg font-bold tabular-nums text-foreground sm:text-xl">
+                <span>{seconds}s</span>
             </div>
         )
     }
 
     // Display
     return (
-        <div className="flex flex-col min-h-screen">
-            <div className="flex-grow flex flex-col items-center justify-center py-8">
-                <div className="flex flex-row justify-between gap-x-6 items-center">
-                    <h2 className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl max-md:text-xl">
+        <div className="w-full rounded-2xl border border-theme-border bg-surface p-4 sm:p-7">
+            <div className="flex flex-col items-center">
+                <div className="mb-6 flex w-full flex-wrap items-center justify-between gap-3">
+                    <h2 className="rounded-lg border border-theme-border bg-surface-raised px-4 py-3 text-lg font-bold text-foreground sm:text-xl">
                         {`Score : ${score}`}
                     </h2>
                     <Timer expiryTimestamp={new Date(expiryTime)} onExpire={() => setTriviaState(TriviaState.End)} />
                     <button
-                        className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl max-md:text-xl hover:bg-red-600"
+                        className="min-h-11 rounded-lg border border-theme-border bg-surface-raised px-4 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
                         onClick={() => {
                             setScore(0);
                             setTriviaState(TriviaState.Start);
@@ -159,10 +161,10 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                         Quit
                     </button>
                 </div>
-                <h3 className="text-lg text-center border-2 rounded-xl border-theme-border bg-[var(--overlay)] p-4 mb-6 max-md:text-sm">
+                <h3 className="mb-4 w-full rounded-lg border border-theme-border bg-surface-raised p-3 text-center text-sm font-semibold text-foreground sm:text-base">
                     <u>{song.songName}</u>
                 </h3>
-                <h3 className="text-lg p-4 text-center bg-[var(--overlay)] rounded-2xl w-[40vw] max-md:w-[80vw] max-md:text-sm">
+                <div className="w-full rounded-xl border border-theme-border bg-surface-raised p-5 text-center text-sm leading-relaxed text-foreground sm:p-7 sm:text-base">
                     {lyricToAskNeighborsIndexes.length === 1 ? (
                         lyricIndex < lyricToAskNeighborsIndexes[0] ? (
                             <div className="flex flex-col gap-4">
@@ -182,13 +184,13 @@ function TriviaCard({lyricsChoice, songs, score, setScore, setTriviaState}:
                             <p>{lyricToAskNeighbors[1]}</p>
                         </div>
                     )}
-                </h3>
+                </div>
 
-                <div className="flex flex-col mt-6 mb-6 gap-6">
+                <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
                     {randomLyrics.map((lyric, index) => (
                         <button
                             key={index}
-                            className="text-lg bg-accent text-on-accent p-2 rounded-2xl hover:bg-accent-hover w-[40vw] max-md:w-[80vw] max-md:text-sm"
+                            className="min-h-14 rounded-lg border border-theme-border bg-surface-raised p-4 text-left text-sm leading-relaxed text-foreground hover:border-accent hover:bg-accent hover:text-on-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-base"
                             onClick={() => checkLyric(lyric)}
                         >
                             {lyric}
@@ -204,7 +206,8 @@ function LyricsSelector({lyricsChoice, setLyricsChoice}:
                             {lyricsChoice: LyricsChoice, setLyricsChoice: (lyricsChoice: LyricsChoice) => void}) {
     const translator = useTranslations("GuessTheLyrics");
     return (
-        <div className="pl-4 pr-4 pt-2 pb-2 bg-[var(--overlay)] rounded-2xl border-2 border-theme-border">
+        <fieldset className="rounded-xl border border-theme-border bg-surface-raised px-4 py-3">
+            <legend className="sr-only">Lyrics language</legend>
             <div className="flex flex-row justify-evenly items-center gap-4 ">
                 <div className="flex items-center gap-2">
                     <input
@@ -214,7 +217,7 @@ function LyricsSelector({lyricsChoice, setLyricsChoice}:
                         onChange={() => setLyricsChoice(LyricsChoice.Burmese)}
                         className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                     />
-                    <label htmlFor="burmese" className="text-xl cursor-pointer hover:text-muted">
+                    <label htmlFor="burmese" className="cursor-pointer text-sm text-foreground sm:text-base">
                         {translator("burmese")}
                     </label>
                 </div>
@@ -226,12 +229,12 @@ function LyricsSelector({lyricsChoice, setLyricsChoice}:
                         onChange={() => setLyricsChoice(LyricsChoice.Romanized)}
                         className="w-5 h-5 max-md:w-4 max-md:h-4 cursor-pointer"
                     />
-                    <label htmlFor="romanized" className="text-xl cursor-pointer hover:text-muted">
+                    <label htmlFor="romanized" className="cursor-pointer text-sm text-foreground sm:text-base">
                         {translator("romanized")}
                     </label>
                 </div>
             </div>
-        </div>
+        </fieldset>
     )
 }
 export default Trivia

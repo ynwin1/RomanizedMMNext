@@ -30,41 +30,37 @@ export default async function GameModesPage() {
       title: t('guessLyrics.title'),
       description: t('guessLyrics.description'),
       href: 'guess-the-lyrics',
-      color: 'from-surface-raised to-surface',
+      icon: '✍',
     },
     {
       id: 'guess-the-song',
       title: t('guessSong.title'),
       description: t('guessSong.description'),
       href: 'guess-the-song',
-      color: 'from-surface-raised to-surface'
+      icon: '♫',
     },
   ];
 
   return (
-    <div className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-center mb-12">{t('title')}</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
+    <main className="mx-auto w-full max-w-6xl px-4 pb-20 pt-12 sm:px-6">
+        <header className="mb-9 border-b border-theme-border pb-8">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-accent">Play &amp; explore</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{t('title')}</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">{t('guessLyrics.description')} · {t('guessSong.description')}</p>
+        </header>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {gameModes.map((game) => (
-          <div 
+          <article
             key={game.id}
-            className={`bg-gradient-to-br ${game.color} rounded-xl p-8 text-foreground shadow-lg transform transition-all hover:scale-105`}
+            className="flex flex-col rounded-xl border border-theme-border bg-surface p-6 text-foreground transition-colors hover:border-accent sm:p-8"
           >
-            <div className="flex flex-col items-center text-center">
-              <h2 className="text-2xl font-bold mb-3">{game.title}</h2>
-              <p className="mb-6 text-foreground">{game.description}</p>
-              
-                <Link       
-                  href={`./game-modes/${game.href}`}
-                  className="px-6 py-2 bg-accent text-on-accent hover:bg-accent-hover rounded-lg transition-colors"
-                >
-                  {t('start')}
-                </Link>
-            </div>
-          </div>
+            <div aria-hidden="true" className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-surface-raised text-3xl text-accent">{game.icon}</div>
+            <h2 className="text-2xl font-bold">{game.title}</h2>
+            <p className="mt-3 mb-7 flex-1 text-sm leading-relaxed text-muted sm:text-base">{game.description}</p>
+            <Link href={`./game-modes/${game.href}`} className="inline-flex min-h-11 w-fit items-center rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">{t('start')} <span aria-hidden="true" className="ml-2">→</span></Link>
+          </article>
         ))}
         </div>
-    </div>
+    </main>
   );
 }
