@@ -18,6 +18,7 @@ export default function ThemePicker() {
   const [selected, setSelected] = useState<ThemeId>(DEFAULT_THEME);
   const [open, setOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const current = document.documentElement.dataset.theme;
@@ -30,7 +31,10 @@ export default function ThemePicker() {
       if (!container.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        trigger.current?.focus();
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -45,11 +49,12 @@ export default function ThemePicker() {
     setSelected(theme);
     try { localStorage.setItem(STORAGE_KEY, theme); } catch { /* Theme still applies for this visit. */ }
     setOpen(false);
+    trigger.current?.focus();
   };
 
   return (
     <div ref={container} className="relative">
-      <button type="button" aria-label="Choose colour theme" aria-expanded={open} aria-controls="theme-picker-options"
+      <button ref={trigger} type="button" aria-label="Choose colour theme" aria-expanded={open} aria-controls="theme-picker-options"
         title="Appearance" onClick={() => setOpen(value => !value)}
         className="flex h-11 w-11 items-center justify-center rounded-lg border border-theme-border text-foreground hover:bg-surface-raised">
         <PaintBrushIcon className="h-5 w-5" aria-hidden="true" />

@@ -17,6 +17,7 @@
     "sync": "Open YouTube player for synced lyrics"
   },
   "Menu" : {
+    "home": "Home",
     "about": "About",
     "catalogue": "Songs",
     "songRequest": "Song Request",

@@ -37,7 +37,7 @@ export const RequestedByBox = ({locale = "en", requestedBy = "Anonymous", songSt
     }
 
     return (
-        <div className="bg-surface p-4 rounded-xl shadow-md max-w-lg mx-auto max-md:w-[80%] w-[60%]">
+        <div className="mx-auto w-full max-w-lg rounded-xl border border-theme-border bg-surface p-4 sm:p-5">
             <p className="italic text-foreground mb-4">"{songStory}"</p>
             <p className="text-right text-muted font-sm">{formatRequesterNameText(locale, requestedBy)}</p>
         </div>

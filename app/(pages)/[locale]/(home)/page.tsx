@@ -90,7 +90,7 @@ export default async function Home({params}: HomeProps) {
                             </Link>
                         </div>
                         {recentSongs.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-6">
+                            <div className="grid grid-cols-1 gap-3 sm:gap-5 md:grid-cols-2">
                                 {recentSongs.map(song => (
                                     <SongCard key={song.mmid} locale={locale} song={{
                                         mmid: String(song.mmid),
@@ -123,8 +123,8 @@ export default async function Home({params}: HomeProps) {
                         <article className="flex h-full flex-col border border-theme-border bg-surface p-6 sm:p-8">
                             <p className="mb-3 text-sm font-semibold text-accent">Song requests</p>
                             <h3 className="text-xl font-semibold">Can't find a song?</h3>
-                            <p className="mt-3 flex-1 text-sm leading-7 text-muted">Tell us which Myanmar song you'd like to see added to the collection.</p>
-                            <Link href={`/${locale}/song-request`} className="mt-6 inline-flex min-h-11 items-center self-start border-b border-accent text-sm font-semibold text-accent hover:text-foreground">Request a song →</Link>
+                            <p className="mt-3 flex-1 text-sm leading-7 text-muted">New requests are temporarily paused. Check the queue and recently added songs.</p>
+                            <Link href={`/${locale}/song-request`} className="mt-6 inline-flex min-h-11 items-center self-start border-b border-accent text-sm font-semibold text-accent hover:text-foreground">View request status →</Link>
                         </article>
                     </div>
                 </section>
