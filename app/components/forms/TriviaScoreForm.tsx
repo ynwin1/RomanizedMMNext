@@ -24,7 +24,7 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
 
     return (
         <form action={formAction}>
-            <div className="rounded-xl bg-black bg-opacity-70 p-4 w-[40vw] max-md:w-[80vw]">
+            <div className="rounded-xl bg-[var(--overlay)] p-4 w-[40vw] max-md:w-[80vw]">
                 <h1 className="text-lg font-semibold mb-4">
                     <p>{`You scored ${score} points.`}</p>
                     <p>Save your score!</p>
@@ -39,7 +39,7 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
                         name="userName"
                         type="text"
                         placeholder="Enter your name"
-                        className="block w-full text-black rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
+                        className="block w-full bg-surface text-foreground rounded-md border border-theme-border py-2 pl-3 text-sm outline-2 placeholder:text-muted"
                         aria-describedby="name-error"
                     />
                     <div id="name-error" aria-live="polite" aria-atomic="true">
@@ -58,7 +58,7 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
                     </label>
                     <select
                         name="country"
-                        className="block text-black w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
+                        className="block bg-surface text-foreground w-full rounded-md border border-theme-border py-2 pl-3 text-sm outline-2 placeholder:text-muted"
                         defaultValue={Object.keys(countryFlags)[0]}
                         aria-describedby="country-error"
                         required
@@ -87,7 +87,7 @@ export const TriviaScoreForm = ({score, gameMode, setShowSaveCard}: TriviaScoreF
                         id="score"
                         name="score"
                         type="number"
-                        className="block text-black w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
+                        className="block bg-surface text-foreground w-full rounded-md border border-theme-border py-2 pl-3 text-sm outline-2 placeholder:text-muted"
                         defaultValue={score}
                         aria-describedby="score-error"
                         readOnly

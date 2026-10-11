@@ -16,22 +16,22 @@ const CountryStatsUi = async () => {
     }));
 
     return (
-      <div className="flex flex-col gap-6 mt-16 mb-16 text-white items-center z-20">
+      <div className="flex flex-col gap-6 mt-16 mb-16 text-foreground items-center z-20">
         <h2 className="text-3xl font-extrabold tracking-tight">Top 10 Visitors</h2>
 
         <div className="overflow-x-auto w-full flex justify-center">
           <table className="w-[80vw] md:w-[30vw] bg-gradient-to-br from-gray-900 to-gray-800 shadow-lg rounded-xl overflow-hidden text-sm sm:text-base">
-            <thead className="bg-gray-700 text-white uppercase text-sm tracking-wider">
+            <thead className="bg-surface-raised text-foreground uppercase text-sm tracking-wider">
               <tr>
-                <th className="px-6 py-4 text-left border-b border-gray-600">Country</th>
-                <th className="px-6 py-4 text-right border-b border-gray-600">Views</th>
+                <th className="px-6 py-4 text-left border-b border-theme-border">Country</th>
+                <th className="px-6 py-4 text-right border-b border-theme-border">Views</th>
               </tr>
             </thead>
             <tbody>
               {countryStats.map((stat, index) => (
                 <tr
                   key={index}
-                  className="hover:bg-gray-700 transition duration-200 border-b border-gray-700"
+                  className="hover:bg-surface-raised transition duration-200 border-b border-theme-border"
                 >
                   <td className="px-6 py-4 flex items-center gap-2">
                     <span>{stat.flag || "🌍"}</span>

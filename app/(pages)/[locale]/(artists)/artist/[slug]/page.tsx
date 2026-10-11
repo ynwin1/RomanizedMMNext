@@ -64,8 +64,8 @@ interface Member {
 }
 
 const MemberCard = ({ name, imageLink }: Member) => (
-    <div className="group flex flex-col items-center justify-center hover:text-amber-400 transition-all duration-300">
-        <div className="relative w-48 rounded-3xl h-36 border-2 border-white overflow-hidden hover:border-amber-400">
+    <div className="group flex flex-col items-center justify-center hover:text-accent transition-all duration-300">
+        <div className="relative w-48 rounded-3xl h-36 border-2 border-theme-border overflow-hidden hover:border-accent">
             {imageLink && (
                 <div className="flex flex-col">
                     <Image
@@ -121,7 +121,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                         className="object-cover overflow-hidden"
                         priority
                     /> :
-                    <div className="absolute inset-0 bg-gray-800" />
+                    <div className="absolute inset-0 bg-surface-raised" />
                 }
                 <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
             </div>
@@ -131,7 +131,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                 {/* Artist Info Section */}
                 <div className="flex flex-col md:flex-row gap-12 max-md:items-center max-md:justify-center">
                     {/* Profile Picture */}
-                    <div className="relative w-48 h-48 rounded-full border-4 border-white overflow-hidden hover:scale-90 hover:border-amber-400 transition-all duration-300">
+                    <div className="relative w-48 h-48 rounded-full border-4 border-theme-border overflow-hidden hover:scale-90 hover:border-accent transition-all duration-300">
                         <Image
                             src={artist.imageLink}
                             alt={artist.name}
@@ -143,7 +143,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                     {/* Artist Details */}
                     <div className="max-md:text-center flex flex-col max-md:items-center gap-2">
                         {/* Name */}
-                        <h1 className="text-5xl font-bold mb-2 hover:text-amber-400 hover:cursor-pointer transition-all duration-300">
+                        <h1 className="text-5xl font-bold mb-2 hover:text-accent hover:cursor-pointer transition-all duration-300">
                             {artist.name}
                         </h1>
 
@@ -153,7 +153,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                                     {artist.members?.map((member, index) => (
                                         <span
                                             key={index}
-                                            className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer hover:text-black  transition-all duration-300"
+                                            className="text-foreground bg-surface-raised p-2 rounded-lg text-sm hover:bg-accent hover:cursor-pointer hover:text-on-accent transition-all duration-300"
                                         >
                                             {member.slug ? (
                                                 <Link
@@ -182,7 +182,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                             {artist.musicGenre.map((genre, index) => (
                                 <span
                                     key={index}
-                                    className="text-black bg-white p-2 rounded-lg text-sm hover:bg-amber-400 hover:cursor-pointer transition-all duration-300"
+                                    className="text-foreground bg-surface-raised p-2 rounded-lg text-sm hover:bg-accent hover:text-on-accent hover:cursor-pointer transition-all duration-300"
                                 >
                         {genre}
                     </span>
@@ -282,7 +282,7 @@ const Page = async ({ params }: ArtistPageProps) => {
                 <div className="flex flex-col justify-center items-center flex-wrap">
                     <h3 className="text-2xl font-bold text-center mt-12 mb-4">{reqMore}</h3>
                     <Link href={`/${locale}/song-request`}>
-                        <button className="bg-blue-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-blue-400 mb-12">
+                        <button className="bg-accent text-on-accent rounded-2xl px-4 py-2 text-lg font-bold hover:bg-accent-hover mb-12">
                             {translator("request")}
                         </button>
                     </Link>

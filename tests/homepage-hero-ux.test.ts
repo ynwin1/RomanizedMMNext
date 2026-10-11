@@ -15,5 +15,5 @@ test("homepage uses a contained video component without duplicate footer", () =>
   assert.doesNotMatch(home, /<Footer|fixed inset-0/);
   assert.match(home, /<HomeVideo \/>/);
   assert.match(home, /<Navbar \/>/);
-  assert.match(home, /bg-\[#171613\]/);
+  assert.match(home, /bg-background/);
 });

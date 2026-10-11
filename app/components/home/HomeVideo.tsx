@@ -23,7 +23,7 @@ export default function HomeVideo() {
   return (
     <video ref={ref} autoPlay muted loop playsInline preload="metadata"
       aria-label="RomanizedMM music background video"
-      className="aspect-video w-full bg-[#171613] object-cover lg:aspect-[4/3]">
+      className="aspect-video w-full bg-background object-cover lg:aspect-[4/3]">
       <source src="/RMBG.mp4" type="video/mp4" />
     </video>
   );

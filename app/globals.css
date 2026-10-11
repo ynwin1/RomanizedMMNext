@@ -14,6 +14,7 @@
   --border-subtle: #38332E;
   --accent-hover: #E8A572;
   --on-accent: #171613;
+  --overlay: rgba(23, 22, 19, 0.78);
 }
 
 :root[data-theme="midnight-luxury"] {
@@ -28,6 +29,7 @@
   --border-subtle: #342C21;
   --accent-hover: #EAC77F;
   --on-accent: #080808;
+  --overlay: rgba(8, 8, 8, 0.8);
 }
 
 :root[data-theme="cosmic"] {
@@ -42,6 +44,7 @@
   --border-subtle: #2B365C;
   --accent-hover: #D0C7FF;
   --on-accent: #10132B;
+  --overlay: rgba(11, 16, 38, 0.8);
 }
 
 :root[data-theme="vintage-vinyl"] {
@@ -56,6 +59,7 @@
   --border-subtle: #583D30;
   --accent-hover: #F0B68E;
   --on-accent: #261B17;
+  --overlay: rgba(38, 27, 23, 0.8);
 }
 
 body {
@@ -73,18 +77,18 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.5);
+  background: var(--border);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.7);
+  background: var(--accent);
 }
 
 /* Phase 13 design foundations: legibility, predictable focus, and reduced motion. */
 html { scroll-behavior: smooth; }
 :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
-::selection { background: #1d4ed8; color: #fff; }
+::selection { background: var(--accent); color: var(--on-accent); }
 .skip-to-content {
   position: fixed;
   top: 0.75rem;
@@ -92,7 +96,7 @@ html { scroll-behavior: smooth; }
   z-index: 100;
   transform: translateY(-160%);
   padding: 0.75rem 1rem;
-  color: #fff;
+  color: var(--foreground);
   background: var(--surface-raised);
   border: 2px solid var(--focus-ring);
   border-radius: 0.75rem;

@@ -31,13 +31,13 @@ const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}
 
     return (
         <div className="flex flex-col justify-center items-center px-4 mt-8 ">
-            <h1 className="text-3xl text-white text-center p-4 max-md:text-xl">
+            <h1 className="text-3xl text-foreground text-center p-4 max-md:text-xl">
                 <u>{translator("leaderboard")}</u>
             </h1>
             <div>
-                <table className="w-[50vw] max-md:w-[80vw] bg-black bg-opacity-30 backdrop-blur-sm">
+                <table className="w-[50vw] max-md:w-[80vw] bg-surface backdrop-blur-sm">
                     <thead>
-                    <tr className="bg-blue-600">
+                    <tr className="bg-accent">
                         <th className="py-3 px-2 md:px-6 text-left text-sm font-semibold uppercase tracking-wider hidden md:table-cell">
                             {translator("rank")}
                         </th>
@@ -59,20 +59,20 @@ const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                     {allScores.map((score, index) => (
-                        <tr key={index} className="hover:bg-white hover:bg-opacity-10 transition-colors">
-                            <td className="py-4 px-2 md:px-6 text-white hidden md:table-cell">
+                        <tr key={index} className="hover:bg-surface-raised transition-colors">
+                            <td className="py-4 px-2 md:px-6 text-foreground hidden md:table-cell">
                                 {index + 1}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-white break-words">
+                            <td className="py-4 px-2 md:px-6 text-foreground break-words">
                                 {score.userName}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-white break-words">
+                            <td className="py-4 px-2 md:px-6 text-foreground break-words">
                                 {score.country}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-white">
+                            <td className="py-4 px-2 md:px-6 text-foreground">
                                 {score.score}
                             </td>
-                            <td className="py-4 px-2 md:px-6 text-white hidden md:table-cell">
+                            <td className="py-4 px-2 md:px-6 text-foreground hidden md:table-cell">
                                 {new Date(score.date).toLocaleDateString()}
                             </td>
                         </tr>
@@ -80,11 +80,11 @@ const Leaderboard = ({refresh, gameMode}: {refresh: boolean, gameMode: GameMode}
                     </tbody>
                 </table>
             </div>
-            <p className="text-lg w-[50vw] max-md:w-[80vw] mt-4 bg-black bg-opacity-70 rounded-2xl p-4">
+            <p className="text-lg w-[50vw] max-md:w-[80vw] mt-4 bg-[var(--overlay)] rounded-2xl p-4">
                 Emojis do not appear on Windows. Installing this Chrome extension &nbsp;
                 <a href="https://chromewebstore.google.com/detail/country-flag-fixer/jhcpefjbhmbkgjgipkhndplfbhdecijh"
                    target="_blank"
-                   className="text-amber-400"
+                   className="text-accent"
                 >
                     <u>Flag Fixer</u>
                 </a>

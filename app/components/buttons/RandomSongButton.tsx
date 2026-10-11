@@ -28,7 +28,7 @@ const RandomSongButton = ({ locale }: { locale: string }) => {
     return (
         <button 
             type="button"
-            className="bg-green-600 text-white rounded-2xl px-4 py-2 text-lg font-bold hover:bg-green-800 transition-all duration-300"
+            className="bg-accent text-on-accent rounded-2xl px-4 py-2 text-lg font-bold hover:bg-accent-hover transition-all duration-300"
             onClick={redirectToRandomSong}
         >
             Surprise!

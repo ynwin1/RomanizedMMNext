@@ -16,7 +16,7 @@ const RotatingText = ({ messages, link }: RotatingTextProps) => {
 
     return (
         <div
-            className="relative w-full overflow-hidden bg-red-600 py-3 text-white z-50 hover:cursor-pointer"
+            className="relative w-full overflow-hidden bg-red-600 py-3 text-foreground z-50 hover:cursor-pointer"
             onClick={() => window.open(link, "_blank")}
         >
             <div className="ticker-container">

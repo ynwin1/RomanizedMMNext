@@ -8,7 +8,7 @@ const FormReturnButton = ({url}: {url: string}) => {
 
     return (
         <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-accent hover:bg-accent-hover text-on-accent font-bold py-2 px-4 rounded"
             onClick={() => redirect(`/${locale}${url}`)}
         >
             Return

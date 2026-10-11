@@ -19,14 +19,14 @@ const LanguageSwitcher = () => {
   };
 
   return (
-    <div className="inline-flex items-center gap-2 text-xs tracking-wide text-[#D0C5B6]">
+    <div className="inline-flex items-center gap-2 text-xs tracking-wide text-muted">
       <label htmlFor="site-language" className="sr-only">Site language</label>
       <select
         id="site-language"
         aria-label="Site language"
         value={locale}
         onChange={event => switchLanguage(event.target.value)}
-        className="h-10 min-w-[76px] cursor-pointer border-b border-[#766758] bg-[#171613] px-2 text-sm font-medium text-[#F3EDE3] hover:border-[#E8A572] focus-visible:outline-offset-2"
+        className="h-10 min-w-[76px] cursor-pointer border-b border-theme-border bg-background px-2 text-sm font-medium text-foreground hover:border-accent-hover focus-visible:outline-offset-2"
       >
         <option value="en">EN</option>
         <option value="my">မြန်မာ</option>

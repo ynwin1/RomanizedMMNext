@@ -27,13 +27,13 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
           aria-label={`Page ${page}`} aria-current={page === currentPage ? "page" : undefined}
           className={`${base} px-3 ${
             page === currentPage
-              ? "border-[#DAA276] bg-[#DAA276] font-semibold text-[#171613]"
-              : "border-[#514335] bg-[#24211E] text-[#F3EDE3] hover:border-[#DAA276] hover:text-[#DAA276]"
+              ? "border-accent bg-accent font-semibold text-background"
+              : "border-theme-border bg-surface text-foreground hover:border-accent hover:text-accent"
           }`}>
           {page}
         </Link>
       ) : (
-        <span key={`${index}-ellipsis`} aria-hidden="true" className="flex h-11 min-w-7 items-center justify-center text-[#CBBEAE]">…</span>
+        <span key={`${index}-ellipsis`} aria-hidden="true" className="flex h-11 min-w-7 items-center justify-center text-muted">…</span>
       ))}
       <PaginationArrow direction="right" href={pageUrl(currentPage + 1)} disabled={currentPage >= totalPages} />
     </div>
@@ -43,9 +43,9 @@ const Pagination = ({totalPages}: {totalPages: number}) => {
 function PaginationArrow({href, direction, disabled}: {href: string; direction: "left" | "right"; disabled: boolean}) {
   const label = direction === "left" ? "Previous page" : "Next page";
   const icon = direction === "left" ? <ArrowLeftIcon className="h-4 w-4" /> : <ArrowRightIcon className="h-4 w-4" />;
-  const style = `${base} border-[#514335] bg-[#24211E] px-3 text-[#F3EDE3] hover:border-[#DAA276] hover:text-[#DAA276]`;
+  const style = `${base} border-theme-border bg-surface px-3 text-foreground hover:border-accent hover:text-accent`;
   return disabled
-    ? <span aria-label={label} aria-disabled="true" className={`${base} cursor-not-allowed border-[#38332E] bg-[#211E1B] px-3 text-[#766F67]`}>{icon}</span>
+    ? <span aria-label={label} aria-disabled="true" className={`${base} cursor-not-allowed border-theme-border-subtle bg-surface px-3 text-muted`}>{icon}</span>
     : <Link href={href} aria-label={label} className={style}>{icon}</Link>;
 }
 export default Pagination;

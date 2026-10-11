@@ -44,10 +44,10 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                             name="songName"
                             type="string"
                             value={songName}
-                            className="peer text-black block w-[45vw] max-md:w-[80vw] rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                            className="peer bg-surface text-foreground block w-[45vw] max-md:w-[80vw] rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted"
                             readOnly
                         />
-                        <MusicalNoteIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <MusicalNoteIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                 </div>
             </div>
@@ -61,10 +61,10 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                             name="artist"
                             type="string"
                             value={artist}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 text-sm outline-2 placeholder:text-muted"
                             readOnly
                         />
-                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <UserIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                 </div>
             </div>
@@ -77,11 +77,11 @@ const SongReportForm = ({songName, artist, renderReport, renderMessage, setRespo
                             id="details"
                             name="details"
                             placeholder={translator("report")}
-                            className="peer text-black block w-full rounded-md border border-gray-200 py-2 pl-10 pr-3 text-sm outline-2 placeholder:text-gray-500 resize-y"
+                            className="peer bg-surface text-foreground block w-full rounded-md border border-theme-border py-2 pl-10 pr-3 text-sm outline-2 placeholder:text-muted resize-y"
                             aria-describedby="details-error"
                             rows={2}
                         />
-                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+                        <PencilIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted peer-focus:text-foreground" />
                     </div>
                     <div id="details-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.details &&

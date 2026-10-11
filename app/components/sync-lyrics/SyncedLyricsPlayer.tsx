@@ -100,7 +100,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
                 const seekable = playerVisible && lyric.startTime >= 0;
                 const active = seekable && index === activeLyricIndex;
                 const className = `block w-full whitespace-pre-wrap break-words py-1 text-inherit transition-colors ${
-                    active ? "font-semibold text-[#DAA276]" : seekable ? "hover:text-[#E8A572]" : ""
+                    active ? "font-semibold text-accent" : seekable ? "hover:text-accent-hover" : ""
                 }`;
                 return seekable ? (
                     <button type="button" key={index} className={className + " cursor-pointer text-left sm:text-center"}

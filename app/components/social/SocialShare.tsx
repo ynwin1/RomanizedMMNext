@@ -54,20 +54,20 @@ export default function SocialShare({ url, title }: { url: string, title: string
         <div className="flex items-center justify-center md:space-x-4 max-md:space-y-4 max-md:flex-col">
             <button
                 onClick={() => window.open(shareURLs.facebook, '_blank')}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-accent text-on-accent rounded hover:bg-accent-hover transition-colors"
             >
                 {locale === "en" ? "Share on Facebook" : "Facebook တွင်မျှဝေပါ"}
             </button>
             <button
                 onClick={() => window.open(shareURLs.x, '_blank')}
-                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-700 transition-colors border-3 border-white"
+                className="px-4 py-2 bg-background text-foreground rounded hover:bg-surface-raised transition-colors border-3 border-theme-border"
             >
                 {locale === "en" ? "Share on X" : "X တွင်မျှဝေပါ"}
             </button>
             <div className="relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-800 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-accent text-on-accent rounded hover:bg-accent-hover transition-colors"
                 >
                     {translator("others")}
                 </button>
@@ -78,13 +78,13 @@ export default function SocialShare({ url, title }: { url: string, title: string
                             className="fixed inset-0"
                             onClick={() => setIsOpen(false)}
                         />
-                        <div className="absolute bg-black bottom-full z-50 mt-2 w-48 rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                        <div className="absolute bg-background bottom-full z-50 mt-2 w-48 rounded-md shadow-lg ring-1 ring-theme-border">
                             <div className="py-1">
                                 {shareOptions.map((option) => (
                                     <button
                                         key={option.name}
                                         onClick={() => handleShare(option.url)}
-                                        className={`w-full text-left px-4 py-2 text-white ${option.bgColor} ${option.hoverColor} transition-colors`}
+                                        className={`w-full text-left px-4 py-2 text-foreground ${option.bgColor} ${option.hoverColor} transition-colors`}
                                     >
                                         {locale === "en" ? `Share on ${option.name}` : `${option.name} တွင်မျှဝေပါ`}
                                     </button>

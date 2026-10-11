@@ -42,7 +42,7 @@ const Page = async ({params} : SongRequestPageProps) => {
             {/*<SongRequestForm/>*/}
 
             {/* Status */}
-            <div className="flex flex-row items-center justify-center border-2 border-white rounded-2xl">
+            <div className="flex flex-row items-center justify-center border-2 border-theme-border rounded-2xl">
                 <label className="text-lg font-bold p-3">Status:</label>
                 <div className="flex flex-row items-center gap-x-2 p-3">
                     <h3 className="text-base">Stopped</h3>
@@ -54,11 +54,11 @@ const Page = async ({params} : SongRequestPageProps) => {
             </div>
 
             {/* Song Queue */}
-            <div className="flex flex-col text-center justify-center items-center w-[60vw] max-md:w-[80vw] border-2 border-white p-4 rounded-2xl mb-6">
+            <div className="flex flex-col text-center justify-center items-center w-[60vw] max-md:w-[80vw] border-2 border-theme-border p-4 rounded-2xl mb-6">
                 <p className="text-2xl font-bold mt-2 mb-6 max-md:text-lg">{translator("songsInQueue")}</p>
                 {songRequests.map((songRequest, index) => {
                     return (
-                        <div key={index} className="flex flex-row justify-center bg-white mb-6 rounded-2xl p-3 text-black w-[40vw] max-md:w-[70vw]">
+                        <div key={index} className="flex flex-row justify-center bg-surface-raised mb-6 rounded-2xl p-3 text-foreground w-[40vw] max-md:w-[70vw]">
                             <p className="text-base">{`${songRequest.songName} - ${songRequest.artist}`}</p>
                         </div>
                     );
@@ -66,12 +66,12 @@ const Page = async ({params} : SongRequestPageProps) => {
             </div>
 
             {/* Last Added Songs */}
-            <div className="flex flex-col text-center justify-center items-center w-[60vw] max-md:w-[80vw] border-2 border-white p-4 rounded-2xl mb-6">
+            <div className="flex flex-col text-center justify-center items-center w-[60vw] max-md:w-[80vw] border-2 border-theme-border p-4 rounded-2xl mb-6">
                 <p className="text-2xl font-bold mt-2 mb-6 max-md:text-lg">{translator("lastCreatedSongs")}</p>
                 {lastAddedSongs.map((lastSong, index) => {
                     return (
-                        <div key={index} className="flex flex-col justify-center text-center bg-white mb-6 rounded-2xl p-3 gap-y-2 text-black w-[40vw] max-md:w-[70vw]">
-                            <Link href={`song/${buildSongNameForURL(lastSong.songName)}/${lastSong.mmid}`} className="hover:text-blue-500 transition-colors">
+                        <div key={index} className="flex flex-col justify-center text-center bg-surface-raised mb-6 rounded-2xl p-3 gap-y-2 text-foreground w-[40vw] max-md:w-[70vw]">
+                            <Link href={`song/${buildSongNameForURL(lastSong.songName)}/${lastSong.mmid}`} className="hover:text-accent transition-colors">
                                 <p className="text-base italic">{`${lastSong.songName} - ${lastSong.artistName[0].name}`}</p>
                             </Link>
                             {

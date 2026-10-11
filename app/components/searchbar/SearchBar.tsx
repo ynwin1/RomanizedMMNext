@@ -14,23 +14,23 @@ interface OptionType {
 const colourStyles = {
   control: (styles: any, state: any) => ({
     ...styles,
-    backgroundColor: "#24211E",
-    borderColor: state.isFocused ? "#DAA276" : "#6B5C4B",
+    backgroundColor: "var(--surface)",
+    borderColor: state.isFocused ? "var(--accent)" : "var(--border)",
     borderWidth: "1px",
     minHeight: "56px",
-    boxShadow: state.isFocused ? "0 0 0 2px rgba(218,162,118,.23)" : "none",
+    boxShadow: state.isFocused ? "0 0 0 2px var(--border)" : "none",
     borderRadius: "0.375rem",
-    "&:hover": { borderColor: "#E8A572" },
+    "&:hover": { borderColor: "var(--accent-hover)" },
   }),
-  input: (styles: any) => ({ ...styles, color: "#F3EDE3" }),
-  menu: (styles: any) => ({ ...styles, backgroundColor: "#24211E", border: "1px solid #6B5C4B", borderRadius: "0.375rem", overflow: "hidden", zIndex: 70 }),
+  input: (styles: any) => ({ ...styles, color: "var(--foreground)" }),
+  menu: (styles: any) => ({ ...styles, backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: "0.375rem", overflow: "hidden", zIndex: 70 }),
   option: (styles: any, { isFocused, isSelected }: any) => ({
-    ...styles, backgroundColor: isSelected ? "#68432D" : isFocused ? "#3A322B" : "#24211E",
-    color: "#F3EDE3", cursor: "pointer", padding: "12px 14px",
+    ...styles, backgroundColor: isSelected || isFocused ? "var(--surface-raised)" : "var(--surface)",
+    color: "var(--foreground)", cursor: "pointer", padding: "12px 14px",
   }),
-  singleValue: (styles: any) => ({ ...styles, color: "#F3EDE3" }),
-  placeholder: (styles: any) => ({ ...styles, color: "#CBBEAE" }),
-  clearIndicator: (styles: any) => ({ ...styles, color: "#D0C5B6" }),
+  singleValue: (styles: any) => ({ ...styles, color: "var(--foreground)" }),
+  placeholder: (styles: any) => ({ ...styles, color: "var(--muted)" }),
+  clearIndicator: (styles: any) => ({ ...styles, color: "var(--muted)" }),
 };
 
 const SearchBar = ({showLabel = true}: {showLabel?: boolean}) => {
@@ -69,7 +69,7 @@ const SearchBar = ({showLabel = true}: {showLabel?: boolean}) => {
 
   return (
     <div className="w-full max-w-2xl px-4">
-      <label className={`${showLabel ? "mb-2 block" : "sr-only"} text-left text-sm font-semibold text-[#F3EDE3]`} htmlFor="song-search">Find a song</label>
+      <label className={`${showLabel ? "mb-2 block" : "sr-only"} text-left text-sm font-semibold text-foreground`} htmlFor="song-search">Find a song</label>
       {mounted ? (
         <AsyncSelect<OptionType>
           inputId="song-search"
@@ -83,14 +83,14 @@ const SearchBar = ({showLabel = true}: {showLabel?: boolean}) => {
           loadingMessage={() => "Searching songs…"}
           components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
           formatOptionLabel={option => (
-            <div><div className="font-semibold">{option.label}</div><div className="text-sm text-[#CBBEAE]">{option.artistName}</div></div>
+            <div><div className="font-semibold">{option.label}</div><div className="text-sm text-muted">{option.artistName}</div></div>
           )}
           onChange={handleChange}
         />
       ) : (
-        <input id="song-search" type="search" disabled aria-label="Find a song" placeholder={translator("search")} className="h-14 w-full rounded-md border border-[#6B5C4B] bg-[#24211E] px-4 text-[#F3EDE3] placeholder:text-[#CBBEAE]" />
+        <input id="song-search" type="search" disabled aria-label="Find a song" placeholder={translator("search")} className="h-14 w-full rounded-md border border-theme-border bg-surface px-4 text-foreground placeholder:text-muted" />
       )}
-      {failed && <p role="status" className="mt-2 text-left text-sm text-[#E8A572]">Search is temporarily unavailable. Please retry.</p>}
+      {failed && <p role="status" className="mt-2 text-left text-sm text-accent-hover">Search is temporarily unavailable. Please retry.</p>}
     </div>
   );
 };

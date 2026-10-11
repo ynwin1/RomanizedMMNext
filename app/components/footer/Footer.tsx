@@ -5,7 +5,7 @@ import Image from "next/image";
 
 const Footer = () => {
     return (
-        <footer className="relative bg-transparent text-white p-4 flex flex-row gap-4 justify-center items-center">
+        <footer className="relative bg-transparent text-foreground p-4 flex flex-row gap-4 justify-center items-center">
             <Link href={`https://www.facebook.com/p/Romanized-MM-61567473470671/`} target="_blank">
                 <Image src="/facebook-icon.png" alt="facebook-icon" width={27} height={27} />
             </Link>
