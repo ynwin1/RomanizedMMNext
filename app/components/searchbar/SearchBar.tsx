@@ -33,7 +33,7 @@ const colourStyles = {
   clearIndicator: (styles: any) => ({ ...styles, color: "#D0C5B6" }),
 };
 
-const SearchBar = () => {
+const SearchBar = ({showLabel = true}: {showLabel?: boolean}) => {
   const [mounted, setMounted] = useState(false);
   const [failed, setFailed] = useState(false);
   const params = useParams();
@@ -69,7 +69,7 @@ const SearchBar = () => {
 
   return (
     <div className="w-full max-w-2xl px-4">
-      <label className="mb-2 block text-left text-sm font-semibold text-[#F3EDE3]" htmlFor="song-search">Find a song</label>
+      <label className={`${showLabel ? "mb-2 block" : "sr-only"} text-left text-sm font-semibold text-[#F3EDE3]`} htmlFor="song-search">Find a song</label>
       {mounted ? (
         <AsyncSelect<OptionType>
           inputId="song-search"

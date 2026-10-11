@@ -8,7 +8,8 @@ test("lyrics language choices and bounded reading controls are accessible", () =
   assert.match(source, /aria-pressed={selectedOption === mode}/);
   assert.match(source, /aria-label="Lyrics font size"/);
   assert.match(source, /aria-label="Lyrics line spacing"/);
-  assert.match(source, /const FONT_MIN = 14/);
+  assert.match(source, /const FONT_MIN = 12/);
+  assert.match(source, /const DEFAULT_FONT = 16/);
   assert.match(source, /const FONT_MAX = 32/);
   assert.match(source, /const LINE_MIN = 1.2/);
   assert.match(source, /const LINE_MAX = 2.6/);
