@@ -12,7 +12,7 @@ This integration only retrieves publicly available track/artist metadata for adm
 ## Data handling
 
 - Imported: name, contributing artists, album, artwork URL, release date, duration, ISRC, Spotify ID/link, and available artist-level genre suggestions. Release date, duration and ISRC are displayed in the preview but not persisted because RomanizedMM's song model doesn't currently store them.
-- Direct song form: imported artists require manual catalogue slug selection. Confirm names against the existing artists before saving.
+- Direct song form: start typing an artist name to see existing catalogue matches; selecting one fills its slug. Name-only artists can be saved with the slug blank. Imported Spotify names must still be matched deliberately against local catalogue records.
 - Request-processing form: imported artists are listed as suggestions; update the separate artist resolution section manually before publishing.
 - Genre values describe artists, not necessarily the track. The importer never overwrites a nonempty genre.
 - The importer does not fetch lyrics and does not feed Spotify content to the AI generator.
