@@ -81,14 +81,17 @@
     "title": "Game Modes",
     "guessLyrics": {
       "title": "Guess The Lyrics",
-      "description": "Test your knowledge of Myanmar song lyrics"
+      "description": "Test your knowledge of Myanmar song lyrics",
+      "instructions": "Choose the missing lyric before the timer runs out. One wrong answer ends the round."
     },
     "guessSong": {
       "title": "Guess The Song",
-      "description": "Can you name that tune? Listen and guess the song"
+      "description": "Can you name that tune? Listen and guess the song",
+      "instructions": "Listen to a short clip and pick the right song. One wrong answer ends the round."
     },
     "start": "Play Now",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "unavailable": "Not enough songs are available to play right now. Try again later."
   },
   "GuessTheSong": {
     "nextSnippet": "Another 15s snippet",

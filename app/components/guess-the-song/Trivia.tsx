@@ -18,20 +18,22 @@ const Trivia = ({songs, minScore} : {songs: GuessSongRecord[], minScore: number}
     const gameMode = GameMode.GuessTheSong;
 
     return (
-        <div className="z-10">
+        <div className="relative z-10 w-full max-w-3xl">
             {triviaState === TriviaState.Start ?
-                <div className="flex flex-col justify-center items-center mt-6">
-                    <h1 className="border-2 border-theme-border z-10 text-5xl p-4
-                    text-center mb-10 text-foreground max-sm:text-2xl max-sm: p-2 rounded-2xl max-md:w-[60vw] bg-[var(--overlay)] ">
-                        Guess The Song
+                <div className="flex flex-col items-center rounded-2xl border border-theme-border bg-surface p-5 text-center sm:p-8">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-accent">RomanizedMM games</p>
+                    <h1 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                        {translator("guessSong.title")}
                     </h1>
+                    <p className="max-w-md text-sm leading-relaxed text-muted">{translator("guessSong.instructions")}</p>
+                    {songs.length < 4 && <p role="status" className="mt-3 text-sm text-muted">{translator("unavailable")}</p>}
                     <div className="flex flex-col justify-center items-center">
-                        <button className="text-lg bg-accent text-on-accent p-2 rounded-2xl mt-8 hover:bg-accent-hover w-[6rem] border-2 border-theme-border"
+                        <button className="mt-6 min-h-11 rounded-lg bg-accent px-8 text-base font-semibold text-on-accent hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={songs.length < 4}
                                 onClick={() => setTriviaState(TriviaState.Playing)}>
                             {translator("start")}
                         </button>
                     </div>
-                    <Leaderboard refresh={showSaveCard} gameMode={gameMode} />
                 </div>
                 :
                 triviaState === TriviaState.Playing ?
@@ -39,16 +41,16 @@ const Trivia = ({songs, minScore} : {songs: GuessSongRecord[], minScore: number}
                         <TriviaCard key={score} songs={songs} score={score} setScore={setScore} setTriviaState={setTriviaState}/>
                     </>
                     :
-                    <div className="flex flex-col justify-center items-center">
+                    <div className="flex flex-col items-center rounded-2xl border border-theme-border bg-surface p-5 text-center sm:p-8">
                         {showSaveCard && score > minScore ?
                             <TriviaScoreForm score={score} gameMode={gameMode} setShowSaveCard={setShowSaveCard}/>
                             :
-                            <h1 className="text-2xl text-foreground text-center max-md:text-base bg-[var(--overlay)] p-4 rounded-xl max-md:w-[80vw]">
+                            <h2 className="text-lg font-semibold text-foreground">
                                 Beat the lowest score to get featured on the leaderboard 🎉
-                            </h1>
+                            </h2>
                         }
                         {/* Restart */}
-                        <button className="text-lg bg-accent text-on-accent p-2 rounded-2xl mt-8 hover:bg-accent-hover w-[30vw] max-md:w-[70vw]"
+                        <button className="mt-6 min-h-11 w-full max-w-xs rounded-lg bg-accent px-6 font-semibold text-on-accent hover:bg-accent-hover"
                                 onClick={() => {
                                     setScore(0);
                                     setTriviaState(TriviaState.Start);
@@ -56,10 +58,9 @@ const Trivia = ({songs, minScore} : {songs: GuessSongRecord[], minScore: number}
                                 }}>
                             Restart
                         </button>
-                        {/* Leaderboard */}
-                        <Leaderboard refresh={showSaveCard} gameMode={gameMode}/>
                     </div>
             }
+            {triviaState !== TriviaState.Playing && <Leaderboard refresh={showSaveCard} gameMode={gameMode} />}
         </div>
     )
 }

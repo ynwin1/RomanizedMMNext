@@ -126,17 +126,17 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
+    <div className="mt-5 flex w-full flex-col items-center gap-4">
       {/* Main tap / status display */}
-      <h2
-        className={`text-2xl text-foreground text-center max-md:text-base
-                    bg-[var(--overlay)] p-4 rounded-xl max-md:w-[80vw]
-                    ${!hasError && isReady ? 'cursor-pointer hover:bg-surface-raised' : 'cursor-not-allowed opacity-70'}
-                    transition-all`}
+      <button
+        type="button"
+        disabled={hasError || !isReady}
+        aria-label={getStatusText()}
+        className="min-h-16 w-full rounded-xl border border-theme-border bg-surface-raised p-4 text-center text-base font-semibold text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-70 sm:text-lg"
         onClick={handleClick}
       >
         {getStatusText()}
-      </h2>
+      </button>
 
       {/* Hidden player - NOT auto-playing */}
       <div style={{ width: 1, height: 1, overflow: "hidden" }}>
@@ -164,7 +164,7 @@ export default function AudioOnlyPlayer({ url, onEmbeddingError }: AudioOnlyPlay
       {/* Replay button */}
       {isPlaying && !hasError && (
         <button
-          className="bg-accent text-on-accent px-4 py-2 rounded-xl hover:bg-accent-hover transition-colors"
+          className="min-h-11 rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent hover:bg-accent-hover transition-colors"
           onClick={playRandomSnippet}
         >
           🔄 {translator('nextSnippet')}

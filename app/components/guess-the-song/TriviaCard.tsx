@@ -66,8 +66,8 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
         });
 
         return (
-            <div className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl w-[4rem] max-md:text-xl">
-                <h1>{seconds}s</h1>
+            <div aria-label={`${seconds} seconds remaining`} className="rounded-lg border border-theme-border bg-surface-raised px-4 py-3 text-center text-lg font-bold tabular-nums text-foreground sm:text-xl">
+                <span>{seconds}s</span>
             </div>
         )
     }
@@ -85,20 +85,20 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
     }
 
     if (selectedSongs.length === 0 || !correctSong) {
-        return <div>Loading...</div>;
+        return <div role="status" className="rounded-xl border border-theme-border bg-surface p-6 text-center text-muted">Loading round…</div>;
     }
 
     // Display
     return (
-        <div className="flex flex-col">
-            <div className="flex-grow flex flex-col items-center justify-center py-8">
-                <div className="flex flex-row justify-between gap-x-6 items-center">
-                    <h2 className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl max-md:text-xl">
+        <div className="w-full rounded-2xl border border-theme-border bg-surface p-4 sm:p-7">
+            <div className="flex flex-col items-center">
+                <div className="mb-6 flex w-full flex-wrap items-center justify-between gap-3">
+                    <h2 className="rounded-lg border border-theme-border bg-surface-raised px-4 py-3 text-lg font-bold text-foreground sm:text-xl">
                         {`Score : ${score}`}
                     </h2>
                     <Timer expiryTimestamp={new Date(expiryTime)} onExpire={() => setTriviaState(TriviaState.End)} />
                     <button
-                        className="text-3xl p-4 text-center mb-6 bg-[var(--overlay)] rounded-2xl max-md:text-xl hover:bg-red-600"
+                        className="min-h-11 rounded-lg border border-theme-border bg-surface-raised px-4 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
                         onClick={() => {
                             setScore(0);
                             setTriviaState(TriviaState.Start);
@@ -115,12 +115,12 @@ export function TriviaCard({songs, score, setScore, setTriviaState}:
                 onEmbeddingError={handleEmbeddingError}
             />
 
-            <div className="flex flex-col mt-6 mb-6 gap-6">
+            <div className="mt-6 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
                 {selectedSongs.map((song, index) => (
                     <button
                         key={index}
                         disabled={isSkipping}
-                        className={`text-lg bg-accent text-on-accent p-2 rounded-2xl hover:bg-accent-hover w-[40vw] max-md:w-[80vw] max-md:text-sm
+                        className={`min-h-14 rounded-lg border border-theme-border bg-surface-raised p-4 text-left text-sm leading-relaxed text-foreground hover:border-accent hover:bg-accent hover:text-on-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-base
                                 ${isSkipping ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={() => checkCorrectSong(song.mmid)}
                     >
