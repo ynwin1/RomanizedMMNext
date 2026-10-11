@@ -4,12 +4,12 @@ import { readFileSync } from "node:fs";
 
 const source = readFileSync("app/(pages)/[locale]/(songs)/song/[name]/[id]/page.tsx", "utf8");
 
-test("song details precede lyrics, with optional search at the bottom", () => {
+test("search precedes song details and lyrics", () => {
   const header = source.indexOf('<header className=');
   const player = source.indexOf('<SyncedLyricsPlayer extLinks=');
   const search = source.indexOf("<SearchBar />");
   const whenToListen = source.indexOf('translator("whenToListen")');
-  assert.ok(search > player);
+  assert.ok(search > 0 && search < header);
   assert.ok(header > 0 && player > header);
   assert.ok(whenToListen > header && whenToListen < player);
   assert.doesNotMatch(source, /<details/);

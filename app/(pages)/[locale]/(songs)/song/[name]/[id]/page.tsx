@@ -11,12 +11,10 @@ import {buildArtistNames} from "@/app/lib/utils";
 import {songSeo, jsonLdScriptValue} from "@/app/lib/song-seo";
 import Link from "next/link";
 import {SongPageArtist} from "@/app/lib/types";
-import AboutArtistCard from "@/app/components/artist/AboutArtistCard";
 import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService} from "@/modules/songs";
-import {artistService} from "@/modules/artists";
 import { logger } from "@/infrastructure/logging/logger";
 
 type Props = {
@@ -115,30 +113,6 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     const artistNames = buildArtistNames(song.artistName);
     const seo = songSeo(song, locale);
 
-    let firstArtist = {
-        name: song.artistName[0].name,
-        slug: "",
-        imageLink: "",
-        biography: "",
-    }
-    // fetch the first matching artist profile in one repository query
-    try {
-        const slugs = song.artistName
-            .map(artist => artist.slug)
-            .filter((slug): slug is string => Boolean(slug));
-
-        const artistDetails = await artistService.getFirstProfileBySlugs(slugs);
-        if (artistDetails) {
-            const matchingSongArtist = song.artistName.find(artist => artist.slug === artistDetails.slug);
-            firstArtist.name = matchingSongArtist?.name || artistDetails.name;
-            firstArtist.slug = artistDetails.slug;
-            firstArtist.imageLink = artistDetails.imageLink;
-            firstArtist.biography = artistDetails.biography || "";
-        }
-    } catch (e) {
-        logger.error("Failed to fetch song artist details", e);
-    }
-
     // exclude _id from artistName
     let cleanedArtistNames = song.artistName.map(artist => ({
         name: artist.name,
@@ -149,6 +123,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
     return (
         <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-6 sm:px-6 lg:pt-10">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
+
+            <div className="mx-auto w-full max-w-2xl"><SearchBar /></div>
 
             {/* Song identity and details are visible without extra clicks. */}
             <header className="grid items-center gap-5 border-b border-[#514335] pb-7 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-7">
@@ -193,14 +169,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 <MoreSongs artists={cleanedArtistNames} currentSongId={parseInt(id)} locale={locale}/>
             </section>
 
-            {firstArtist.slug && (
-                <section aria-label="About the artist" className="mx-auto w-full max-w-3xl border-t border-[#514335] pt-8">
-                    <AboutArtistCard artist={firstArtist} locale={locale} />
-                </section>
-            )}
-
             <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-[#514335] pt-8">
-                <div className="mx-auto w-full max-w-2xl"><SearchBar /></div>
                 <div className="flex flex-wrap items-center justify-center gap-4">
                     <RandomSongButton locale={locale}/>
                     <SongReportButton songName={song.songName} artist={artistNames} />

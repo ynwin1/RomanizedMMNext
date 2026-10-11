@@ -69,7 +69,7 @@ const SearchBar = () => {
 
   return (
     <div className="w-full max-w-2xl px-4">
-      <label className="mb-2 block text-left text-sm font-semibold text-[#F3EDE3]" htmlFor="song-search">Find a song</label>
+      <label className="sr-only" htmlFor="song-search">Find a song</label>
       {mounted ? (
         <AsyncSelect<OptionType>
           inputId="song-search"
