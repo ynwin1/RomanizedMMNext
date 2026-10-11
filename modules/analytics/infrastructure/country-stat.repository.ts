@@ -18,11 +18,23 @@ export class MongoCountryStatRepository implements ICountryStatRepository {
   async increment(country: string, code: string): Promise<CountryStatEntity | null> {
     await connectDB();
 
-    const stat = await CountryStat.findOneAndUpdate(
-      { code },
-      { $inc: { count: 1 }, $set: { country } },
-      { upsert: true, new: true },
-    ).lean();
+    let stat: CountryStatPersistenceRecord | null;
+    try {
+      stat = await CountryStat.findOneAndUpdate(
+        { country },
+        { $inc: { count: 1 }, $set: { code } },
+        { upsert: true, new: true },
+      ).lean();
+    } catch (error) {
+      // Parallel first visits can race to create the same unique country.
+      // Retry as an update, without upsert, so the winning row is incremented.
+      if (!isCountryDuplicateKey(error)) throw error;
+      stat = await CountryStat.findOneAndUpdate(
+        { country },
+        { $inc: { count: 1 }, $set: { code } },
+        { new: true },
+      ).lean();
+    }
 
     return stat ? toEntity(stat) : null;
   }
@@ -37,4 +49,11 @@ export class MongoCountryStatRepository implements ICountryStatRepository {
 
     return stats.map(toEntity);
   }
+}
+
+function isCountryDuplicateKey(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error
+    && error.code === 11000 && "keyPattern" in error
+    && typeof error.keyPattern === "object" && error.keyPattern !== null
+    && "country" in error.keyPattern;
 }

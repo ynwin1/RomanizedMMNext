@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/app/components/media/ResilientImage";
 import Link from "next/link";
 import {notFound} from "next/navigation";
 import {getTranslations} from "next-intl/server";
