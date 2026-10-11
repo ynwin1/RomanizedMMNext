@@ -22,7 +22,8 @@
     "catalogue": "Songs",
     "songRequest": "Song Request",
     "gameModes": "Game Modes",
-    "artistCatalogue": "Artists"
+    "artistCatalogue": "Artists",
+    "playlists": "Playlists"
   },
   "GuessTheLyrics" : {
     "romanized": "Romanized",

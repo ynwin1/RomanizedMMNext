@@ -17,6 +17,7 @@ export const Menu = () => {
   const links = [
     { href: `/${locale}/song-catalogue?page=1&limit=10`, label: translator("catalogue") },
     { href: `/${locale}/artist-catalogue`, label: translator("artistCatalogue") },
+    { href: `/${locale}/playlists`, label: translator("playlists") },
     { href: `/${locale}/game-modes`, label: translator("gameModes") },
     { href: `/${locale}/song-request`, label: translator("songRequest") },
     { href: `/${locale}/about`, label: translator("about") },
