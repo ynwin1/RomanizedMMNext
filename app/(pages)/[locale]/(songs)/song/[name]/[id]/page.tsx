@@ -172,10 +172,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 </section>
             )}
 
-            <section aria-labelledby="more-from-artist" className="min-w-0 border-t border-theme-border pt-8">
-                <h2 id="more-from-artist" className="sr-only">Explore more songs</h2>
-                <MoreSongs artists={cleanedArtistNames} currentSongId={parsed.data} locale={locale}/>
-            </section>
+            <MoreSongs artists={cleanedArtistNames} currentSongId={parsed.data} locale={locale}/>
 
             <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-theme-border pt-8">
                 <div className="flex flex-wrap items-center justify-center gap-4">

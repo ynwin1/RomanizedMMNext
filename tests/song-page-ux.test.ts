@@ -32,6 +32,12 @@ test("song search stays on the page rather than the navigation", () => {
   assert.match(source, /<SearchBar showLabel={false} \/>/);
 });
 
+test("song footer has just one divider and no empty related-songs wrapper", () => {
+  assert.doesNotMatch(source, /<section aria-labelledby="more-from-artist"/);
+  assert.match(source, /<MoreSongs artists={cleanedArtistNames}/);
+  assert.equal((source.match(/border-t border-theme-border/g) ?? []).length, 1);
+});
+
 test("search label can be visually hidden without losing accessibility", () => {
   const search = readFileSync("app/components/searchbar/SearchBar.tsx", "utf8");
   assert.match(search, /showLabel = true/);
