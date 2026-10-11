@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
+import { renderLyricsV2Column } from "@/modules/songs/domain/lyrics.compatibility";
+import { buildLyricsV2FromAlignedText } from "@/modules/songs/application/lyrics-v2.builder";
 import { createSongAction, generateSongAiContentAction, searchSongArtistsAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
 import { requiresGenerationOverwriteConfirmation } from "./song-generation-overwrite";
@@ -93,12 +95,50 @@ function ArtistEntry({ artist, onChange, onRemove, canRemove }: {
 function LyricsV2Editor({
   entries,
   setEntries,
+  onPendingChange,
   errorMessages,
 }: {
   entries: LyricsV2Entry[];
   setEntries: React.Dispatch<React.SetStateAction<LyricsV2Entry[]>>;
+  onPendingChange: (pending: boolean) => void;
   errorMessages?: string[];
 }) {
+  const [view, setView] = useState<"rows" | "blob">("rows");
+  const [blobText, setBlobText] = useState({ burmese: "", romanized: "", meaning: "" });
+  const [blobDirty, setBlobDirty] = useState(false);
+
+  const blobResult = (() => {
+    try {
+      return { lyrics: buildLyricsV2FromAlignedText(blobText.burmese, blobText.romanized, blobText.meaning), error: "" };
+    } catch (error) {
+      return { lyrics: null, error: error instanceof Error ? error.message : "Lyrics do not align." };
+    }
+  })();
+
+  function openBlob() {
+    const lyrics = { version: 2 as const, entries };
+    setBlobText({
+      burmese: renderLyricsV2Column(lyrics, "burmese"),
+      romanized: renderLyricsV2Column(lyrics, "romanized"),
+      meaning: renderLyricsV2Column(lyrics, "meaning"),
+    });
+    setBlobDirty(false);
+    onPendingChange(false);
+    setView("blob");
+  }
+
+  function applyBlob() {
+    if (!blobResult.lyrics) return;
+    setEntries(blobResult.lyrics.entries);
+    setBlobDirty(false);
+    onPendingChange(false);
+  }
+
+  function discardBlob() {
+    setBlobDirty(false);
+    onPendingChange(false);
+    setView("rows");
+  }
 
   const replace = (index: number, entry: LyricsV2Entry) =>
     setEntries(current => current.map((item, i) => i === index ? entry : item));
@@ -113,16 +153,53 @@ function LyricsV2Editor({
     <fieldset className="rounded-xl border border-zinc-800 p-4">
       <legend className="px-2 font-semibold">Lyrics V2 <span className="text-sm font-normal text-emerald-300">(source of truth)</span></legend>
       <p className="mb-4 text-sm text-zinc-400">
-        Edit aligned lyric rows directly. Section breaks are explicit rows; English meaning may be intentionally blank.
-        Legacy lyric fields are generated automatically from these rows when you save.
+        Edit line by line or edit the three complete lyric texts. Full-lyrics edits are checked for
+        matching lines and section breaks before they become Lyrics V2.
       </p>
+      <div role="group" aria-label="Lyrics display" className="mb-4 inline-flex flex-wrap gap-1 rounded-lg border border-zinc-700 p-1">
+        <button type="button" aria-pressed={view === "rows"} disabled={view === "blob" && blobDirty} onClick={() => setView("rows")}
+          className={`rounded px-4 py-2 text-sm ${view === "rows" ? "bg-indigo-600 text-white" : "text-zinc-300 hover:bg-zinc-800"}`}>
+          Aligned rows
+        </button>
+        <button type="button" aria-pressed={view === "blob"} disabled={view === "blob"} onClick={openBlob}
+          className={`rounded px-4 py-2 text-sm ${view === "blob" ? "bg-indigo-600 text-white" : "text-zinc-300 hover:bg-zinc-800"}`}>
+          Full lyrics
+        </button>
+      </div>
       <input
         type="hidden"
         name="lyricsV2"
         value={entries.length ? JSON.stringify({ version: 2, entries }) : ""}
       />
 
-      {entries.length === 0 ? (
+      {view === "blob" ? (
+        <div className="grid gap-4 lg:grid-cols-3" aria-label="Full lyrics by type">
+          {(["burmese", "romanized", "meaning"] as const).map(column => (
+            <label key={column} className="min-w-0 text-sm">
+              <span className="font-medium">{{ burmese: "Burmese / source", romanized: "Romanized", meaning: "English meaning" }[column]}</span>
+              <textarea
+                rows={18}
+                value={blobText[column]}
+                onChange={event => {
+                  setBlobText(previous => ({ ...previous, [column]: event.target.value }));
+                  setBlobDirty(true);
+                  onPendingChange(true);
+                }}
+                className={`${inputClass} mt-2 resize-y whitespace-pre-wrap font-mono text-sm leading-relaxed`}
+              />
+            </label>
+          ))}
+          <div className="lg:col-span-3 space-y-3">
+            <p className="text-xs text-zinc-400">Each text area must have the same number of lines. Leave all three lines empty to make a section break; a blank Meaning line is allowed for lyrics without a translation.</p>
+            {blobDirty && blobResult.error && <p role="alert" className="text-sm text-amber-300">{blobResult.error} Fix the alignment to apply these changes.</p>}
+            {blobDirty && !blobResult.error && <p role="status" className="text-sm text-emerald-300">Lyrics are aligned and ready to apply.</p>}
+            <div className="flex flex-wrap gap-3">
+              <button type="button" disabled={!blobDirty || !blobResult.lyrics} onClick={applyBlob} className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium disabled:opacity-40">Apply full-lyrics changes</button>
+              {blobDirty && <button type="button" onClick={discardBlob} className="rounded border border-zinc-700 px-4 py-2 text-sm">Discard changes and return to rows</button>}
+            </div>
+          </div>
+        </div>
+      ) : entries.length === 0 ? (
         <div className="rounded border border-dashed border-zinc-700 p-4 text-sm text-zinc-400">
           No V2 lyrics yet. Add at least one aligned lyric row before saving.
         </div>
@@ -180,10 +257,10 @@ function LyricsV2Editor({
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      {view === "rows" && <div className="mt-4 flex flex-wrap gap-2">
         <button type="button" onClick={() => setEntries(current => [...current, emptyLine()])} className="rounded border border-zinc-700 px-3 py-2">Add lyric line</button>
         {entries.length > 0 && <button type="button" onClick={() => setEntries(current => [...current, { kind: "break" }])} className="rounded border border-zinc-700 px-3 py-2">Add section break</button>}
-      </div>
+      </div>}
       {errorMessages?.map((message, index) => <p key={index} className="mt-2 text-sm text-red-300">{message}</p>)}
     </fieldset>
   );
@@ -198,6 +275,7 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
   const [youtube, setYoutube] = useState(song?.youtubeLink?.join("\n") ?? "");
   const [requested, setRequested] = useState(song?.isRequested ?? false);
   const [lyricsEntries, setLyricsEntries] = useState<LyricsV2Entry[]>(song?.lyricsV2?.entries ?? []);
+  const [blobChangesPending, setBlobChangesPending] = useState(false);
   const [sourceLyrics, setSourceLyrics] = useState("");
   const [aiMessage, setAiMessage] = useState("");
   const [confirmAiOverwrite, setConfirmAiOverwrite] = useState(false);
@@ -301,7 +379,8 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           </fieldset>
         )}
 
-        <LyricsV2Editor entries={lyricsEntries} setEntries={setLyricsEntries} errorMessages={state.errors?.lyricsV2} />
+        <LyricsV2Editor entries={lyricsEntries} setEntries={setLyricsEntries} onPendingChange={setBlobChangesPending} errorMessages={state.errors?.lyricsV2} />
+        {blobChangesPending && <p role="alert" className="text-sm text-amber-300">Apply or discard your full-lyrics edits before saving the song.</p>}
 
         <div className="grid gap-5 md:grid-cols-2">
           {songTextFields.map(field => <label key={field} className={multiline.has(field) ? "block md:col-span-2" : "block"}>
@@ -317,7 +396,7 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
         </label>
         <label className="flex items-center gap-3"><input type="checkbox" name="isRequested" checked={requested} onChange={event => setRequested(event.target.checked)} />This song came from a listener request</label>
         <div className="flex items-center gap-5">
-          <button type="submit" className="rounded bg-indigo-600 px-5 py-3 font-medium hover:bg-indigo-500 disabled:opacity-50">{pending ? "Saving…" : song ? "Save changes" : "Create song"}</button>
+          <button type="submit" disabled={blobChangesPending} className="rounded bg-indigo-600 px-5 py-3 font-medium hover:bg-indigo-500 disabled:opacity-50">{pending ? "Saving…" : song ? "Save changes" : "Create song"}</button>
           <Link href="/admin/songs" className="underline">Back to songs</Link>
         </div>
       </fieldset>
