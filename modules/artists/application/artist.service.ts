@@ -6,6 +6,7 @@ import type { ArtistEntity } from "../domain/artist.types";
 import { IArtistRepository } from "./artist.repository";
 import { ArtistContentSchema, ArtistRevisionSchema, ArtistSlugSchema, CreateArtistSchema } from "./artist.validation";
 import { ArtistConflictError } from "./artist-write.error";
+import {normalizeArtistCatalogueQuery} from "./artist-catalogue-search";
 
 export class ArtistService {
   constructor(private readonly artists: IArtistRepository) {}
@@ -58,8 +59,8 @@ export class ArtistService {
     return artist;
   }
 
-  async getCatalogue(page: number, limit: number): Promise<ArtistCataloguePage> {
-    return this.artists.listCatalogue(page, limit);
+  async getCatalogue(page: number, limit: number, query = ""): Promise<ArtistCataloguePage> {
+    return this.artists.listCatalogue(page, limit, normalizeArtistCatalogueQuery(query));
   }
 
   async getFirstProfileBySlugs(slugs: string[]): Promise<ArtistEntity | null> {
