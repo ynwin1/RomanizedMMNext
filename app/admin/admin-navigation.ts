@@ -2,6 +2,7 @@ export const adminNavigation = [
   { href: "/admin", label: "Overview", description: "Your content workspace." },
   { href: "/admin/songs", label: "Songs", description: "Manage the song catalogue." },
   { href: "/admin/artists", label: "Artists", description: "Manage artist profiles." },
+  { href: "/admin/playlists", label: "Playlists", description: "Curate genre playlists." },
   { href: "/admin/requests", label: "Requests", description: "Review incoming song requests." },
   { href: "/admin/lyrics-health", label: "Lyrics Health", description: "Monitor canonical lyric quality." },
 ] as const;
