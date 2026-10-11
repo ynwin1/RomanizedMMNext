@@ -1,16 +1,16 @@
-import React from 'react'
 import FormReturnButton from "@/app/components/buttons/FormReturnButton";
+import {getTranslations} from "next-intl/server";
 
-const Page = () => {
+const Page = async () => {
+    const t = await getTranslations("SongRequestPage");
     return (
-        <main className="flex flex-col gap-10 overflow-y-hidden h-[81vh] items-center justify-center bg-background p-4">
-            <p className="text-lg text-center text-foreground w-full max-w-xl">
-                Song requested successfully ✅.
-            </p>
-            <p className="text-lg text-center text-foreground w-full max-w-xl">
-                It may take a few days, so stay tuned! 🤩
-            </p>
-            <FormReturnButton url={"/song-request"} />
+        <main className="mx-auto flex min-h-[65vh] w-full max-w-2xl items-center justify-center px-4 py-16">
+            <div className="w-full rounded-xl border border-theme-border bg-surface p-8 text-center sm:p-10">
+                <div aria-hidden="true" className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-surface-raised text-3xl text-accent">✓</div>
+                <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{t("successTitle")}</h1>
+                <p className="mx-auto mt-3 mb-7 max-w-md text-sm leading-relaxed text-muted sm:text-base">{t("successDetail")}</p>
+                <FormReturnButton url="/song-request" label={t("return")} />
+            </div>
         </main>
     )
 }
