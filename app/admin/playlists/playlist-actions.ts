@@ -13,6 +13,8 @@ const actions = createPlaylistActionHandler({
   playlists: playlistService,
   saved(id) {
     revalidatePath("/admin/playlists");
+    revalidatePath("/en/playlists");
+    revalidatePath("/my/playlists");
     redirect(`/admin/playlists/${id}/edit?saved=1`);
   },
   logFailure(error) {logger.error("Admin playlist save failed", error);},

@@ -10,6 +10,7 @@ test("desktop navigation exposes primary destinations and mobile menu is accessi
   assert.match(menu, /event.key === "Escape"/);
   assert.match(menu, /previousOverflow/);
   assert.match(menu, /translator\("songRequest"\)/);
+  assert.match(menu, /translator\("playlists"\)/);
 });
 
 test("search remains visible before hydration, supports feedback and encoded input", () => {

@@ -11,7 +11,7 @@ const LANGUAGES = ["en", "my"] as const;
 export function buildPublicSitemap(songs: SitemapSongRecord[], artists: SitemapArtistRecord[] = []): MetadataRoute.Sitemap {
   const routes: MetadataRoute.Sitemap = [];
   for (const locale of LANGUAGES) {
-    for (const path of ["", "/about", "/song-catalogue", "/song-request", "/artist-catalogue"]) {
+    for (const path of ["", "/about", "/song-catalogue", "/song-request", "/artist-catalogue", "/playlists"]) {
       routes.push({
         url: `${SITE}/${locale}${path}`,
         alternates: { languages: Object.fromEntries(LANGUAGES.map(lang => [lang, `${SITE}/${lang}${path}`])) },
