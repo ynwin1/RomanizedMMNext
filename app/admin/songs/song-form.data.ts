@@ -24,7 +24,18 @@ export function songFormInput(form: FormData, create: boolean): Record<string, u
   }
 
   const artists = form.get("artistName");
-  try { input.artistName = typeof artists === "string" ? JSON.parse(artists) : null; }
+  try {
+    const parsed: unknown = typeof artists === "string" ? JSON.parse(artists) : null;
+    input.artistName = Array.isArray(parsed)
+      ? parsed.map(artist => {
+          if (!artist || typeof artist !== "object" || Array.isArray(artist)) return artist;
+          const record = artist as Record<string, unknown>;
+          if (record.slug !== "") return artist;
+          const { slug: _unused, ...withoutEmptySlug } = record;
+          return withoutEmptySlug;
+        })
+      : parsed;
+  }
   catch { input.artistName = null; }
 
   const lyricsV2 = form.get("lyricsV2");

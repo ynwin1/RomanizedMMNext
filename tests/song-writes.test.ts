@@ -135,6 +135,16 @@ test("admin form decoding requires lyricsV2 and derives legacy lyric compatibili
   assert.equal(parsed.meaning, "Burmese words\n\n");
   assert.equal(songFormInput(value, false).mmid, undefined);
 
+  value.set("artistName", JSON.stringify([{ name: "Name-only Artist", slug: "" }, { name: "Known", slug: "known" }]));
+  assert.deepEqual(songFormInput(value, true).artistName, [
+    { name: "Name-only Artist" }, { name: "Known", slug: "known" },
+  ]);
+  assert.equal(CreateSongSchema.safeParse({
+    ...content,
+    mmid: 17,
+    artistName: songFormInput(value, true).artistName,
+  }).success, true);
+
   value.delete("lyricsV2");
   assert.equal(songFormInput(value, true).lyricsV2, null);
 

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
-import { createSongAction, generateSongAiContentAction, updateSongAction } from "./song-actions";
+import { createSongAction, generateSongAiContentAction, searchSongArtistsAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
 import { requiresGenerationOverwriteConfirmation } from "./song-generation-overwrite";
 import SpotifyTrackImport from "../spotify-track-import";
@@ -20,6 +20,74 @@ const inputClass = "w-full rounded border border-zinc-700 bg-zinc-900 p-3 text-z
 
 function emptyLine(): LyricsV2Entry {
   return { kind: "line", burmese: "", romanized: "", meaning: null };
+}
+
+type EditableArtist = { name: string; slug: string };
+
+function ArtistEntry({ artist, onChange, onRemove, canRemove }: {
+  artist: EditableArtist;
+  onChange: (artist: EditableArtist) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+}) {
+  const [matches, setMatches] = useState<EditableArtist[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (artist.name.trim().length < 2 || artist.slug) return;
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchSongArtistsAction(artist.name);
+        if (active) setMatches(results);
+      } catch {
+        if (active) setMatches([]);
+      } finally {
+        if (active) setSearching(false);
+      }
+    }, 300);
+    return () => { active = false; clearTimeout(timer); };
+  }, [artist.name, artist.slug]);
+
+  const suggestions = focused && !artist.slug && artist.name.trim().length >= 2;
+  return <div className="mb-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+    <div className="relative text-sm">
+      <label>Artist name
+        <input
+          required
+          autoComplete="off"
+          role="combobox"
+          aria-expanded={suggestions}
+          aria-autocomplete="list"
+          className={inputClass}
+          value={artist.name}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
+          onChange={event => {
+            setMatches([]);
+            setSearching(event.target.value.trim().length >= 2);
+            onChange({ name: event.target.value, slug: "" });
+          }}
+        />
+      </label>
+      {suggestions && <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded border border-zinc-600 bg-zinc-950 shadow-xl">
+        {matches.map(match => <button
+          type="button"
+          key={match.slug}
+          onMouseDown={event => event.preventDefault()}
+          onClick={() => { onChange(match); setFocused(false); setMatches([]); }}
+          className="block w-full px-3 py-2 text-left hover:bg-zinc-800 focus:bg-zinc-800"
+        >{match.name} <span className="block text-xs text-zinc-400">{match.slug}</span></button>)}
+        {searching && <p className="px-3 py-2 text-zinc-400">Searching artists…</p>}
+        {!searching && matches.length === 0 && <p className="px-3 py-2 text-zinc-400">No match. You can keep the name without a slug.</p>}
+      </div>}
+    </div>
+    <label className="text-sm">Artist slug <span className="text-zinc-400">(optional)</span>
+      <input className={inputClass} placeholder="Select an existing artist, or leave blank" value={artist.slug} onChange={event => onChange({ ...artist, slug: event.target.value })} />
+    </label>
+    <button type="button" disabled={!canRemove} onClick={onRemove} className="self-end rounded border border-zinc-700 p-3 disabled:opacity-40">Remove</button>
+  </div>;
 }
 
 function LyricsV2Editor({
@@ -192,17 +260,15 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           </label>}
         <fieldset className="rounded-xl border border-zinc-800 p-4">
           <legend className="px-2 font-semibold">Artists</legend>
-          <p className="mb-4 text-sm text-zinc-400">Use each artist’s existing catalogue slug.</p>
+          <p className="mb-4 text-sm text-zinc-400">Start typing to find an existing catalogue artist. Select a match to fill its slug, or leave the slug blank for a name-only artist.</p>
           <input name="artistName" type="hidden" value={JSON.stringify(artists)} />
-          {artists.map((artist, index) => <div key={index} className="mb-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-            <label className="text-sm">Artist name
-              <input required className={inputClass} value={artist.name} onChange={event => setArtists(artists.map((item, i) => i === index ? { ...item, name: event.target.value } : item))} />
-            </label>
-            <label className="text-sm">Artist slug
-              <input required className={inputClass} value={artist.slug} onChange={event => setArtists(artists.map((item, i) => i === index ? { ...item, slug: event.target.value } : item))} />
-            </label>
-            <button type="button" disabled={artists.length === 1} onClick={() => setArtists(artists.filter((_, i) => i !== index))} className="self-end rounded border border-zinc-700 p-3 disabled:opacity-40">Remove</button>
-          </div>)}
+          {artists.map((artist, index) => <ArtistEntry
+            key={index}
+            artist={artist}
+            onChange={updated => setArtists(current => current.map((item, i) => i === index ? updated : item))}
+            onRemove={() => setArtists(current => current.filter((_, i) => i !== index))}
+            canRemove={artists.length > 1}
+          />)}
           <button type="button" disabled={artists.length >= 30} onClick={() => setArtists([...artists, { name: "", slug: "" }])} className="rounded border border-zinc-700 px-3 py-2">Add artist</button>
           {errors("artistName")}
         </fieldset>

@@ -44,6 +44,39 @@ test("OpenAI adapter uses Responses structured output without storing responses"
   assert.equal(requestBody.text.format.type, "json_schema");
   assert.equal(requestBody.text.format.strict, true);
   assert.equal(requestBody.text.format.name, "romanized_lyrics");
+  assert.match(requestBody.instructions, /Use sentence case, NOT Title Case/);
+  assert.match(requestBody.instructions, /not the first letter of every word/);
+  assert.match(requestBody.instructions, /except proper names, acronyms/);
+});
+
+test("editorial generation instructs consistent About and When to listen openings", async () => {
+  let requestBody: any;
+  const adapter = new OpenAIContentGenerationAdapter(new OpenAIResponsesClient({
+    apiKey: "test-key",
+    model: "test-model",
+    baseUrl: "https://example.test/v1",
+    fetcher: async (_input, init) => {
+      requestBody = JSON.parse(String(init?.body));
+      return response(completed(JSON.stringify({
+        about: "Song Name, meaning My Lost Love, is a Burmese song about heartbreak.",
+        whenToListen: "When you are missing someone you love.",
+      })));
+    },
+  }));
+
+  const result = await adapter.generateEditorialMetadata({
+    songName: "Song Name",
+    artistNames: ["Artist"],
+    lines: [{ index: 0, text: "မြန်မာ" }],
+    romanizedLines: [{ index: 0, text: "Myanmar" }],
+    meaningLines: [{ index: 0, text: "Myanmar" }],
+  });
+
+  assert.match(requestBody.instructions, /MUST start with this exact structure/);
+  assert.match(requestBody.instructions, /3-4 words/);
+  assert.match(requestBody.instructions, /Use the provided songName verbatim/);
+  assert.match(requestBody.instructions, /MUST begin with the exact words 'When you are '/);
+  assert.equal(result.whenToListen, "When you are missing someone you love.");
 });
 
 test("OpenAI client classifies retryable HTTP failures without leaking response bodies", async () => {

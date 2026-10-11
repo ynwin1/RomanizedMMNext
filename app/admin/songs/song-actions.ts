@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { songService } from "@/modules/songs";
+import { artistService } from "@/modules/artists";
 import { AdminSongGenerationService } from "@/modules/admin";
 import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
 import { logger } from "@/infrastructure/logging/logger";
@@ -47,4 +48,12 @@ export async function generateSongAiContentAction(input: {
       message: directSongGenerationFailureMessage(error),
     };
   }
+}
+
+export async function searchSongArtistsAction(query: string) {
+  await requireAdmin();
+  const q = query.trim().slice(0, 100);
+  if (q.length < 2) return [];
+  const page = await artistService.getAdminList({ q, page: 1, limit: 8 });
+  return page.items.map(({ name, slug }) => ({ name, slug }));
 }
