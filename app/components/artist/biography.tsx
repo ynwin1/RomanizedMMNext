@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 
-const Biography = ({ biography }: { biography: string }) => {
+const Biography = ({ biography, locale = "en" }: { biography: string; locale?: string }) => {
     const [showMore, setShowMore] = React.useState(false);
 
     const toggleShowMore = () => {
@@ -10,7 +10,9 @@ const Biography = ({ biography }: { biography: string }) => {
 
     // Create a short version for the preview
     // Remove any \n characters for the short preview to make it cleaner
-    const shortBiography = biography.slice(0, 280).replace(/\\n/g, ' ');
+    const normalizedBiography = biography.replace(/\\n/g, '\n');
+    const needsTruncation = normalizedBiography.length > 320;
+    const shortBiography = normalizedBiography.slice(0, 320).replace(/\s+/g, ' ').trim();
 
     // Parse markdown-style headings and paragraphs
     const renderFormattedBiography = (text: string) => {
@@ -22,11 +24,11 @@ const Biography = ({ biography }: { biography: string }) => {
         return lines.map((line, index) => {
             // Handle headings
             if (line.startsWith('# ')) {
-                return <h1 key={index} className="text-3xl font-bold my-4">{line.substring(2)}</h1>;
+                return <h3 key={index} className="my-4 text-xl font-bold text-foreground">{line.substring(2)}</h3>;
             } else if (line.startsWith('## ')) {
-                return <h2 key={index} className="text-2xl font-bold my-3">{line.substring(3)}</h2>;
+                return <h3 key={index} className="my-3 text-lg font-bold text-foreground">{line.substring(3)}</h3>;
             } else if (line.startsWith('### ')) {
-                return <h3 key={index} className="text-xl font-bold my-2">{line.substring(4)}</h3>;
+                return <h4 key={index} className="my-2 text-base font-bold text-foreground">{line.substring(4)}</h4>;
             }
             
             // Handle empty lines as paragraph breaks
@@ -35,28 +37,30 @@ const Biography = ({ biography }: { biography: string }) => {
             }
             
             // Regular paragraph text
-            return <p key={index} className="text-muted-foreground text-lg leading-8 mb-4">{line}</p>;
+            return <p key={index} className="mb-4 whitespace-pre-wrap text-sm leading-7 text-muted sm:text-base">{line}</p>;
         });
     };
 
     return (
-        <div className="mt-8 gap-y-10 max-md:p-8">
-            <h2 className="text-4xl font-bold mb-6">Biography</h2>
+        <div>
+            <h2 className="mb-5 text-2xl font-bold sm:text-3xl">{locale === "my" ? "အတ္ထုပ္ပတ္တိ" : "Biography"}</h2>
             <div className="biography-content">
-                {showMore ? (
+                {showMore || !needsTruncation ? (
                     <div>{renderFormattedBiography(biography)}</div>
                 ) : (
                     <>
-                        <p className="text-muted-foreground leading-8 text-lg">{shortBiography}...</p>
+                        <p className="text-sm leading-7 text-muted sm:text-base">{shortBiography}…</p>
                     </>
                 )}
             </div>
-            {biography.length > 200 && (
+            {needsTruncation && (
                 <button 
                     onClick={toggleShowMore} 
-                    className="text-on-accent bg-accent p-2 rounded-lg mt-4 hover:bg-accent-hover transition-all duration-300"
+                    type="button"
+                    aria-expanded={showMore}
+                    className="mt-4 min-h-11 rounded-lg border border-theme-border bg-surface-raised px-4 text-sm font-semibold text-foreground hover:border-accent hover:text-accent"
                 >
-                    {showMore ? "Show less" : "Show more"}
+                    {locale === "my" ? (showMore ? "လျှော့ပြရန်" : "ဆက်ဖတ်ရန်") : (showMore ? "Show less" : "Read more")}
                 </button>
             )}
         </div>
