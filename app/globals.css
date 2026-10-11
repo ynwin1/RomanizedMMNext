@@ -47,19 +47,19 @@
   --overlay: rgba(11, 16, 38, 0.8);
 }
 
-:root[data-theme="vintage-vinyl"] {
-  --background: #261B17;
-  --foreground: #F2E5CF;
-  --surface: #35261F;
-  --surface-raised: #493126;
-  --muted: #D2BAA2;
-  --accent: #E8A274;
-  --focus-ring: #F0B68E;
-  --border: #76523E;
-  --border-subtle: #583D30;
-  --accent-hover: #F0B68E;
-  --on-accent: #261B17;
-  --overlay: rgba(38, 27, 23, 0.8);
+:root[data-theme="monsoon-mist"] {
+  --background: #F6F5ED;
+  --foreground: #1F3831;
+  --surface: #FFFFFF;
+  --surface-raised: #E6EDE5;
+  --muted: #52655D;
+  --accent: #246650;
+  --focus-ring: #286D55;
+  --border: #A8BBB1;
+  --border-subtle: #D0DDD3;
+  --accent-hover: #194D3D;
+  --on-accent: #FFFFFF;
+  --overlay: rgba(29, 51, 43, 0.55);
 }
 
 body {
