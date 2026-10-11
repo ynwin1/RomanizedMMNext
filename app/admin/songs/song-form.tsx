@@ -6,6 +6,7 @@ import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
 import { createSongAction, generateSongAiContentAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
 import { requiresGenerationOverwriteConfirmation } from "./song-generation-overwrite";
+import SpotifyTrackImport from "../spotify-track-import";
 
 const labels: Record<string, string> = {
   songName: "Song name", albumName: "Album", genre: "Genre", spotifyTrackId: "Spotify track ID",
@@ -172,6 +173,19 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
     <form action={formAction} className="mt-6 space-y-6">
       {state.message && <div role="alert" className="rounded border border-red-400 bg-red-950/30 p-4">{state.message}</div>}
       <fieldset disabled={pending} className="space-y-6">
+        <SpotifyTrackImport onApply={track => {
+          setValues(previous => ({
+            ...previous,
+            songName: track.name,
+            albumName: track.albumName,
+            imageLink: track.imageLink,
+            spotifyTrackId: track.trackId,
+            spotifyLink: track.spotifyLink,
+            genre: previous.genre || track.genres[0] || "",
+          }));
+          // Existing catalogue slugs must be confirmed by the admin.
+          setArtists(track.artists.map(artist => ({ name: artist.name, slug: "" })));
+        }} />
         {song ? <p className="text-zinc-400">Song ID: {song.mmid}</p> :
           <label className="block">Song ID <span className="text-zinc-400">(required, unique)</span>
             <input name="mmid" value={mmid} onChange={event => setMmid(event.target.value)} type="number" min="1" step="1" required className={inputClass} aria-invalid={!!state.errors?.mmid} />{errors("mmid")}
