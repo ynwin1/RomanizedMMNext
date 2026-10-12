@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 .idea
+
+# Local song lyric exports and audit reports (never commit these)
+/.romanization-work/
