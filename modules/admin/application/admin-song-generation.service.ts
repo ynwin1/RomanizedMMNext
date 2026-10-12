@@ -47,6 +47,7 @@ export class AdminSongGenerationService {
 
     return {
       romanized: romanizedText,
+      refinements: romanized.refinements ?? [],
       meaning: meaningText,
       about: editorial.about,
       whenToListen: editorial.whenToListen,

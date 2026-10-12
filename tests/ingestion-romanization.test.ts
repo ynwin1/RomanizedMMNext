@@ -26,7 +26,7 @@ function draft(overrides: Partial<ContentDraftRecord> = {}): ContentDraftRecord 
   };
 }
 
-test("romanization workflow preserves line structure and patches only generated.romanized", async () => {
+test("romanization workflow preserves line structure and clears outdated refinement notes", async () => {
   let current = ingestion();
   let currentDraft = draft();
   const transitions: string[] = [];
@@ -67,7 +67,7 @@ test("romanization workflow preserves line structure and patches only generated.
 
   const result = await service.generate(ingestionId, "admin-1");
   assert.deepEqual(transitions, ["generating", "ready_to_generate"]);
-  assert.deepEqual(patchSeen, { generated: { romanized: "R0\n\nR2" } });
+  assert.deepEqual(patchSeen, { generated: { romanized: "R0\n\nR2", refinements: null } });
   assert.equal(result.draft.generated.meaning, "existing meaning");
   assert.equal(result.draft.generated.about, "existing about");
   assert.equal(result.draft.metadata.genre, "Pop");

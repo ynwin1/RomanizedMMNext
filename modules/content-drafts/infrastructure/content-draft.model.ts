@@ -1,5 +1,6 @@
 import mongoose, { Model, models, Schema } from "mongoose";
 import type { DraftArtistReference } from "../domain/content-draft.types";
+import type {RomanizationRefinement} from "@/modules/content-generation/domain/content-generation.types";
 
 export interface IContentDraft extends mongoose.Document {
   ingestionId: mongoose.Types.ObjectId;
@@ -11,6 +12,7 @@ export interface IContentDraft extends mongoose.Document {
   };
   generated: {
     romanized?: string;
+    refinements?: RomanizationRefinement[];
     meaning?: string;
     about?: string;
     whenToListen?: string;
@@ -48,6 +50,14 @@ const ContentDraftSchema: Schema<IContentDraft> = new Schema({
   },
   generated: {
     romanized: { type: String },
+    refinements: { type: [{
+      index: {type: Number, required: true},
+      kind: {type: String, enum: ["exact-line", "word", "conflict"], required: true},
+      original: {type: String, required: true},
+      corrected: {type: String, required: true},
+      referenceMmids: {type: [Number], default: []},
+      hasConflict: {type: Boolean, default: false},
+    }], default: undefined },
     meaning: { type: String },
     about: { type: String },
     whenToListen: { type: String },

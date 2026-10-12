@@ -4,6 +4,7 @@ import { useActionState, useRef, useState } from "react";
 import type { ContentDraftRecord } from "@/modules/content-drafts";
 import { saveIngestionReviewAction } from "./ingestion-actions";
 import SpotifyTrackImport from "../spotify-track-import";
+import RomanizationRefinementReview from "@/app/components/admin/RomanizationRefinementReview";
 
 export default function ReviewForm({
   ingestionId,
@@ -18,6 +19,7 @@ export default function ReviewForm({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const [suggestedArtists, setSuggestedArtists] = useState<string[]>([]);
+  const [romanized, setRomanized] = useState(draft.generated.romanized ?? "");
 
   function setFormField(name: string, value: string) {
     const field = formRef.current?.elements.namedItem(name);
@@ -60,8 +62,18 @@ export default function ReviewForm({
 
     <label className="mt-4 block">
       <span className="text-sm text-zinc-300">Romanization *</span>
-      <textarea name="romanized" required rows={14} defaultValue={draft.generated.romanized || ""} className={fieldClass} />
+      <textarea name="romanized" required rows={14} value={romanized} onChange={event => setRomanized(event.target.value)} className={fieldClass} />
     </label>
+    <RomanizationRefinementReview
+      refinements={draft.generated.refinements ?? []}
+      currentLines={romanized.replace(/\r\n?/g, "\n").split("\n")}
+      onRestore={(index, original) => setRomanized(previous => {
+        const lines = previous.replace(/\r\n?/g, "\n").split("\n");
+        if (lines[index] !== draft.generated.refinements?.find(change => change.index === index)?.corrected) return previous;
+        lines[index] = original;
+        return lines.join("\n");
+      })}
+    />
 
     <label className="mt-4 block">
       <span className="text-sm text-zinc-300">English meaning *</span>

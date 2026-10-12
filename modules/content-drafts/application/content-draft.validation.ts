@@ -11,6 +11,14 @@ const editorial = z.string()
   .min(1)
   .max(10000)
   .refine(value => !/[\r\n]/.test(value), "Must be a single line");
+const refinements = z.array(z.object({
+  index: z.number().int().min(0).max(100000),
+  kind: z.enum(["exact-line", "word", "conflict"]),
+  original: z.string().max(10000),
+  corrected: z.string().max(10000),
+  referenceMmids: z.array(z.number().int().nonnegative()).max(8),
+  hasConflict: z.boolean(),
+}).strict()).max(5000);
 const url = z.string().url().max(2048).refine(
   value => {
     try {
@@ -37,6 +45,7 @@ export const DraftSourceSchema = z.object({
 
 export const DraftGeneratedContentSchema = z.object({
   romanized: content.optional(),
+  refinements: refinements.optional(),
   meaning: content.optional(),
   about: editorial.optional(),
   whenToListen: editorial.optional(),
@@ -113,6 +122,7 @@ const SourcePatchSchema = nonEmptyPatch({
 
 const GeneratedPatchSchema = nonEmptyPatch({
   romanized: content.optional(),
+  refinements: refinements.nullable().optional(),
   meaning: content.optional(),
   about: editorial.optional(),
   whenToListen: editorial.optional(),

@@ -18,6 +18,7 @@ test("refiner reuses corrected exact lines and records conflicts without changin
   assert.deepEqual(result.ambiguousLines, [0, 2]);
   assert.equal(result.changes.length, 2);
   assert.ok(result.changes.every(change => change.kind === "exact-line"));
+  assert.deepEqual(result.changes[0].referenceMmids, [21]);
   assert.equal(generated[0].text, "Mingala ba", "original AI output stays untouched");
 });
 
@@ -29,6 +30,7 @@ test("word evidence learns repeated alignments across songs, with two anchors an
   );
   assert.equal(result.lines[0].text, "Min ko chit tal lar");
   assert.equal(result.changes[0]?.kind, "word");
+  assert.deepEqual(result.changes[0]?.referenceMmids, [3, 2, 1]);
 });
 
 test("word changes are blocked on weak evidence, missing anchors, or unknown segmentation", () => {
@@ -42,9 +44,12 @@ test("generation applies optional refinement after AI validation without changin
   const provider = new FakeContentGenerationProvider({romanized: {lines: [{index: 0, text: "Mingala ba"}]}});
   const service = new ContentGenerationService(provider, {
     findRelevant: async () => [],
-    refineGenerated: async (_source, generated) => ({lines: generated.map(line => ({...line, text: "Mingalar par"})), changes: [{index: 0, kind: "exact-line", original: "Mingala ba", corrected: "Mingalar par"}]}),
+    refineGenerated: async (_source, generated) => ({lines: generated.map(line => ({...line, text: "Mingalar par"})), changes: [{index: 0, kind: "exact-line", original: "Mingala ba", corrected: "Mingalar par", referenceMmids: [42]}]}),
   });
-  assert.deepEqual(await service.romanize({lines: [{index: 0, text: "မင်္ဂလာပါ"}]}), {lines: [{index: 0, text: "Mingalar par"}]});
+  assert.deepEqual(await service.romanize({lines: [{index: 0, text: "မင်္ဂလာပါ"}]}), {
+    lines: [{index: 0, text: "Mingalar par"}],
+    refinements: [{index: 0, kind: "exact-line", original: "Mingala ba", corrected: "Mingalar par", referenceMmids: [42], hasConflict: false}],
+  });
 });
 
 test("bad refinement cannot break validated AI output", async () => {

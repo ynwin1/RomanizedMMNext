@@ -13,6 +13,15 @@ export interface GeneratedLyricLine {
   text: string;
 }
 
+export interface RomanizationRefinement {
+  index: number;
+  kind: "exact-line" | "word" | "conflict";
+  original: string;
+  corrected: string;
+  referenceMmids: number[];
+  hasConflict: boolean;
+}
+
 export interface EditorialGenerationInput extends LyricGenerationInput {
   songName?: string;
   artistNames?: string[];
@@ -22,6 +31,7 @@ export interface EditorialGenerationInput extends LyricGenerationInput {
 
 export interface LineGenerationResult {
   lines: GeneratedLyricLine[];
+  refinements?: RomanizationRefinement[];
 }
 
 export interface EditorialGenerationResult {

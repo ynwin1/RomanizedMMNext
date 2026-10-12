@@ -9,6 +9,8 @@ import { createSongAction, generateSongAiContentAction, searchSongArtistsAction,
 import { songTextFields } from "./song-form.data";
 import { requiresGenerationOverwriteConfirmation } from "./song-generation-overwrite";
 import SpotifyTrackImport from "../spotify-track-import";
+import RomanizationRefinementReview from "@/app/components/admin/RomanizationRefinementReview";
+import type {RomanizationRefinement} from "@/modules/content-generation/domain/content-generation.types";
 
 const labels: Record<string, string> = {
   songName: "Song name", albumName: "Album", genre: "Genre", spotifyTrackId: "Spotify track ID",
@@ -278,6 +280,8 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
   const [blobChangesPending, setBlobChangesPending] = useState(false);
   const [sourceLyrics, setSourceLyrics] = useState("");
   const [aiMessage, setAiMessage] = useState("");
+  const [refinements, setRefinements] = useState<RomanizationRefinement[]>([]);
+  const [lastGeneratedRomanized, setLastGeneratedRomanized] = useState("");
   const [confirmAiOverwrite, setConfirmAiOverwrite] = useState(false);
   const [aiPending, startAiTransition] = useTransition();
   const change = (field: string, value: string) => setValues(previous => ({ ...previous, [field]: value }));
@@ -308,6 +312,8 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
       }
 
       setLyricsEntries(result.generated.lyricsV2.entries);
+      setRefinements(result.generated.refinements);
+      setLastGeneratedRomanized(result.generated.romanized);
       change("about", result.generated.about);
       change("whenToListen", result.generated.whenToListen);
       setAiMessage("Generated Romanization, Meaning, metadata, and Lyrics V2. Review and edit before saving.");
@@ -379,7 +385,8 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           </fieldset>
         )}
 
-        <LyricsV2Editor entries={lyricsEntries} setEntries={setLyricsEntries} onPendingChange={setBlobChangesPending} errorMessages={state.errors?.lyricsV2} />
+        <RomanizationRefinementReview refinements={refinements} currentLines={lastGeneratedRomanized.split("\n")} />
+        <LyricsV2Editor entries={lyricsEntries} setEntries={next => {setRefinements([]); setLyricsEntries(next);}} onPendingChange={setBlobChangesPending} errorMessages={state.errors?.lyricsV2} />
         {blobChangesPending && <p role="alert" className="text-sm text-amber-300">Apply or discard your full-lyrics edits before saving the song.</p>}
 
         <div className="grid gap-5 md:grid-cols-2">
