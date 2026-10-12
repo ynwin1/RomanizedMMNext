@@ -52,3 +52,9 @@ test("stale trusted reference keys are reported rather than silently accepted", 
   assert.equal(records.every(record => record.trust === "provisional"), true);
   assert.match(problems[0].reason, /Trusted key not found/);
 });
+
+test("fully human-reviewed catalogues can explicitly trust all imported line pairs", () => {
+  const {records} = extractReferences(songs, new Set(), true);
+  assert.equal(records.length, 5);
+  assert.ok(records.every(record => record.trust === "reviewed"));
+});

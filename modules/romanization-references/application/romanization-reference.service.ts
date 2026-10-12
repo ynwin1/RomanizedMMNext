@@ -1,5 +1,6 @@
 import type { RomanizationReference, RomanizationReferenceSource } from "./romanization-reference.types";
 import { LyricsV2Schema } from "@/modules/songs/application/lyrics-v2.validation";
+import {refineRomanization} from "./romanization-refinement";
 
 const MAX_SONGS = 30;
 const MAX_REFERENCES = 24;
@@ -22,6 +23,12 @@ function normalize(value: string): string {
 
 export class RomanizationReferenceService {
   constructor(private readonly source: RomanizationReferenceSource) {}
+
+  async refineGenerated(lines: Array<{index: number; text: string}>, generated: Array<{index: number; text: string}>) {
+    // The full corrected catalogue is the trusted source. The DB returns newest first.
+    const songs = await this.source.recentReviewedSongs(500);
+    return refineRomanization(lines, generated, songs);
+  }
 
   async findRelevant(sourceLines: string[], options: { recentSongs?: number; maxReferences?: number } = {}): Promise<RomanizationReference[]> {
     const recentSongs = Math.min(MAX_SONGS, Math.max(1, Math.trunc(options.recentSongs ?? 10)));
