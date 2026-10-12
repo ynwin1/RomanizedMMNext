@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node -r ./test-register.cjs --test --test-concurrency=1 .test-dist/tests/*.test.js"
+    "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node -r ./test-register.cjs --test --test-concurrency=1 .test-dist/tests/*.test.js && node --test tests/romanization-reference-audit.test.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.10",
