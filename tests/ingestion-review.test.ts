@@ -75,6 +75,7 @@ test("final review edits identity, source, AI output, and metadata without state
 
   assert.equal(patchSeen.identity.songName, "Corrected Song");
   assert.equal(patchSeen.generated.romanized, "Corrected romanization.");
+  assert.equal(patchSeen.generated.refinements, null, "editing lyrics invalidates generated provenance");
   assert.equal(patchSeen.generated.meaning, "Corrected meaning.");
   assert.equal(patchSeen.metadata.genre, "Rock");
   assert.equal(result.ingestion.status, "ready_for_review");

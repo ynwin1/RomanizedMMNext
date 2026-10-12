@@ -30,6 +30,8 @@ export class IngestionReviewService {
         source: { burmeseLyrics: parsed.burmeseLyrics },
         generated: {
           romanized: parsed.romanized,
+          ...(parsed.romanized !== draft.generated.romanized || parsed.burmeseLyrics !== draft.source.burmeseLyrics
+            ? {refinements: null} : {}),
           meaning: parsed.meaning,
           about: parsed.about,
           whenToListen: parsed.whenToListen,

@@ -42,7 +42,7 @@ export class IngestionRomanizationService {
       await this.drafts.update(
         draft.id,
         draft.revision,
-        { generated: { romanized: joinGeneratedLines(generated.lines) } },
+        { generated: { romanized: joinGeneratedLines(generated.lines), refinements: generated.refinements ?? null } },
         updatedBy,
       );
 

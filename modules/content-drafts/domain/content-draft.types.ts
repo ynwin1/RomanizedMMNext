@@ -1,3 +1,5 @@
+import type {RomanizationRefinement} from "@/modules/content-generation/domain/content-generation.types";
+
 export interface DraftIdentity {
   songName?: string;
 }
@@ -8,6 +10,7 @@ export interface DraftSource {
 
 export interface DraftGeneratedContent {
   romanized?: string;
+  refinements?: RomanizationRefinement[];
   meaning?: string;
   about?: string;
   whenToListen?: string;
@@ -52,3 +55,4 @@ export interface ContentDraftEntity {
 export interface ContentDraftRecord extends ContentDraftEntity {
   revision: number;
 }
+

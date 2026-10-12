@@ -27,7 +27,8 @@ export class ContentGenerationService {
       findRelevant(lines: string[], options: { recentSongs: number; maxReferences: number }): Promise<Array<{ burmese: string; romanized: string }>>;
       refineGenerated?(source: Array<{index: number; text: string}>, generated: Array<{index: number; text: string}>): Promise<{
         lines: Array<{index: number; text: string}>;
-        changes: Array<{index: number; kind: string; original: string; corrected: string}>;
+        changes: Array<{index: number; kind: "exact-line" | "word"; original: string; corrected: string; referenceMmids: number[]}>;
+        ambiguousLines?: number[];
       }>;
     },
   ) {}
@@ -57,7 +58,22 @@ export class ContentGenerationService {
         const refined = await this.references.refineGenerated(validatedInput.lines, aligned.lines);
         // Never permit a refinement to break the line alignment or lyric contract.
         const checked = this.validateAlignedLines(validatedInput, {lines: refined.lines});
-        if (evaluateGeneratedLines("romanized", checked.lines).valid) aligned = checked;
+        if (evaluateGeneratedLines("romanized", checked.lines).valid) {
+          const conflicts = new Set(refined.ambiguousLines ?? []);
+          const details: NonNullable<LineGenerationResult["refinements"]> = refined.changes.map(change => ({...change, hasConflict: conflicts.has(change.index)}));
+          const changedIndexes = new Set(refined.changes.map(change => change.index));
+          for (const index of conflicts) {
+            if (changedIndexes.has(index)) continue;
+            const line = checked.lines.find(candidate => candidate.index === index);
+            if (line) details.push({index, kind: "conflict", original: line.text, corrected: line.text, referenceMmids: [], hasConflict: true});
+          }
+          // Keep the original AI output and references for admin review, not song publication.
+          const withDetails = this.validateAlignedLines(validatedInput, {
+            lines: checked.lines,
+            ...(details.length ? {refinements: details} : {}),
+          });
+          aligned = withDetails;
+        }
       } catch {
         // Reference refinement is best effort; validated AI output stays available.
       }
