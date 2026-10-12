@@ -10,7 +10,7 @@ export function normalizeRomanized(value) {
 const validSongId = value => Number.isSafeInteger(value) && value >= 0;
 
 /** Convert a sanitized song export into independently reviewable line pairs. */
-export function extractReferences(songs, trustedKeys = new Set()) {
+export function extractReferences(songs, trustedKeys = new Set(), trustAll = false) {
   if (!Array.isArray(songs)) throw new Error("Expected an array of songs");
   const records = [];
   const problems = [];
@@ -39,7 +39,7 @@ export function extractReferences(songs, trustedKeys = new Set()) {
       const key = `${song.mmid}:${index}`;
       records.push({
         key, mmid: song.mmid, index, burmese, romanized,
-        trust: trustedKeys.has(key) ? "reviewed" : "provisional",
+        trust: trustAll || trustedKeys.has(key) ? "reviewed" : "provisional",
         updatedAt: typeof song.updatedAt === "string" ? song.updatedAt : null,
       });
     }

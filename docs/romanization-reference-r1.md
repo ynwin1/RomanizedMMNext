@@ -65,6 +65,19 @@ Only explicit trusted pairs will be eligible for high-confidence automatic
 replacement in a future phase. Unreviewed AI output is never silently elevated
 to a trusted rule.
 
+**Catalogue-wide review confirmation (R2):** If, as the site owner, you have
+manually corrected **every** exported romanization line, you can mark all pairs
+as reviewed without a per-line list:
+
+```bash
+node scripts/audit-romanization-references.mjs \
+  .romanization-work/songs.json .romanization-work/audit.json \
+  --trust-all --overwrite
+```
+
+Only use this with a catalogue you have confirmed is fully reviewed. New AI
+drafts should never be automatically classified as reviewed before approval.
+
 ## Next phases
 
 - R2: Exact-line lookup using reviewed references and sentence-case validation.

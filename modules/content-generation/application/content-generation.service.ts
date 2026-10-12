@@ -23,7 +23,13 @@ import type {
 export class ContentGenerationService {
   constructor(
     private readonly provider: ContentGenerationProvider,
-    private readonly references?: { findRelevant(lines: string[], options: { recentSongs: number; maxReferences: number }): Promise<Array<{ burmese: string; romanized: string }>> },
+    private readonly references?: {
+      findRelevant(lines: string[], options: { recentSongs: number; maxReferences: number }): Promise<Array<{ burmese: string; romanized: string }>>;
+      refineGenerated?(source: Array<{index: number; text: string}>, generated: Array<{index: number; text: string}>): Promise<{
+        lines: Array<{index: number; text: string}>;
+        changes: Array<{index: number; kind: string; original: string; corrected: string}>;
+      }>;
+    },
   ) {}
 
   async romanize(input: LyricGenerationInput): Promise<LineGenerationResult> {
@@ -43,9 +49,19 @@ export class ContentGenerationService {
       ...validatedInput,
       ...(examples.length ? { references: examples.map(({ burmese, romanized }) => ({ burmese, romanized })) } : {}),
     });
-    const aligned = this.validateAlignedLines(validatedInput, generated);
+    let aligned = this.validateAlignedLines(validatedInput, generated);
     const quality = evaluateGeneratedLines("romanized", aligned.lines);
     if (!quality.valid) throw new GeneratedContentQualityError(quality.issues);
+    if (this.references?.refineGenerated) {
+      try {
+        const refined = await this.references.refineGenerated(validatedInput.lines, aligned.lines);
+        // Never permit a refinement to break the line alignment or lyric contract.
+        const checked = this.validateAlignedLines(validatedInput, {lines: refined.lines});
+        if (evaluateGeneratedLines("romanized", checked.lines).valid) aligned = checked;
+      } catch {
+        // Reference refinement is best effort; validated AI output stays available.
+      }
+    }
     return aligned;
   }
 
