@@ -3,6 +3,7 @@ import SearchBar from "@/app/components/searchbar/SearchBar";
 import type {Metadata} from "next";
 import {notFound} from "next/navigation";
 import SyncedLyricsPlayer from "@/app/components/sync-lyrics/SyncedLyricsPlayer";
+import Moodometer from "@/app/components/music-box/Moodometer";
 import {getTranslations, setRequestLocale} from "next-intl/server";
 import Image from '@/app/components/media/ResilientImage';
 import SongReportButton from "@/app/components/buttons/SongReportButton";
@@ -15,7 +16,7 @@ import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService} from "@/modules/songs";
-import {SongIdSchema, lyricTimingService} from "@/modules/songs";
+import {SongIdSchema, lyricTimingService, moodometerService} from "@/modules/songs";
 import { extractYouTubeVideoId } from "@/modules/songs/application/lyric-timing.service";
 import {NotFoundError} from "@/shared/errors/not-found.error";
 import { logger } from "@/infrastructure/logging/logger";
@@ -126,6 +127,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         try { return await lyricTimingService.load(song.mmid, videoId, true); }
         catch { return null; }
     }));
+    const publishedMood = await moodometerService.publicResult(song.mmid).catch(error => { logger.error("Failed to load published Moodometer", error); return null; });
     const timing = song.lyricsV2 && timingTracks.some(Boolean)
         ? { lyricsV2: song.lyricsV2, videoIds, tracks: Object.fromEntries(timingTracks.flatMap((track, i) => track ? [[videoIds[i], track]] : [])) }
         : undefined;
@@ -171,6 +173,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 </div>
             </header>
 
+            {publishedMood && <Moodometer moods={publishedMood.analysis.moods} summary={publishedMood.analysis.summary} locale={locale}/>}
+    
             <section aria-label="Song lyrics and playback" id="song-lyrics" className="min-w-0">
                 <SyncedLyricsPlayer extLinks={{youtube: song.youtubeLink, spotify: song.spotifyLink, apple: song.appleMusicLink}} lyrics={{romanized: song.romanized, burmese: song.burmese, meaning: song.meaning, initialOption: option}} timing={timing} />
             </section>
