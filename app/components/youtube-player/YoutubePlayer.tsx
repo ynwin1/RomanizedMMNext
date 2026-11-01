@@ -40,6 +40,7 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
             origin: {x: bounds.left, y: bounds.top},
         };
         event.currentTarget.setPointerCapture(event.pointerId);
+        setPosition({x: bounds.left, y: bounds.top});
         setDragging(true);
     };
     const onDragMove = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -52,21 +53,30 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
         floatingRef.current.offsetWidth, floatingRef.current.offsetHeight));
     };
     const onDragEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
-        if (dragRef.current?.pointerId !== event.pointerId) return;
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        const player = floatingRef.current;
+        // Compute the final position from the release event, not from React's
+        // last painted rectangle (which may lag behind touch pointer events).
+        if (player && event.type === "pointerup") {
+            const finalPosition = clampFloatingPosition({
+                x: drag.origin.x + event.clientX - drag.x,
+                y: drag.origin.y + event.clientY - drag.y,
+            }, window.innerWidth, window.innerHeight, player.offsetWidth, player.offsetHeight);
+            const nextSide = snapFloatingPosition(finalPosition,
+                window.innerWidth, window.innerHeight, player.offsetWidth, player.offsetHeight).x
+                < window.innerWidth / 2 ? "left" : "right";
+            setSide(nextSide);
+        }
         dragRef.current = null;
         setDragging(false);
-        if (floatingRef.current) {
-            const bounds = floatingRef.current.getBoundingClientRect();
-            const snapped = snapFloatingPosition({x: bounds.left, y: bounds.top}, window.innerWidth, window.innerHeight, bounds.width, bounds.height);
-            setSide(snapped.x < window.innerWidth / 2 ? "left" : "right");
-            setPosition(null);
-        }
+        setPosition(null);
     };
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsFixed(!inView);
-            if (inView) { setPosition(null); setDragging(false); dragRef.current = null; }
+            if (inView) { setPosition(null); setDragging(false); dragRef.current = null; setSide("right"); }
         }, 100);
 
         return () => clearTimeout(timer);
@@ -108,14 +118,15 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
         >
             <div
                 ref={floatingRef}
-                style={isFixed ? position && dragging
+                style={isFixed ? dragging && position
                     ? {left: position.x, top: position.y, right: "auto", bottom: "auto"}
-                    : {bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", top: "auto"}
+                    : {left: side === "left" ? 12 : "auto", right: side === "right" ? 12 : "auto",
+                        bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", top: "auto"}
                     : undefined}
                 className={`
           ${dragging ? "" : "transition-[left,right,bottom] duration-200 ease-out"}
           ${isFixed
-                    ? `fixed ${side === "left" ? "left-3 right-auto" : "right-3 left-auto"} w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]`
+                    ? `fixed w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]`
                     : 'w-[30vw] h-[20vw] max-md:w-[80vw] max-md:h-[25vh]'
                 }
         `}

@@ -17,3 +17,11 @@ test("snap side preserves edge choice regardless of vertical drag coordinate", (
   assert.equal(left.x, 12);
   assert.equal(right.x, 178);
 });
+
+test("mobile release position snaps correctly to both sides",()=>{
+  const rightStart={x:178,y:690};
+  const rightRelease=clampFloatingPosition({x:rightStart.x+40,y:rightStart.y-20},390,844,200,113);
+  assert.equal(snapFloatingPosition(rightRelease,390,844,200,113).x,178);
+  const leftRelease=clampFloatingPosition({x:rightStart.x-175,y:rightStart.y-20},390,844,200,113);
+  assert.equal(snapFloatingPosition(leftRelease,390,844,200,113).x,12);
+});
