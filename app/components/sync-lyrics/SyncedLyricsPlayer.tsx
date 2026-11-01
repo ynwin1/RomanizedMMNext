@@ -144,17 +144,15 @@ const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps)
             onProgress={handleProgress}
             onVideoChange={index => { setVideoIndex(index); setCurrentTime(0); }}
             />
-            {syncAvailable && <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
-                <input type="checkbox" checked={syncEnabled} onChange={event => setSyncEnabled(event.target.checked)}
-                    className="h-4 w-4 accent-accent" aria-label="Sync lyrics" />
-                Sync lyrics
-            </label>}
             <LyricsSection 
             romanized={lyrics.romanized} 
             burmese={lyrics.burmese} 
             meaning={lyrics.meaning} 
             selectedOption={selectedOption}
             hasTimestamps={hasTimestamps}
+            syncAvailable={syncAvailable}
+            syncEnabled={syncEnabled}
+            onSyncToggle={() => setSyncEnabled(value => !value)}
             customRenderer={renderSyncedLyrics}
             onOptionChange={setSelectedOption}
             />
