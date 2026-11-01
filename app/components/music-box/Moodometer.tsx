@@ -40,6 +40,5 @@ export default function Moodometer({moods,locale}:{moods:MoodScore[];locale:stri
         </div>;
       })}
     </div>
-    <p className="mt-2 text-xs text-muted">{isMyanmar?"AI က သီချင်းစာသားကို အခြေခံ၍ ခန့်မှန်းထားသော စိတ်ခံစားချက်များ ဖြစ်ပါသည်။":"AI interpretation of the lyrics, not an audio measurement."}</p>
   </section>;
 }
