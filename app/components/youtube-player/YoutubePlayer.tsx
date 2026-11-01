@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { clampFloatingPosition, snapFloatingPosition, type FloatingPosition } from './floating-position';
 import { useInView } from "react-intersection-observer";
 import type ReactPlayer from "react-player";
 import dynamic from "next/dynamic";
@@ -24,6 +25,50 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
         rootMargin: "-50px 0px"
     });
     const playerRef = useRef<ReactPlayer>(null);
+    const floatingRef = useRef<HTMLDivElement>(null);
+    const dragRef = useRef<{pointerId: number; x: number; y: number; origin: FloatingPosition} | null>(null);
+    const [position, setPosition] = useState<FloatingPosition | null>(null);
+    const [dragging, setDragging] = useState(false);
+
+    useEffect(() => {
+        const keepOnScreen = () => setPosition(previous => previous
+            ? clampFloatingPosition(previous, window.innerWidth, window.innerHeight,
+                floatingRef.current?.offsetWidth ?? 200, floatingRef.current?.offsetHeight ?? 140)
+            : null);
+        window.addEventListener('resize', keepOnScreen);
+        return () => window.removeEventListener('resize', keepOnScreen);
+    }, []);
+
+    const onDragStart = (event: React.PointerEvent<HTMLButtonElement>) => {
+        if (!isFixed || !floatingRef.current) return;
+        const bounds = floatingRef.current.getBoundingClientRect();
+        dragRef.current = {
+            pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+            origin: {x: bounds.left, y: bounds.top},
+        };
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDragging(true);
+    };
+    const onDragMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+        const drag = dragRef.current;
+        if (!drag || drag.pointerId !== event.pointerId || !floatingRef.current) return;
+        setPosition(clampFloatingPosition({
+            x: drag.origin.x + event.clientX - drag.x,
+            y: drag.origin.y + event.clientY - drag.y,
+        }, window.innerWidth, window.innerHeight,
+        floatingRef.current.offsetWidth, floatingRef.current.offsetHeight));
+    };
+    const onDragEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
+        if (dragRef.current?.pointerId !== event.pointerId) return;
+        dragRef.current = null;
+        setDragging(false);
+        if (floatingRef.current) {
+            const bounds = floatingRef.current.getBoundingClientRect();
+            setPosition(snapFloatingPosition(
+                {x: bounds.left, y: bounds.top},
+                window.innerWidth, window.innerHeight, bounds.width, bounds.height));
+        }
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -68,14 +113,22 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
             className="min-h-[226px] w-full flex justify-center items-center mb-4"
         >
             <div
+                ref={floatingRef}
+                style={isFixed && position ? {left: position.x, top: position.y, right: "auto", bottom: "auto"} : undefined}
                 className={`
-          transition-all duration-300 ease-in-out
+          ${dragging ? "" : "transition-[width,height,left,top] duration-200 ease-out"}
           ${isFixed
                     ? 'fixed bottom-8 right-8 w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]'
                     : 'w-[30vw] h-[20vw] max-md:w-[80vw] max-md:h-[25vh]'
                 }
         `}
             >
+                {isFixed && <button type="button" aria-label="Drag video player" title="Drag video player"
+                    onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd}
+                    onPointerCancel={onDragEnd}
+                    className="absolute -top-8 right-0 z-10 flex h-8 touch-none select-none items-center rounded-t-lg bg-zinc-900/90 px-4 text-xs text-white shadow cursor-grab active:cursor-grabbing">
+                    <span aria-hidden="true" className="mr-2">⠿</span> Drag
+                </button>}
                 <div className="relative w-full h-full">
                     <BrowserReactPlayer
                         url={links[currentLinkIdx]}
