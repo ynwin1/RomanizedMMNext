@@ -173,7 +173,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 </div>
             </header>
 
-            {publishedMood && <Moodometer moods={publishedMood.analysis.moods} summary={publishedMood.analysis.summary} locale={locale}/>}
+            {publishedMood && <Moodometer moods={publishedMood.analysis.moods} locale={locale}/>}
     
             <section aria-label="Song lyrics and playback" id="song-lyrics" className="min-w-0">
                 <SyncedLyricsPlayer extLinks={{youtube: song.youtubeLink, spotify: song.spotifyLink, apple: song.appleMusicLink}} lyrics={{romanized: song.romanized, burmese: song.burmese, meaning: song.meaning, initialOption: option}} timing={timing} />
