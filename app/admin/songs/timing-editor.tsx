@@ -18,6 +18,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   const [videoId, setVideoId] = useState(recordings[0].videoId);
   const [times, setTimes] = useState<Record<number, {startMs?: number; endMs?: number}>>({});
   const [seconds, setSeconds] = useState(0);
+  const [playing, setPlaying] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
@@ -25,7 +26,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   const player = useRef<ReactPlayer>(null);
   const rows: Row[] = useMemo(() => lyrics.entries.flatMap((entry, index) =>
     entry.kind === "line" ? [{entryIndex: index, burmese: entry.burmese, romanized: entry.romanized}] : []), [lyrics]);
-  const validationErrors = useMemo(() => validateDraftTimes(times), [times]);
+  const validationErrors = useMemo(() => validateDraftTimes(times, rows.map(row => row.entryIndex)), [times, rows]);
   const completedLines = useMemo(() => draftTimingLines(times), [times]);
   const activeIndex = activeTimingIndex(completedLines, Math.round(seconds * 1000));
   const recording = recordings.find(item => item.videoId === videoId) ?? recordings[0];
@@ -58,7 +59,12 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     change(index, field, secondsToMilliseconds(seconds));
   }
   function seek(startMs: number | undefined) {
-    if (startMs !== undefined) player.current?.seekTo(startMs / 1000, "seconds");
+    if (startMs === undefined) return;
+    // Seek and play immediately without scrolling to the YouTube iframe.
+    player.current?.seekTo(startMs / 1000, "seconds");
+    setSeconds(startMs / 1000);
+    setPlaying(true);
+    player.current?.getInternalPlayer()?.playVideo?.();
   }
   async function save(status: "draft" | "published" = "draft") {
     setBusy(true);
@@ -90,6 +96,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
       <select value={videoId} onChange={event => {
         if (dirty && !window.confirm("Discard unsaved timing changes?")) return;
         setVideoId(event.target.value);
+        setPlaying(false);
         setSeconds(0);
       }} className="mt-2 w-full rounded border border-zinc-700 bg-zinc-900 p-3">
         {recordings.map((item, index) => <option key={item.videoId} value={item.videoId}>Recording {index + 1} — {item.videoId}</option>)}
@@ -97,7 +104,8 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     </label>
     <div className="max-w-3xl space-y-2">
       <div className="aspect-video overflow-hidden rounded border border-zinc-700 bg-black">
-        <VideoPlayer key={videoId} url={recording.url} controls width="100%" height="100%"
+        <VideoPlayer key={videoId} url={recording.url} controls playing={playing} width="100%" height="100%"
+          onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)}
           ref={player} onProgress={state => setSeconds(state.playedSeconds)} />
       </div>
       <p className="text-sm text-zinc-400">Current playback: <strong className="text-zinc-100">{seconds.toFixed(2)}s</strong>. Play the video, then capture the start and end of each line.</p>
@@ -134,8 +142,10 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
                 </button>)}
             </span>)}
             <button type="button" onClick={() => seek(timing.startMs)} disabled={timing.startMs === undefined}
-              className="rounded border border-zinc-600 px-3 py-2 text-sm disabled:opacity-40">Seek</button>
+              className="rounded border border-zinc-600 px-3 py-2 text-sm disabled:opacity-40">Seek &amp; play</button>
           </div>
+          {validationErrors.filter(error => error.startsWith(`Line ${n + 1}:`)).map(error =>
+            <p key={error} role="alert" className="mt-3 rounded bg-amber-950/30 p-2 text-sm text-amber-200">{error}</p>)}
         </div>;
       })}
     </div>
