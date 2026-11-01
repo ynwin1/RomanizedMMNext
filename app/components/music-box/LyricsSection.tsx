@@ -9,6 +9,9 @@ interface LyricsSectionProps {
   meaning: string;
   selectedOption: string;
   hasTimestamps: boolean;
+  syncAvailable?: boolean;
+  syncEnabled?: boolean;
+  onSyncToggle?: () => void;
   customRenderer: (lyrics: string) => React.ReactNode;
   onOptionChange: (option: string) => void;
 }
@@ -24,7 +27,7 @@ const SETTINGS_KEY = "RomanizedMM_lyricsReadingSettings";
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const fontSizeLabel = (size: number) => size <= 16 ? "Small" : size <= 20 ? "Comfortable" : size <= 25 ? "Large" : "Extra large";
 
-const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestamps, customRenderer, onOptionChange}: LyricsSectionProps) => {
+const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestamps, syncAvailable, syncEnabled, onSyncToggle, customRenderer, onOptionChange}: LyricsSectionProps) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const {replace} = useRouter();
@@ -115,6 +118,16 @@ const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestam
           </button>
         </div>
       )}
+      {syncAvailable && <div className="flex justify-end">
+        <button type="button" role="switch" aria-label="Sync lyrics" aria-checked={Boolean(syncEnabled)}
+          onClick={onSyncToggle}
+          className="inline-flex min-h-11 items-center gap-3 rounded-md px-2 text-sm text-foreground hover:bg-surface">
+          <span>Sync lyrics</span>
+          <span aria-hidden="true" className={`relative h-6 w-11 rounded-full transition-colors ${syncEnabled ? "bg-accent" : "bg-theme-border"}`}>
+            <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${syncEnabled ? "translate-x-6" : "translate-x-1"}`} />
+          </span>
+        </button>
+      </div>}
       {hasTimestamps && <p className="text-center text-xs leading-relaxed text-muted">{translator("sync")}</p>}
       <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground">{translator("lyrics")}</h2>
       <div className="min-w-0 whitespace-pre-wrap break-words border border-theme-border bg-surface px-4 py-6 text-left text-foreground sm:px-8 sm:py-8 sm:text-center"
