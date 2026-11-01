@@ -27,19 +27,21 @@ interface SyncedLyricsPlayerProps {
 const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps) => {
     const [currentTime, setCurrentTime] = useState(0);
     const [videoIndex, setVideoIndex] = useState(0);
+    const [syncEnabled, setSyncEnabled] = useState(true);
     const track = timing?.tracks[timing.videoIds[videoIndex] ?? ""] ?? null;
     const [activeLyricIndex, setActiveLyricIndex] = useState(0);
 
     const [playerVisible, setPlayerVisible] = useState(true);
     const [selectedOption, setSelectedOption] = useState(lyrics.initialOption);
     const aligned = timing?.lyricsV2 && track ? syncedEntries(timing.lyricsV2, selectedOption) : null;
-    const activeEntry = activeSyncedEntry(track, Math.round(currentTime * 1000));
+    const activeEntry = syncEnabled ? activeSyncedEntry(track, Math.round(currentTime * 1000)) : null;
 
     // Compute the selected text during rendering, including the initial server render.
     // useEffect runs only in the browser, so it must not populate the first set of lyric lines.
     const selectedText = selectLyricsText(lyrics, selectedOption);
     const parsedLyrics = useMemo(() => parseLyricsWithTimestamps(selectedText), [selectedText]);
-    const hasTimestamps = Boolean(aligned) || parsedLyrics.some(lyric => lyric.startTime >= 0);
+    const syncAvailable = Boolean(aligned) || parsedLyrics.some(lyric => lyric.startTime >= 0);
+    const hasTimestamps = syncEnabled && syncAvailable;
 
     // Highlight active lyric based on current time
     useEffect(() => {
@@ -67,7 +69,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps)
 
     // Handle clicking on a lyric line to seek
     const handleLyricClick = (startTime: number) => {
-        if (startTime >= 0 && playerVisible) {
+        if (syncEnabled && startTime >= 0 && playerVisible) {
             const event = new CustomEvent('seek-youtube', { 
                 detail: { time: startTime } 
             });
@@ -105,7 +107,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps)
     const renderSyncedLyrics = () => aligned ? (
         <div className="w-full">{aligned.map(line => {
             const timingLine = track?.lines.find(item => item.entryIndex === line.entryIndex);
-            const seekable = playerVisible && timingLine && !line.isBreak;
+            const seekable = syncEnabled && playerVisible && timingLine && !line.isBreak;
             const className = `block w-full whitespace-pre-wrap break-words py-1 transition-colors ${activeEntry === line.entryIndex && playerVisible ? "font-semibold text-accent" : "text-inherit"}`;
             return seekable ? <button key={line.entryIndex} type="button" className={className + " cursor-pointer text-left sm:text-center hover:text-accent-hover"} onClick={() => handleLyricClick(timingLine.startMs / 1000)}>{line.text || "\u00a0"}</button> :
                 <div key={line.entryIndex} className={className}>{line.text || "\u00a0"}</div>;
@@ -113,7 +115,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps)
     ) : (
         <div className="w-full">
             {parsedLyrics.map((lyric, index) => {
-                const seekable = playerVisible && lyric.startTime >= 0;
+                const seekable = syncEnabled && playerVisible && lyric.startTime >= 0;
                 const active = seekable && index === activeLyricIndex;
                 const className = `block w-full whitespace-pre-wrap break-words py-1 text-inherit transition-colors ${
                     active ? "font-semibold text-accent" : seekable ? "hover:text-accent-hover" : ""
@@ -142,6 +144,11 @@ const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps)
             onProgress={handleProgress}
             onVideoChange={index => { setVideoIndex(index); setCurrentTime(0); }}
             />
+            {syncAvailable && <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
+                <input type="checkbox" checked={syncEnabled} onChange={event => setSyncEnabled(event.target.checked)}
+                    className="h-4 w-4 accent-accent" aria-label="Sync lyrics" />
+                Sync lyrics
+            </label>}
             <LyricsSection 
             romanized={lyrics.romanized} 
             burmese={lyrics.burmese} 
