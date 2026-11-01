@@ -29,15 +29,8 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
     const dragRef = useRef<{pointerId: number; x: number; y: number; origin: FloatingPosition} | null>(null);
     const [position, setPosition] = useState<FloatingPosition | null>(null);
     const [dragging, setDragging] = useState(false);
+    const [side, setSide] = useState<"left" | "right">("right");
 
-    useEffect(() => {
-        const keepOnScreen = () => setPosition(previous => previous
-            ? clampFloatingPosition(previous, window.innerWidth, window.innerHeight,
-                floatingRef.current?.offsetWidth ?? 200, floatingRef.current?.offsetHeight ?? 140)
-            : null);
-        window.addEventListener('resize', keepOnScreen);
-        return () => window.removeEventListener('resize', keepOnScreen);
-    }, []);
 
     const onDragStart = (event: React.PointerEvent<HTMLButtonElement>) => {
         if (!isFixed || !floatingRef.current) return;
@@ -64,15 +57,16 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
         setDragging(false);
         if (floatingRef.current) {
             const bounds = floatingRef.current.getBoundingClientRect();
-            setPosition(snapFloatingPosition(
-                {x: bounds.left, y: bounds.top},
-                window.innerWidth, window.innerHeight, bounds.width, bounds.height));
+            const snapped = snapFloatingPosition({x: bounds.left, y: bounds.top}, window.innerWidth, window.innerHeight, bounds.width, bounds.height);
+            setSide(snapped.x < window.innerWidth / 2 ? "left" : "right");
+            setPosition(null);
         }
     };
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsFixed(!inView);
+            if (inView) { setPosition(null); setDragging(false); dragRef.current = null; }
         }, 100);
 
         return () => clearTimeout(timer);
@@ -114,11 +108,14 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
         >
             <div
                 ref={floatingRef}
-                style={isFixed && position ? {left: position.x, top: position.y, right: "auto", bottom: "auto"} : undefined}
+                style={isFixed ? position && dragging
+                    ? {left: position.x, top: position.y, right: "auto", bottom: "auto"}
+                    : {bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", top: "auto"}
+                    : undefined}
                 className={`
-          ${dragging ? "" : "transition-[width,height,left,top] duration-200 ease-out"}
+          ${dragging ? "" : "transition-[left,right,bottom] duration-200 ease-out"}
           ${isFixed
-                    ? 'fixed bottom-8 right-8 w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]'
+                    ? `fixed ${side === "left" ? "left-3 right-auto" : "right-3 left-auto"} w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]`
                     : 'w-[30vw] h-[20vw] max-md:w-[80vw] max-md:h-[25vh]'
                 }
         `}

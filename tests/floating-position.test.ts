@@ -10,3 +10,10 @@ test("floating player snaps to nearest horizontal edge", () => {
   assert.equal(snapFloatingPosition({x:20,y:200}, 1000, 800, 400, 226).x,12);
   assert.equal(snapFloatingPosition({x:700,y:200}, 1000, 800, 400, 226).x,588);
 });
+
+test("snap side preserves edge choice regardless of vertical drag coordinate", () => {
+  const left = snapFloatingPosition({x:30,y:120}, 390, 844, 200, 113);
+  const right = snapFloatingPosition({x:180,y:650}, 390, 844, 200, 113);
+  assert.equal(left.x, 12);
+  assert.equal(right.x, 178);
+});
