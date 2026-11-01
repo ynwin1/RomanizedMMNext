@@ -1,3 +1,5 @@
+import { MoodometerService } from "./application/moodometer.service";
+import { MongoMoodometerRepository } from "./infrastructure/moodometer.repository";
 import { analyzeMoodometer } from "./application/moodometer.analysis";
 import { createMoodometerOpenAIGenerator, MOODOMETER_MODEL } from "./infrastructure/moodometer.openai";
 import { SongService } from "./application/song.service";
@@ -41,3 +43,5 @@ export async function generateSongMoodPreview(mmid: number) {
     apiKey: process.env.OPENAI_API_KEY ?? "",
   }), MOODOMETER_MODEL);
 }
+
+export const moodometerService = new MoodometerService(new MongoMoodometerRepository(), async mmid => (await songService.getByMmid(mmid)).lyricsV2);
