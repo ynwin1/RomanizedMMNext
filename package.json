@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "check:boundaries": "node scripts/check-boundaries.mjs",
+    "evaluate:moodometer": "tsc -p tsconfig.test.json && node scripts/evaluate-moodometer.mjs",
     "evaluate:romanization": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/evaluate-romanization.mjs",
     "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node -r ./test-register.cjs --test --test-concurrency=1 .test-dist/tests/*.test.js && node --test tests/romanization-reference-audit.test.mjs"
   },
