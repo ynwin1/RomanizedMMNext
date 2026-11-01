@@ -41,7 +41,8 @@ export async function generateSongMoodPreview(mmid: number) {
     lyrics: song.lyricsV2,
   }, createMoodometerOpenAIGenerator({
     apiKey: process.env.OPENAI_API_KEY ?? "",
-  }), MOODOMETER_MODEL);
+    model: process.env.MOODOMETER_MODEL || MOODOMETER_MODEL,
+  }), process.env.MOODOMETER_MODEL || MOODOMETER_MODEL);
 }
 
 export const moodometerService = new MoodometerService(new MongoMoodometerRepository(), async mmid => (await songService.getByMmid(mmid)).lyricsV2);
