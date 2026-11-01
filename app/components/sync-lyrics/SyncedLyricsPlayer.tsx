@@ -2,9 +2,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { parseLyricsWithTimestamps, selectLyricsText } from './lyrics-parser';
 import ExtLinks from '../music-box/ExtLinks';
+import type { LyricsV2 } from '@/modules/songs/domain/lyrics-v2.types';
+import type { LyricTimingTrack } from '@/modules/songs/domain/lyric-timing.types';
+import { syncedEntries, activeSyncedEntry } from './timing-display';
 import LyricsSection from '../music-box/LyricsSection';
 
 interface SyncedLyricsPlayerProps {
+    timing?: { lyricsV2: LyricsV2; tracks: Record<string, LyricTimingTrack>; videoIds: string[] };
     extLinks: {
         youtube: string[] | undefined,
         spotify: string | undefined,
@@ -20,18 +24,22 @@ interface SyncedLyricsPlayerProps {
     }
 }
 
-const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
+const SyncedLyricsPlayer = ({extLinks, lyrics, timing}: SyncedLyricsPlayerProps) => {
     const [currentTime, setCurrentTime] = useState(0);
+    const [videoIndex, setVideoIndex] = useState(0);
+    const track = timing?.tracks[timing.videoIds[videoIndex] ?? ""] ?? null;
     const [activeLyricIndex, setActiveLyricIndex] = useState(0);
 
     const [playerVisible, setPlayerVisible] = useState(true);
     const [selectedOption, setSelectedOption] = useState(lyrics.initialOption);
+    const aligned = timing?.lyricsV2 && track ? syncedEntries(timing.lyricsV2, selectedOption) : null;
+    const activeEntry = activeSyncedEntry(track, Math.round(currentTime * 1000));
 
     // Compute the selected text during rendering, including the initial server render.
     // useEffect runs only in the browser, so it must not populate the first set of lyric lines.
     const selectedText = selectLyricsText(lyrics, selectedOption);
     const parsedLyrics = useMemo(() => parseLyricsWithTimestamps(selectedText), [selectedText]);
-    const hasTimestamps = parsedLyrics.some(lyric => lyric.startTime >= 0);
+    const hasTimestamps = Boolean(aligned) || parsedLyrics.some(lyric => lyric.startTime >= 0);
 
     // Highlight active lyric based on current time
     useEffect(() => {
@@ -94,7 +102,15 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
     };
 
     // Only timestamped lines with an available player are interactive.
-    const renderSyncedLyrics = () => (
+    const renderSyncedLyrics = () => aligned ? (
+        <div className="w-full">{aligned.map(line => {
+            const timingLine = track?.lines.find(item => item.entryIndex === line.entryIndex);
+            const seekable = playerVisible && timingLine && !line.isBreak;
+            const className = `block w-full whitespace-pre-wrap break-words py-1 transition-colors ${activeEntry === line.entryIndex && playerVisible ? "font-semibold text-accent" : "text-inherit"}`;
+            return seekable ? <button key={line.entryIndex} type="button" className={className + " cursor-pointer text-left sm:text-center hover:text-accent-hover"} onClick={() => handleLyricClick(timingLine.startMs / 1000)}>{line.text || "\u00a0"}</button> :
+                <div key={line.entryIndex} className={className}>{line.text || "\u00a0"}</div>;
+        })}</div>
+    ) : (
         <div className="w-full">
             {parsedLyrics.map((lyric, index) => {
                 const seekable = playerVisible && lyric.startTime >= 0;
@@ -124,6 +140,7 @@ const SyncedLyricsPlayer = ({extLinks, lyrics}: SyncedLyricsPlayerProps) => {
             playerVisible={playerVisible}
             onYoutubeToggle={handleTogglePlayer}
             onProgress={handleProgress}
+            onVideoChange={index => { setVideoIndex(index); setCurrentTime(0); }}
             />
             <LyricsSection 
             romanized={lyrics.romanized} 
