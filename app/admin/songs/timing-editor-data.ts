@@ -21,21 +21,42 @@ export function activeTimingIndex(lines: Array<{entryIndex: number; startMs: num
   return active?.entryIndex ?? null;
 }
 
-export function validateDraftTimes(rows: Record<number, {startMs?: number; endMs?: number}>): string[] {
+/** Diagnose conflicts using displayed lyric rows, not LyricsV2 break-inclusive indices. */
+export function validateDraftTimes(
+  rows: Record<number, {startMs?: number; endMs?: number}>,
+  visibleEntryIndices?: number[],
+): string[] {
   const errors: string[] = [];
+  const sorted = Object.entries(rows).sort((a, b) => Number(a[0]) - Number(b[0]));
+  const visibleNumber = (entryIndex: number) => {
+    const index = visibleEntryIndices?.indexOf(entryIndex) ?? -1;
+    return index >= 0 ? index + 1 : entryIndex + 1;
+  };
+  const seconds = (ms: number) => (ms / 1000).toFixed(2) + "s";
   let lastEnd = -1;
-  for (const [index, row] of Object.entries(rows).sort((a,b)=>Number(a[0])-Number(b[0]))) {
+  let lastEntry = -1;
+  for (const [index, row] of sorted) {
+    const entryIndex = Number(index);
+    const label = `Line ${visibleNumber(entryIndex)}:`;
     const {startMs, endMs} = row;
     if (startMs === undefined && endMs === undefined) continue;
     if (startMs === undefined || endMs === undefined) {
-      errors.push(`Line ${Number(index)+1}: set both start and end to save this line.`);
+      errors.push(`${label} set both start and end (start: ${startMs === undefined ? "unset" : seconds(startMs)}, end: ${endMs === undefined ? "unset" : seconds(endMs)}).`);
       continue;
     }
-    if (!Number.isInteger(startMs) || !Number.isInteger(endMs) || startMs < 0 || endMs <= startMs) {
-      errors.push(`Line ${Number(index)+1}: end must be after start, with non-negative times.`);
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) ||
+        !Number.isInteger(startMs) || !Number.isInteger(endMs) ||
+        startMs < 0 || endMs <= startMs) {
+      errors.push(`${label} end must be after start (start: ${seconds(startMs)}, end: ${seconds(endMs)}).`);
+      continue;
     }
-    if (startMs < lastEnd) errors.push(`Line ${Number(index)+1}: overlaps a preceding line.`);
-    lastEnd = Math.max(lastEnd, endMs);
+    if (startMs < lastEnd) {
+      errors.push(`${label} starts at ${seconds(startMs)} but Line ${visibleNumber(lastEntry)} ends at ${seconds(lastEnd)} (overlap: ${seconds(lastEnd - startMs)}).`);
+    }
+    if (endMs > lastEnd) {
+      lastEnd = endMs;
+      lastEntry = entryIndex;
+    }
   }
   return errors;
 }
