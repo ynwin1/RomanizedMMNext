@@ -15,7 +15,7 @@ export function moodometerBarWidth(score:number): string {
   return `${Math.min(100,Math.max(0,score*10))}%`;
 }
 
-export default function Moodometer({moods,summary,locale}:{moods:MoodScore[];summary:string;locale:string}) {
+export default function Moodometer({moods,locale}:{moods:MoodScore[];locale:string}) {
   const isMyanmar=locale==="my";
   return <section aria-label="Moodometer" className="mx-auto w-full max-w-3xl rounded-xl border border-theme-border bg-surface p-5 sm:p-6">
     <div className="mb-5">
@@ -40,7 +40,6 @@ export default function Moodometer({moods,summary,locale}:{moods:MoodScore[];sum
         </div>;
       })}
     </div>
-    <p className="mt-5 border-t border-theme-border pt-4 text-sm leading-relaxed text-muted">{summary}</p>
     <p className="mt-2 text-xs text-muted">{isMyanmar?"AI က သီချင်းစာသားကို အခြေခံ၍ ခန့်မှန်းထားသော စိတ်ခံစားချက်များ ဖြစ်ပါသည်။":"AI interpretation of the lyrics, not an audio measurement."}</p>
   </section>;
 }
