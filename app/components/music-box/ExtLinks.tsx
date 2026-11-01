@@ -9,9 +9,10 @@ interface ExtLinksProps {
   playerVisible: boolean;
   onYoutubeToggle: (isVisible: boolean) => void;
   onProgress: (playedSeconds: number) => void;
+  onVideoChange?: (index: number) => void;
 }
 
-const ExtLinks = ({youtube, spotify, apple, playerVisible, onYoutubeToggle, onProgress}: ExtLinksProps) => {
+const ExtLinks = ({youtube, spotify, apple, playerVisible, onYoutubeToggle, onProgress, onVideoChange}: ExtLinksProps) => {
   const hasYoutube = Boolean(youtube?.length);
   const hasExternal = Boolean(spotify || apple);
   return (
@@ -39,7 +40,7 @@ const ExtLinks = ({youtube, spotify, apple, playerVisible, onYoutubeToggle, onPr
           )}
         </div>
       )}
-      {hasYoutube && playerVisible && <div className="w-full min-w-0"><YoutubePlayer links={youtube!} onProgress={onProgress} /></div>}
+      {hasYoutube && playerVisible && <div className="w-full min-w-0"><YoutubePlayer links={youtube!} onProgress={onProgress} onVideoChange={onVideoChange} /></div>}
     </section>
   );
 };

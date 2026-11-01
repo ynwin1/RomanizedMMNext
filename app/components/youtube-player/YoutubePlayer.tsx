@@ -13,9 +13,10 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 interface YoutubePlayerProps {
     links: string[];
     onProgress: (playedSeconds: number) => void;
+    onVideoChange?: (index: number) => void;
 }
 
-const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
+const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) => {
     const [isFixed, setIsFixed] = useState(false);
     const [currentLinkIdx, setCurrentLinkIdx] = useState(0);
     const { ref, inView } = useInView({
@@ -92,14 +93,14 @@ const YoutubePlayer = ({links, onProgress}: YoutubePlayerProps) => {
                 <div className="flex justify-center items-center gap-2 mt-4">
                     <button 
                     className="transform transition-all duration-300 hover:scale-90 hover:text-accent"
-                    onClick={() => setCurrentLinkIdx((prev) => Math.max(0, prev - 1))}
+                    onClick={() => setCurrentLinkIdx(prev => { const next = Math.max(0, prev - 1); onVideoChange?.(next); return next; })}
                     disabled={currentLinkIdx === 0}
                     >
                         <ChevronLeftIcon className="w-8 h-8" />
                     </button>
                     <button 
                     className="transform transition-all duration-300 hover:scale-90 hover:text-accent"
-                    onClick={() => setCurrentLinkIdx((prev) => Math.min(links.length - 1, prev + 1))}
+                    onClick={() => setCurrentLinkIdx(prev => { const next = Math.min(links.length - 1, prev + 1); onVideoChange?.(next); return next; })}
                     disabled={currentLinkIdx === links.length - 1}
                     >
                         <ChevronRightIcon className="w-8 h-8" />

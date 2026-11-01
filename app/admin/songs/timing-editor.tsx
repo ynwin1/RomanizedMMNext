@@ -21,6 +21,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [published, setPublished] = useState(false);
   const player = useRef<ReactPlayer>(null);
   const rows: Row[] = useMemo(() => lyrics.entries.flatMap((entry, index) =>
     entry.kind === "line" ? [{entryIndex: index, burmese: entry.burmese, romanized: entry.romanized}] : []), [lyrics]);
@@ -37,6 +38,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     setDirty(false);
     getLyricTimingAction(mmid, videoId).then(track => {
       if (!active) return;
+      setPublished(track?.status === "published");
       setTimes(Object.fromEntries((track?.lines ?? []).map(line =>
         [line.entryIndex, {startMs: line.startMs, endMs: line.endMs}])));
       setMessage(track ? `Loaded ${track.status} timing track.` : "No timing draft yet.");
@@ -49,6 +51,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   function change(index: number, field: "startMs" | "endMs", value: number | undefined) {
     setTimes(previous => ({...previous, [index]: {...previous[index], [field]: value}}));
     setDirty(true);
+    setPublished(false);
     setMessage("");
   }
   function capture(index: number, field: "startMs" | "endMs") {
@@ -57,18 +60,20 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   function seek(startMs: number | undefined) {
     if (startMs !== undefined) player.current?.seekTo(startMs / 1000, "seconds");
   }
-  async function save() {
+  async function save(status: "draft" | "published" = "draft") {
     setBusy(true);
     setMessage("");
     try {
       if (validationErrors.length) throw new Error("Correct incomplete or invalid timing rows before saving.");
       const lines: LyricTimingLine[] = draftTimingLines(times);
+      if (status === "published" && lines.length !== rows.length) throw new Error("All lyric lines need timings before publication.");
       const track: LyricTimingTrack = {
-        version: 1, youtubeVideoId: videoId, lyricsFingerprint: fingerprint, status: "draft", lines,
+        version: 1, youtubeVideoId: videoId, lyricsFingerprint: fingerprint, status, lines,
       };
       await saveLyricTimingAction(mmid, track);
       setDirty(false);
-      setMessage(`Draft saved (${lines.length}/${rows.length} lines). Publication comes in a later phase.`);
+      setPublished(status === "published");
+      setMessage(`${status === "published" ? "Published" : "Draft saved"} (${lines.length}/${rows.length} lines).`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Couldn't save timing draft.");
     } finally { setBusy(false); }
@@ -135,8 +140,12 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
       })}
     </div>
     <div className="sticky bottom-0 flex flex-wrap items-center gap-4 border-t border-zinc-700 bg-zinc-950 p-4">
-      <button type="button" disabled={busy || validationErrors.length > 0} onClick={save}
+      <button type="button" disabled={busy || validationErrors.length > 0} onClick={() => save("draft")}
         className="rounded bg-indigo-600 px-5 py-3 font-medium text-white disabled:opacity-50">{busy ? "Working…" : "Save draft"}</button>
+      <button type="button" disabled={busy || validationErrors.length > 0 || completedLines.length !== rows.length}
+        onClick={() => save("published")}
+        className="rounded border border-emerald-500 px-5 py-3 font-medium text-emerald-200 disabled:opacity-40">Publish timings</button>
+      {published && !dirty && <span className="text-sm text-emerald-300">Published</span>}
       {dirty && <span className="text-sm text-amber-300">Unsaved edits</span>}
       {message && <span role="status" className="text-sm text-zinc-300">{message}</span>}
     </div>
