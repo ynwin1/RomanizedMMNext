@@ -63,12 +63,12 @@ interface SongPageProps {
 export const revalidate: number = 3600; // 24 hours
 
 const ArtistRow = ({ label, artists, locale }: { label: string, artists: SongPageArtist[], locale: string }) => (
-    <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-        <span className="text-muted font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
-        <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-4">
+        <span className="text-sm font-semibold text-accent">{label}:</span>
+        <div className="flex min-w-0 flex-wrap gap-x-2 gap-y-1">
             {artists.map((artist, index) => {
                 const content = (
-                    <span className={`md:flex-1 leading-[2rem] -mt-1 
+                    <span className={`leading-relaxed 
                     ${artist.slug ? "hover:text-accent hover:cursor-pointer underline" : "" }`}
                     >
                         {artist.name}
@@ -93,9 +93,9 @@ const ArtistRow = ({ label, artists, locale }: { label: string, artists: SongPag
 );
 
 const DetailRow = ({ label, value }: {label: string, value: string}) => (
-    <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-        <span className="text-muted font-medium md:min-w-40 whitespace-nowrap">{label}:</span>
-        <span className="text-foreground md:flex-1 leading-[2rem] -mt-1">{value}</span>
+    <div className="grid grid-cols-1 gap-1 sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-4">
+        <span className="text-sm font-semibold text-accent">{label}:</span>
+        <span className="min-w-0 break-words text-sm leading-relaxed text-muted">{value}</span>
     </div>
 );
 
@@ -150,15 +150,13 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 <div className="min-w-0">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent">RomanizedMM · Lyrics</p>
                     <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">{song.songName}</h1>
-                    <div className="mt-3 text-base text-muted"><ArtistRow label={translator("artist")} artists={song.artistName} locale={locale} /></div>
-                    {(song.genre || song.albumName) && <p className="mt-2 text-sm text-accent">{[song.genre, song.albumName].filter(Boolean).join(" · ")}</p>}
-                    {song.about && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{song.about}</p>}
-                    {song.whenToListen && (
-                        <div className="mt-3 text-sm leading-relaxed text-muted">
-                            <span className="font-semibold text-accent">{translator("whenToListen")}: </span>
-                            {song.whenToListen}
-                        </div>
-                    )}
+                    <div className="mt-5 space-y-3 text-sm text-muted">
+                        <ArtistRow label={translator("artist")} artists={song.artistName} locale={locale} />
+                        {song.genre && <DetailRow label={translator("genre")} value={song.genre} />}
+                        {song.albumName && <DetailRow label={translator("album")} value={song.albumName} />}
+                        {song.about && <DetailRow label={translator("about")} value={song.about} />}
+                        {song.whenToListen && <DetailRow label={translator("whenToListen")} value={song.whenToListen} />}
+                    </div>
                 </div>
             </header>
 
