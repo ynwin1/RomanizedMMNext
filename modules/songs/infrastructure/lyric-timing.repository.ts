@@ -22,3 +22,8 @@ export class MongoLyricTimingRepository implements TimingStorage {
       {$set: {...track, mmid}}, {upsert: true, runValidators: true});
   }
 }
+
+/** Admin recovery only: retrieve the untouched stored record even if lyrics changed. */
+export async function loadRawLyricTimingTrack(mmid: number, videoId: string): Promise<LyricTimingTrack | null> {
+  return new MongoLyricTimingRepository().load(mmid, videoId);
+}

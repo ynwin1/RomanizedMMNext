@@ -2,6 +2,7 @@ import { SongService } from "./application/song.service";
 import { LyricTimingService } from "./application/lyric-timing.service";
 import { MongoLyricTimingRepository } from "./infrastructure/lyric-timing.repository";
 import { MongoSongRepository } from "./infrastructure/song.repository";
+import { loadRawLyricTimingTrack } from "./infrastructure/lyric-timing.repository";
 import { MongoRomanizationReferenceSource } from "./infrastructure/mongo-romanization-reference.source";
 
 const songRepository = new MongoSongRepository();
@@ -22,3 +23,5 @@ export * from "./application/lyrics-v2.validation";
 export * from "./application/lyrics-v2.builder";
 export * from "./application/song-write.error";
 
+
+export { loadRawLyricTimingTrack };

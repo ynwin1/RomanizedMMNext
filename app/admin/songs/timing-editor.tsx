@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type ReactPlayer from "react-player";
 import type { LyricsV2 } from "@/modules/songs/domain/lyrics-v2.types";
 import type { LyricTimingLine, LyricTimingTrack } from "@/modules/songs/domain/lyric-timing.types";
-import { getLyricTimingAction, saveLyricTimingAction } from "./lyric-timing-actions";
+import { getLyricTimingAction, saveLyricTimingAction, recoverStoredLyricTimingAction } from "./lyric-timing-actions";
 import { draftTimingLines, secondsToMilliseconds, nudgeTime, activeTimingIndex, validateDraftTimes } from "./timing-editor-data";
 
 const VideoPlayer = dynamic(() => import("react-player"), {ssr: false});
@@ -23,6 +23,8 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   const [message, setMessage] = useState("");
   const [dirty, setDirty] = useState(false);
   const [published, setPublished] = useState(false);
+  const [recovered, setRecovered] = useState(false);
+  const [localLoaded, setLocalLoaded] = useState(false);
   const player = useRef<ReactPlayer>(null);
   const rows: Row[] = useMemo(() => lyrics.entries.flatMap((entry, index) =>
     entry.kind === "line" ? [{entryIndex: index, burmese: entry.burmese, romanized: entry.romanized}] : []), [lyrics]);
@@ -40,11 +42,25 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     getLyricTimingAction(mmid, videoId).then(track => {
       if (!active) return;
       setPublished(track?.status === "published");
-      setTimes(Object.fromEntries((track?.lines ?? []).map(line =>
-        [line.entryIndex, {startMs: line.startMs, endMs: line.endMs}])));
-      setMessage(track ? `Loaded ${track.status} timing track.` : "No timing draft yet.");
+      const storedTimes = Object.fromEntries((track?.lines ?? []).map(line =>
+        [line.entryIndex, {startMs: line.startMs, endMs: line.endMs}]));
+      let backup: {times: typeof storedTimes; fingerprint: string; savedAt: number} | null = null;
+      try {
+        const saved = localStorage.getItem(`RomanizedMM_timing_backup_${mmid}_${videoId}`);
+        if (saved) backup = JSON.parse(saved);
+      } catch {}
+      if (backup?.times && typeof backup.times === "object") {
+        setTimes(backup.times);
+        setDirty(true);
+        setMessage("Recovered a local backup. Review and save it before leaving.");
+        setRecovered(true);
+      } else {
+        setTimes(storedTimes);
+        setMessage(track ? `Loaded ${track.status} timing track.` : "No valid timing track loaded. Try recovering the stored recording if you saved previously.");
+      }
+      setLocalLoaded(true);
     }).catch(error => {
-      if (active) setMessage(error instanceof Error ? error.message : "Failed to load timings.");
+      if (active) { setMessage(error instanceof Error ? error.message : "Failed to load timings."); setLocalLoaded(true); }
     }).finally(() => { if (active) setBusy(false); });
     return () => { active = false; };
   }, [mmid, videoId]);
@@ -70,7 +86,8 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     setBusy(true);
     setMessage("");
     try {
-      if (validationErrors.length) throw new Error("Correct incomplete or invalid timing rows before saving.");
+      if (status === "published" && validationErrors.length) throw new Error("Correct invalid timing rows before publishing.");
+      if (status === "draft" && validationErrors.length) throw new Error("Draft includes incomplete or invalid timing pairs. Your local backup remains available; correct the highlighted rows to save.");
       const lines: LyricTimingLine[] = draftTimingLines(times);
       if (status === "published" && lines.length !== rows.length) throw new Error("All lyric lines need timings before publication.");
       const track: LyricTimingTrack = {
@@ -82,6 +99,21 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
       setMessage(`${status === "published" ? "Published" : "Draft saved"} (${lines.length}/${rows.length} lines).`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Couldn't save timing draft.");
+    } finally { setBusy(false); }
+  }
+
+  async function recoverStored() {
+    setBusy(true);
+    try {
+      const track = await recoverStoredLyricTimingAction(mmid, videoId);
+      if (!track) { setMessage("No stored track was found for this recording. Check the selected YouTube video."); return; }
+      if (dirty && !window.confirm("Replace current edits with the stored track?")) return;
+      setTimes(Object.fromEntries(track.lines.map(line => [line.entryIndex, {startMs: line.startMs, endMs: line.endMs}])));
+      setDirty(true);
+      setRecovered(true);
+      setMessage("Recovered the stored track, including timestamps from an older lyric version. Review it before saving.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Recovery failed.");
     } finally { setBusy(false); }
   }
 
@@ -150,11 +182,14 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
       })}
     </div>
     <div className="sticky bottom-0 flex flex-wrap items-center gap-4 border-t border-zinc-700 bg-zinc-950 p-4">
-      <button type="button" disabled={busy || validationErrors.length > 0} onClick={() => save("draft")}
+      <button type="button" disabled={busy} onClick={() => save("draft")}
         className="rounded bg-indigo-600 px-5 py-3 font-medium text-white disabled:opacity-50">{busy ? "Working…" : "Save draft"}</button>
       <button type="button" disabled={busy || validationErrors.length > 0 || completedLines.length !== rows.length}
         onClick={() => save("published")}
         className="rounded border border-emerald-500 px-5 py-3 font-medium text-emerald-200 disabled:opacity-40">Publish timings</button>
+      <button type="button" disabled={busy} onClick={recoverStored}
+        className="rounded border border-amber-600 px-4 py-3 text-sm text-amber-200 disabled:opacity-40">Recover saved track</button>
+      {recovered && <span className="text-sm text-amber-300">Recovered timestamps are not published until revalidated.</span>}
       {published && !dirty && <span className="text-sm text-emerald-300">Published</span>}
       {dirty && <span className="text-sm text-amber-300">Unsaved edits</span>}
       {message && <span role="status" className="text-sm text-zinc-300">{message}</span>}
