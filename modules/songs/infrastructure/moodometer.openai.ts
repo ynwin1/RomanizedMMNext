@@ -1,7 +1,7 @@
 import { MOOD_IDS } from "../domain/moodometer.types";
 import type { MoodometerTextGenerator } from "../application/moodometer.analysis";
 
-export const MOODOMETER_MODEL = "gpt-4o-mini";
+export const MOODOMETER_MODEL = "gpt-5";
 
 type OpenAIResponse = {
   status?: string;
@@ -18,7 +18,7 @@ export function createMoodometerOpenAIGenerator(config: {
   const fetcher = config.fetcher ?? fetch;
   return async (instructions: string) => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
     try {
       const response = await fetcher("https://api.openai.com/v1/responses", {
         method: "POST",
@@ -30,7 +30,8 @@ export function createMoodometerOpenAIGenerator(config: {
           model: config.model ?? MOODOMETER_MODEL,
           store: false,
           input: [{role: "user", content: instructions}],
-          max_output_tokens: 600,
+          reasoning: {effort: "minimal"},
+          max_output_tokens: 1400,
           text: {format: {
             type: "json_schema",
             name: "moodometer_scores",
@@ -59,7 +60,14 @@ export function createMoodometerOpenAIGenerator(config: {
         }),
         signal: controller.signal,
       });
-      if (!response.ok) throw new Error(`Moodometer AI request failed (HTTP ${response.status})`);
+      if (!response.ok) {
+        let code = "";
+        try {
+          const detail = await response.json() as {error?: {code?: string; type?: string}};
+          code = detail.error?.code ?? detail.error?.type ?? "";
+        } catch { /* Do not reveal provider text or credentials to the browser. */ }
+        throw new Error(`Moodometer AI request failed (HTTP ${response.status}${code ? `, ${code.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60)}` : ""}). Check API model access and project permissions.`);
+      }
       const result = await response.json() as OpenAIResponse;
       if (result.status !== "completed") {
         throw new Error("Moodometer AI did not complete the analysis");
