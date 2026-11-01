@@ -1,10 +1,13 @@
 import { SongService } from "./application/song.service";
+import { LyricTimingService } from "./application/lyric-timing.service";
+import { MongoLyricTimingRepository } from "./infrastructure/lyric-timing.repository";
 import { MongoSongRepository } from "./infrastructure/song.repository";
 import { MongoRomanizationReferenceSource } from "./infrastructure/mongo-romanization-reference.source";
 
 const songRepository = new MongoSongRepository();
 
 export const songService = new SongService(songRepository);
+export const lyricTimingService = new LyricTimingService(new MongoLyricTimingRepository(), mmid => songService.getByMmid(mmid));
 export const romanizationReferenceSource = new MongoRomanizationReferenceSource();
 
 export * from "./domain/song.types";
