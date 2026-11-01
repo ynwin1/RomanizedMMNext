@@ -124,7 +124,7 @@ const LyricsSection = ({romanized, burmese, meaning, selectedOption, hasTimestam
           className="inline-flex min-h-11 items-center gap-3 rounded-md px-2 text-sm text-foreground hover:bg-surface">
           <span>Sync lyrics</span>
           <span aria-hidden="true" className={`relative h-6 w-11 rounded-full transition-colors ${syncEnabled ? "bg-accent" : "bg-theme-border"}`}>
-            <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${syncEnabled ? "translate-x-6" : "translate-x-1"}`} />
+            <span className={`absolute left-0 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${syncEnabled ? "translate-x-6" : "translate-x-1"}`} />
           </span>
         </button>
       </div>}
