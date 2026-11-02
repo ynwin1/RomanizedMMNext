@@ -1,3 +1,4 @@
+import {selectMissingMoodCandidates} from "./application/moodometer.backfill";
 import { discoverSongsByMood } from "./infrastructure/mood-discovery.repository";
 import type { MoodId } from "./domain/moodometer.types";
 import { MoodometerModel } from "./infrastructure/moodometer.model";
@@ -68,4 +69,16 @@ export async function exportMoodometerReviewTemplate() {
 
 export async function discoverMoodSongs(mood:MoodId) {
   return discoverSongsByMood(songService,mood);
+}
+
+/** Admin-only callers: show a bounded list of songs without any Moodometer history. */
+export async function listMoodometerMissingSongs() {
+ await connectDB();
+ const [songs, existing] = await Promise.all([
+  songService.getCatalogueSongs(),
+  MoodometerModel.distinct("mmid"),
+ ]);
+ return selectMissingMoodCandidates(songs,new Set(existing),20).map(song=>({
+  mmid:song.mmid,songName:song.songName,artistName:song.artistName.map(a=>a.name).join(", "),
+ }));
 }
