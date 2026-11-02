@@ -5,10 +5,27 @@ import { NotFoundError } from "@/shared/errors/not-found.error";
 import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 import { songFormInput, type SongFormState } from "./song-form.data";
 
+export async function runOptionalMoodDraft(
+  requested: boolean,
+  songId: number,
+  generate: ((id: number) => Promise<void>) | undefined,
+  logFailure: (error: unknown) => void,
+): Promise<"ready" | "failed" | undefined> {
+  if (!requested || !generate) return undefined;
+  try {
+    await generate(songId);
+    return "ready";
+  } catch (error) {
+    logFailure(error);
+    return "failed";
+  }
+}
+
 export function createSongActionHandler(dependencies: {
   authorize: () => Promise<AdminWritePrincipal>;
   songs: Pick<SongService, "createSong" | "updateSong">;
-  saved: (id: number) => never;
+  saved: (id: number, moodStatus?: "ready" | "failed") => never;
+  afterCreate?: (id: number) => Promise<void>;
   logFailure: (error: unknown) => void;
 }) {
   function failure(error: unknown): SongFormState {
@@ -37,7 +54,8 @@ export function createSongActionHandler(dependencies: {
       } catch (error) {
         return failure(error);
       }
-      return dependencies.saved(id);
+      const moodStatus = await runOptionalMoodDraft(form.get("generateMoodDraft") === "on", id, dependencies.afterCreate, dependencies.logFailure);
+      return dependencies.saved(id, moodStatus);
     },
 
     async update(id: number, revision: number, _previous: SongFormState, form: FormData): Promise<SongFormState> {

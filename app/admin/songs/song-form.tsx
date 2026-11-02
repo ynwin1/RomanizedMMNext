@@ -402,6 +402,10 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
           <textarea name="youtubeLink" rows={3} value={youtube} onChange={event => setYoutube(event.target.value)} className={inputClass} aria-invalid={!!state.errors?.youtubeLink} />{errors("youtubeLink")}
         </label>
         <label className="flex items-center gap-3"><input type="checkbox" name="isRequested" checked={requested} onChange={event => setRequested(event.target.checked)} />This song came from a listener request</label>
+        {!song && <label className="flex items-center gap-3 rounded-lg border border-zinc-700 p-3 text-sm">
+          <input type="checkbox" name="generateMoodDraft" defaultChecked />
+          Generate a Moodometer draft after creating this song (uses AI tokens; review before publishing)
+        </label>}
         <div className="flex items-center gap-5">
           <button type="submit" disabled={blobChangesPending} className="rounded bg-indigo-600 px-5 py-3 font-medium hover:bg-indigo-500 disabled:opacity-50">{pending ? "Saving…" : song ? "Save changes" : "Create song"}</button>
           <Link href="/admin/songs" className="underline">Back to songs</Link>
