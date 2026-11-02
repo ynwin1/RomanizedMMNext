@@ -1,4 +1,5 @@
 import React from 'react'
+import SongDiscoveryTabs from "@/app/components/catalogue/SongDiscoveryTabs";
 import Link from "next/link";
 import {Metadata} from "next";
 import Pagination from "@/app/components/catalogue/Pagination";
@@ -53,6 +54,7 @@ const Page = async ({ params, searchParams }: SongCataloguePageProps) => {
                 <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted">{translator("description")}</p>
                 <Link href={`/${locale}/song-request`} className="mt-5 inline-flex min-h-11 items-center border-b border-accent text-sm font-semibold text-accent hover:text-foreground">{translator("requestSong")} →</Link>
             </header>
+            <div className="mb-7"><SongDiscoveryTabs locale={locale} active="catalogue" /></div>
             <div className="mb-7 flex flex-col gap-4 rounded-xl border border-theme-border bg-surface p-4 sm:p-5">
                 <CatalogueSearch initialQuery={query} locale={locale} />
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-theme-border-subtle pt-3">

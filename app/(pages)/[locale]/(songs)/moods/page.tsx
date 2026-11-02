@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SongDiscoveryTabs from "@/app/components/catalogue/SongDiscoveryTabs";
 import {setRequestLocale} from "next-intl/server";
 import {MOOD_IDS} from "@/modules/songs/domain/moodometer.types";
 import {isMoodId} from "@/modules/songs/application/mood-discovery";
@@ -25,6 +26,7 @@ export default async function MoodPage({params,searchParams}:{
      <h1 className="text-3xl font-bold text-foreground">Discover by mood</h1>
      <p className="text-muted">Explore Burmese songs by the feelings in their lyrics.</p>
    </header>
+   <SongDiscoveryTabs locale={locale} active="moods" />
    <nav aria-label="Choose a mood" className="flex flex-wrap gap-2">
      {MOOD_IDS.map(id=><Link key={id} href={`/${locale}/moods?mood=${id}`}
        aria-current={selected===id?"page":undefined}
