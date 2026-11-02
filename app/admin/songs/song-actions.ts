@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
-import { songService } from "@/modules/songs";
+import { songService, generateSongMoodPreview, moodometerService } from "@/modules/songs";
 import { artistService } from "@/modules/artists";
 import { AdminSongGenerationService } from "@/modules/admin";
 import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
@@ -15,9 +15,13 @@ import type { SongFormState } from "./song-form.data";
 const actions = createSongActionHandler({
   authorize: requireAdmin,
   songs: songService,
-  saved(id) {
+  async afterCreate(id) {
+    const draft = await generateSongMoodPreview(id);
+    await moodometerService.saveDraft(id, draft);
+  },
+  saved(id, moodStatus) {
     revalidatePath("/", "layout");
-    redirect("/admin/songs/" + id + "/edit?saved=1");
+    redirect("/admin/songs/" + id + "/edit?saved=1" + (moodStatus ? "&mood=" + moodStatus : ""));
   },
   logFailure(error) { logger.error("Admin song save failed", error); },
 });

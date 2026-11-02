@@ -4,10 +4,11 @@ import { requireAdmin } from "@/infrastructure/auth";
 import { songService, SongIdSchema } from "@/modules/songs";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import SongForm from "../../song-form";
+import MoodometerEditor from "../../moodometer-editor";
 import { AdminAuditMeta } from "../../../admin-audit-meta";
 
 export default async function EditSongPage({ params, searchParams }: {
-  params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }>;
+  params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; mood?: string }>;
 }) {
   await requireAdmin();
   const { id } = await params;
@@ -17,13 +18,19 @@ export default async function EditSongPage({ params, searchParams }: {
     if (error instanceof NotFoundError) notFound();
     throw error;
   });
-  const { saved } = await searchParams;
+  const { saved, mood } = await searchParams;
   return <section>
     <h1 className="text-3xl font-bold">Edit song</h1>
     {saved === "1" && <p role="status" className="mt-4 text-emerald-300">Song saved successfully.</p>}
     {Boolean(song.youtubeLink?.length && song.lyricsV2) && <p className="my-4"><Link href={`/admin/songs/${song.mmid}/sync`} className="inline-block rounded border border-indigo-500 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-950">Synchronize YouTube lyrics</Link></p>}
     {Boolean(song.lyricsV2) && <p className="my-4"><Link href={`/admin/songs/${song.mmid}/moodometer`} className="inline-block rounded border border-indigo-500 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-950">Moodometer — Analyze Mood</Link></p>}
+    {mood === "ready" && <p role="status" className="mt-3 text-emerald-300">Moodometer draft generated. Review and publish it below when ready.</p>}
+    {mood === "failed" && <p role="alert" className="mt-3 text-amber-300">Song saved, but Moodometer generation failed. You can try again below.</p>}
     <AdminAuditMeta createdAt={song.createdAt} updatedAt={song.updatedAt} updatedBy={song.updatedBy} />
     <SongForm key={song.mmid + ":" + song.revision} song={song} />
+    {Boolean(song.lyricsV2) && <section className="mt-10 border-t border-zinc-700 pt-8">
+      <h2 className="mb-4 text-2xl font-semibold">Moodometer</h2>
+      <MoodometerEditor mmid={song.mmid}/>
+    </section>}
   </section>;
 }
