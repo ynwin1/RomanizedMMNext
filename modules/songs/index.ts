@@ -1,3 +1,7 @@
+import { MoodometerModel } from "./infrastructure/moodometer.model";
+import connectDB from "@/infrastructure/database/mongodb";
+import { createMoodometerReviewTemplate } from "./application/moodometer.review-export";
+import { MoodometerAnalysisSchema } from "./application/moodometer.validation";
 import { MoodometerService } from "./application/moodometer.service";
 import { MongoMoodometerRepository } from "./infrastructure/moodometer.repository";
 import { analyzeMoodometer } from "./application/moodometer.analysis";
@@ -46,3 +50,16 @@ export async function generateSongMoodPreview(mmid: number) {
 }
 
 export const moodometerService = new MoodometerService(new MongoMoodometerRepository(), async mmid => (await songService.getByMmid(mmid)).lyricsV2);
+
+/** Read-only admin export of current published analyses; no scores are regenerated. */
+export async function exportMoodometerReviewTemplate() {
+  await connectDB();
+  const records = await MoodometerModel.find({"analysis.status":"published"})
+    .sort({createdAt:-1,_id:-1}).limit(500).lean();
+  return createMoodometerReviewTemplate(records.map(record => ({
+    id:String(record._id),
+    mmid:record.mmid,
+    analysis:MoodometerAnalysisSchema.parse(record.analysis),
+    createdAt:record.createdAt,
+  })));
+}
