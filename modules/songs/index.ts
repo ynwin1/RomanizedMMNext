@@ -1,3 +1,5 @@
+import { discoverSongsByMood } from "./infrastructure/mood-discovery.repository";
+import type { MoodId } from "./domain/moodometer.types";
 import { MoodometerModel } from "./infrastructure/moodometer.model";
 import connectDB from "@/infrastructure/database/mongodb";
 import { createMoodometerReviewTemplate } from "./application/moodometer.review-export";
@@ -62,4 +64,8 @@ export async function exportMoodometerReviewTemplate() {
     analysis:MoodometerAnalysisSchema.parse(record.analysis),
     createdAt:record.createdAt,
   })));
+}
+
+export async function discoverMoodSongs(mood:MoodId) {
+  return discoverSongsByMood(songService,mood);
 }
