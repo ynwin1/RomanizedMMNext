@@ -1,3 +1,5 @@
+import {buildMoodReviewQueue} from "./application/moodometer.review-queue";
+import type {QueueRecord} from "./application/moodometer.review-queue";
 import {selectMissingMoodCandidates} from "./application/moodometer.backfill";
 import { discoverSongsByMood } from "./infrastructure/mood-discovery.repository";
 import type { MoodId } from "./domain/moodometer.types";
@@ -81,4 +83,26 @@ export async function listMoodometerMissingSongs() {
  return selectMissingMoodCandidates(songs,new Set(existing),20).map(song=>({
   mmid:song.mmid,songName:song.songName,artistName:song.artistName.map(a=>a.name).join(", "),
  }));
+}
+
+/** Admin-only inventory: compares latest stored analyses with the song's current lyrics. */
+export async function listMoodReviewQueue() {
+ await connectDB();
+ const catalogue=await songService.getCatalogueSongs();
+ const ids=catalogue.map(song=>song.mmid);
+ const [fullSongs,records]=await Promise.all([
+   ids.length?songService.getSongsByMmids(ids):[],
+   MoodometerModel.find({}).select("mmid analysis.status analysis.lyricsFingerprint createdAt")
+     .sort({createdAt:-1,_id:-1}).lean(),
+ ]);
+ const byId=new Map(fullSongs.map(song=>[song.mmid,song]));
+ const rows:QueueRecord[]=records.map(record=>({
+   mmid:record.mmid,status:record.analysis.status,
+   lyricsFingerprint:record.analysis.lyricsFingerprint,createdAt:record.createdAt,
+ }));
+ return buildMoodReviewQueue(catalogue.map(song=>({
+   mmid:song.mmid,songName:song.songName,
+   artistName:song.artistName.map(a=>a.name).join(", "),
+   lyricsV2:byId.get(song.mmid)?.lyricsV2,
+ })),rows);
 }

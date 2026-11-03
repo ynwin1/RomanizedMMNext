@@ -6,7 +6,7 @@ import { AdminListView, EmptyAdminRow, adminDate } from "../admin-list-view";
 export default async function SongsPage({ searchParams }: { searchParams: Promise<AdminSearchParams> }) {
   const query = parseAdminSearchParams(await searchParams);
   const page = await adminReads.listSongs(query);
-  return <><div className="mb-6 flex flex-wrap gap-3"><Link href="/admin/songs/moodometer-backfill" className="inline-block rounded border border-indigo-500 px-4 py-2 text-indigo-200">Generate missing Moodometer drafts</Link></div><Link href="/admin/songs/new" className="mb-6 inline-block rounded bg-indigo-600 px-4 py-2">Create song</Link><AdminListView title="Songs" base="/admin/songs" query={query} page={page}
+  return <><div className="mb-6 flex flex-wrap gap-3"><Link href="/admin/songs/moodometer-queue" className="inline-block rounded border border-indigo-500 px-4 py-2 text-indigo-200">Moodometer review queue</Link><Link href="/admin/songs/moodometer-backfill" className="inline-block rounded border border-indigo-500 px-4 py-2 text-indigo-200">Generate missing Moodometer drafts</Link></div><Link href="/admin/songs/new" className="mb-6 inline-block rounded bg-indigo-600 px-4 py-2">Create song</Link><AdminListView title="Songs" base="/admin/songs" query={query} page={page}
     headers={["ID", "Song", "Artists", "Genre", "Added (UTC)", "Actions"]}
     rows={page.items.length ? page.items.map(song => <tr key={song.mmid}>
       <td className="p-4">{song.mmid}</td><td className="p-4">{song.songName}</td>
