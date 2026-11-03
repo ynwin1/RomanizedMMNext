@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { clampFloatingPosition, snapFloatingPosition, type FloatingPosition } from './floating-position';
 import { useInView } from "react-intersection-observer";
 import type ReactPlayer from "react-player";
 import dynamic from "next/dynamic";
@@ -25,58 +24,9 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
         rootMargin: "-50px 0px"
     });
     const playerRef = useRef<ReactPlayer>(null);
-    const floatingRef = useRef<HTMLDivElement>(null);
-    const dragRef = useRef<{pointerId: number; x: number; y: number; origin: FloatingPosition} | null>(null);
-    const [position, setPosition] = useState<FloatingPosition | null>(null);
-    const [dragging, setDragging] = useState(false);
-    const [side, setSide] = useState<"left" | "right">("right");
-
-
-    const onDragStart = (event: React.PointerEvent<HTMLButtonElement>) => {
-        if (!isFixed || !floatingRef.current) return;
-        const bounds = floatingRef.current.getBoundingClientRect();
-        dragRef.current = {
-            pointerId: event.pointerId, x: event.clientX, y: event.clientY,
-            origin: {x: bounds.left, y: bounds.top},
-        };
-        event.currentTarget.setPointerCapture(event.pointerId);
-        setPosition({x: bounds.left, y: bounds.top});
-        setDragging(true);
-    };
-    const onDragMove = (event: React.PointerEvent<HTMLButtonElement>) => {
-        const drag = dragRef.current;
-        if (!drag || drag.pointerId !== event.pointerId || !floatingRef.current) return;
-        setPosition(clampFloatingPosition({
-            x: drag.origin.x + event.clientX - drag.x,
-            y: drag.origin.y + event.clientY - drag.y,
-        }, window.innerWidth, window.innerHeight,
-        floatingRef.current.offsetWidth, floatingRef.current.offsetHeight));
-    };
-    const onDragEnd = (event: React.PointerEvent<HTMLButtonElement>) => {
-        const drag = dragRef.current;
-        if (!drag || drag.pointerId !== event.pointerId) return;
-        const player = floatingRef.current;
-        // Compute the final position from the release event, not from React's
-        // last painted rectangle (which may lag behind touch pointer events).
-        if (player && event.type === "pointerup") {
-            const finalPosition = clampFloatingPosition({
-                x: drag.origin.x + event.clientX - drag.x,
-                y: drag.origin.y + event.clientY - drag.y,
-            }, window.innerWidth, window.innerHeight, player.offsetWidth, player.offsetHeight);
-            const nextSide = snapFloatingPosition(finalPosition,
-                window.innerWidth, window.innerHeight, player.offsetWidth, player.offsetHeight).x
-                < window.innerWidth / 2 ? "left" : "right";
-            setSide(nextSide);
-        }
-        dragRef.current = null;
-        setDragging(false);
-        setPosition(null);
-    };
-
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsFixed(!inView);
-            if (inView) { setPosition(null); setDragging(false); dragRef.current = null; setSide("right"); }
         }, 100);
 
         return () => clearTimeout(timer);
@@ -117,26 +67,11 @@ const YoutubePlayer = ({links, onProgress, onVideoChange}: YoutubePlayerProps) =
             className="min-h-[226px] w-full flex justify-center items-center mb-4"
         >
             <div
-                ref={floatingRef}
-                style={isFixed ? dragging && position
-                    ? {left: position.x, top: position.y, right: "auto", bottom: "auto"}
-                    : {left: side === "left" ? 12 : "auto", right: side === "right" ? 12 : "auto",
-                        bottom: "calc(12px + env(safe-area-inset-bottom, 0px))", top: "auto"}
-                    : undefined}
-                className={`
-          ${dragging ? "" : "transition-[left,right,bottom] duration-200 ease-out"}
-          ${isFixed
-                    ? `fixed w-[400px] h-[226px] z-30 max-md:w-[200px] max-md:h-[113px]`
-                    : 'w-[30vw] h-[20vw] max-md:w-[80vw] max-md:h-[25vh]'
-                }
-        `}
+                className={`${isFixed
+                    ? "fixed bottom-[calc(12px+env(safe-area-inset-bottom,0px))] right-3 z-30 h-[226px] w-[400px] max-md:h-[113px] max-md:w-[200px]"
+                    : "h-[20vw] w-[30vw] max-md:h-[25vh] max-md:w-[80vw]"
+                }`}
             >
-                {isFixed && <button type="button" aria-label="Drag video player" title="Drag video player"
-                    onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd}
-                    onPointerCancel={onDragEnd}
-                    className="absolute -top-8 right-0 z-10 flex h-8 touch-none select-none items-center rounded-t-lg bg-zinc-900/90 px-4 text-xs text-white shadow cursor-grab active:cursor-grabbing">
-                    <span aria-hidden="true" className="mr-2">⠿</span> Drag
-                </button>}
                 <div className="relative w-full h-full">
                     <BrowserReactPlayer
                         url={links[currentLinkIdx]}
