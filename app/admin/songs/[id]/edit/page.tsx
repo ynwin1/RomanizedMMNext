@@ -28,7 +28,7 @@ export default async function EditSongPage({ params, searchParams }: {
     {mood === "failed" && <p role="alert" className="mt-3 text-amber-300">Song saved, but Moodometer generation failed. You can try again below.</p>}
     <AdminAuditMeta createdAt={song.createdAt} updatedAt={song.updatedAt} updatedBy={song.updatedBy} />
     <SongForm key={song.mmid + ":" + song.revision} song={song} />
-    {Boolean(song.lyricsV2) && <section className="mt-10 border-t border-zinc-700 pt-8">
+    {Boolean(song.lyricsV2) && <section id="moodometer" className="mt-10 border-t border-zinc-700 pt-8">
       <h2 className="mb-4 text-2xl font-semibold">Moodometer</h2>
       <MoodometerEditor mmid={song.mmid}/>
     </section>}
