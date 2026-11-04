@@ -52,7 +52,11 @@ export async function generateSongAiContentAction(input: {
     const service = new AdminSongGenerationService(
       createCatalogueContentGenerationService(),
     );
-    const generated = await service.generate(input);
+    const generated = await service.generate({
+      burmeseLyrics: input.burmeseLyrics,
+      songName: input.songName,
+      artistNames: input.artistNames,
+    });
     logger.info("Admin direct song AI generation completed", {
       requestId,
       elapsedMs: Date.now() - startedAt,
