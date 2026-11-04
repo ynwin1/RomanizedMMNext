@@ -6,8 +6,12 @@ import type {MoodometerRecord} from "@/modules/songs/application/moodometer.serv
 import {analyzeSongMoodAction} from "./moodometer-actions";
 import {getMoodometerHistoryAction,publishMoodometerAction,saveMoodometerDraftAction} from "./moodometer-storage-actions";
 
+function toEditableDraft(analysis: MoodometerAnalysis) {
+  return {...analysis, moods: analysis.moods.map(mood => ({...mood, score: String(mood.score)}))};
+}
+
 export default function MoodometerEditor({mmid}:{mmid:number}) {
- const [draft,setDraft]=useState<MoodometerAnalysis|null>(null);
+ const [draft,setDraft]=useState<ReturnType<typeof toEditableDraft>|null>(null);
  const [history,setHistory]=useState<MoodometerRecord[]>([]);
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
@@ -28,17 +32,22 @@ export default function MoodometerEditor({mmid}:{mmid:number}) {
  const analyze=()=>run(async()=>{
   if(dirty && !window.confirm("Discard unsaved mood edits?"))return;
   const result=await analyzeSongMoodAction(mmid);
-  setDraft(result);setSelectedId(null);setDirty(true);
+  setDraft(toEditableDraft(result));setSelectedId(null);setDirty(true);
   setMessage("Analysis generated. Review all three scores, then save draft.");
  });
- const update=(index:number,score:number)=>{setDraft(previous=>previous?{
+ const update=(index:number,score:string)=>{setDraft(previous=>previous?{
   ...previous,moods:previous.moods.map((m,i)=>i===index?{...m,score}:m)
  }:previous);setDirty(true)};
  const save=()=>run(async()=>{
   if(!draft)return;
-  const normalized={...draft,moods:[...draft.moods].sort((a,b)=>b.score-a.score),status:"draft" as const};
+  if (draft.moods.some(mood => mood.score === "")) {
+    setMessage("Enter all three scores before saving.");
+    return;
+  }
+  const moods = draft.moods.map(mood => ({...mood, score: Number(mood.score)}));
+  const normalized={...draft,moods:moods.sort((a,b)=>b.score-a.score),status:"draft" as const};
   const saved=await saveMoodometerDraftAction(mmid,normalized);
-  setDraft(saved.analysis);setSelectedId(saved.id);setDirty(false);
+  setDraft(toEditableDraft(saved.analysis));setSelectedId(saved.id);setDirty(false);
   await reload();setMessage("Mood analysis saved as draft.");
  });
  const publish=(id:string)=>run(async()=>{
@@ -63,7 +72,7 @@ export default function MoodometerEditor({mmid}:{mmid:number}) {
         </select>
       </label>
       <label className="text-sm">Score (0.0–10.0)
-        <input type="number" min={0} max={10} step={0.1} value={mood.score} onChange={event=>update(index,Number(event.target.value))} className="mt-1 block w-full rounded border border-zinc-600 bg-zinc-950 p-2"/>
+        <input type="number" min={0} max={10} step={0.1} value={mood.score} onChange={event=>update(index,event.target.value)} className="mt-1 block w-full rounded border border-zinc-600 bg-zinc-950 p-2"/>
       </label>
     </div>)}
     <label className="block text-sm">Explanation
@@ -79,7 +88,7 @@ export default function MoodometerEditor({mmid}:{mmid:number}) {
           <p className="text-xs text-zinc-400">{record.analysis.status} · {new Date(record.createdAt).toLocaleString()} · {record.analysis.modelVersion}</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" disabled={busy} onClick={()=>{if(dirty&&!window.confirm("Discard unsaved edits?"))return;setDraft({...record.analysis,status:"draft"});setSelectedId(record.id);setDirty(false)}} className="rounded border border-zinc-500 px-3 py-2 text-sm">Review</button>
+          <button type="button" disabled={busy} onClick={()=>{if(dirty&&!window.confirm("Discard unsaved edits?"))return;setDraft(toEditableDraft({...record.analysis,status:"draft"}));setSelectedId(record.id);setDirty(false)}} className="rounded border border-zinc-500 px-3 py-2 text-sm">Review</button>
           {record.analysis.status!=="published" && <button type="button" disabled={busy} onClick={()=>publish(record.id)} className="rounded border border-emerald-500 px-3 py-2 text-sm text-emerald-300">Publish</button>}
         </div>
       </div>
