@@ -35,18 +35,34 @@ export async function updateSongAction(id: number, revision: number, previous: S
 
 
 export async function generateSongAiContentAction(input: {
+  requestId: string;
   burmeseLyrics: string;
   songName?: string;
   artistNames?: string[];
 }) {
+  const requestId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.requestId)
+    ? input.requestId
+    : crypto.randomUUID();
+  const startedAt = Date.now();
+  logger.info("Admin direct song AI generation requested", { requestId });
+
   await requireAdmin();
+  logger.info("Admin direct song AI generation authorized", { requestId });
   try {
     const service = new AdminSongGenerationService(
       createCatalogueContentGenerationService(),
     );
-    return { ok: true as const, generated: await service.generate(input) };
+    const generated = await service.generate(input);
+    logger.info("Admin direct song AI generation completed", {
+      requestId,
+      elapsedMs: Date.now() - startedAt,
+    });
+    return { ok: true as const, generated };
   } catch (error) {
-    logger.error("Admin direct song AI generation failed", error);
+    logger.error("Admin direct song AI generation failed", error, {
+      requestId,
+      elapsedMs: Date.now() - startedAt,
+    });
     return {
       ok: false as const,
       message: directSongGenerationFailureMessage(error),

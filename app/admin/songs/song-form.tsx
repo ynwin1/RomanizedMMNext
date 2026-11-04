@@ -300,23 +300,29 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
     }
     setConfirmAiOverwrite(false);
     startAiTransition(async () => {
-      const result = await generateSongAiContentAction({
-        burmeseLyrics: sourceLyrics,
-        songName: values.songName?.trim() || undefined,
-        artistNames: artists.map(artist => artist.name.trim()).filter(Boolean),
-      });
+      const requestId = crypto.randomUUID();
+      try {
+        const result = await generateSongAiContentAction({
+          requestId,
+          burmeseLyrics: sourceLyrics,
+          songName: values.songName?.trim() || undefined,
+          artistNames: artists.map(artist => artist.name.trim()).filter(Boolean),
+        });
 
-      if (!result.ok) {
-        setAiMessage(result.message);
-        return;
+        if (!result.ok) {
+          setAiMessage(`${result.message} Reference: ${requestId}`);
+          return;
+        }
+
+        setLyricsEntries(result.generated.lyricsV2.entries);
+        setRefinements(result.generated.refinements);
+        setLastGeneratedRomanized(result.generated.romanized);
+        change("about", result.generated.about);
+        change("whenToListen", result.generated.whenToListen);
+        setAiMessage("Generated Romanization, Meaning, metadata, and Lyrics V2. Review and edit before saving.");
+      } catch {
+        setAiMessage(`Could not complete song generation. Your lyrics are still in the form. Try again. Reference: ${requestId}`);
       }
-
-      setLyricsEntries(result.generated.lyricsV2.entries);
-      setRefinements(result.generated.refinements);
-      setLastGeneratedRomanized(result.generated.romanized);
-      change("about", result.generated.about);
-      change("whenToListen", result.generated.whenToListen);
-      setAiMessage("Generated Romanization, Meaning, metadata, and Lyrics V2. Review and edit before saving.");
     });
   };
   const errors = (field: string) => state.errors?.[field]?.map((message, index) => <p key={index} className="mt-1 text-sm text-red-300">{message}</p>);
