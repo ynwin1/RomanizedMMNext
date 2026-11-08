@@ -17,6 +17,7 @@ import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService, songCoverService} from "@/modules/songs";
 import SongCoversCarousel from "@/app/components/music-box/SongCoversCarousel";
+import { publicCoverRecords } from "@/modules/songs/application/song-cover.public";
 import SuggestSongCover from "@/app/components/music-box/SuggestSongCover";
 import {SongIdSchema, lyricTimingService, moodometerService} from "@/modules/songs";
 import { extractYouTubeVideoId } from "@/modules/songs/application/lyric-timing.service";
@@ -190,10 +191,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             <MoreSongs artists={cleanedArtistNames} currentSongId={parsed.data} locale={locale}/>
 
-            {covers.length > 0 && <SongCoversCarousel covers={covers.map(cover => ({
-                id: cover.id, youtubeVideoId: cover.youtubeVideoId,
-                title: cover.title, description: cover.description,
-            }))} locale={locale} />}
+            {covers.length > 0 && <SongCoversCarousel covers={publicCoverRecords(covers)} locale={locale} />}
 
             <SuggestSongCover mmid={song.mmid} locale={locale} />
 

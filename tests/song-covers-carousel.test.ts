@@ -55,3 +55,22 @@ test("the thumbnail renders as a local play button with an external watch fallba
   assert.match(html, /aria-label="Watch on YouTube: Acoustic cover"/);
   assert.doesNotMatch(html, /<iframe/);
 });
+
+test("mobile carousel is constrained to its parent and resizes alongside cards", () => {
+  const html=renderToStaticMarkup(React.createElement(SongCoversCarousel,{covers,locale:"en"}));
+  assert.match(html, /max-w-full/);
+  assert.match(html, /snap-start/);
+  assert.match(html, /sm:w-\[calc/);
+  assert.match(html, /lg:w-\[calc/);
+  assert.match(html, /focus-visible:outline/);
+});
+
+test("long titles and descriptions stay inside their cards", () => {
+  const html=renderToStaticMarkup(React.createElement(SongCoversCarousel,{
+    covers:[{...covers[0],title:"Long song title ".repeat(45),description:"Details ".repeat(80)}],
+    locale:"en",
+  }));
+  assert.match(html, /line-clamp-2 break-words/);
+  assert.match(html, /line-clamp-3 break-words/);
+  assert.doesNotMatch(html, /<iframe/);
+});
