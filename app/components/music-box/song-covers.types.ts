@@ -17,3 +17,9 @@ export function nextCoverScrollPosition(
       step <= 0 || maximum <= 0) return 0;
   return Math.min(Math.max(0, current + direction * step), maximum);
 }
+
+/** Embed URLs are constructed only from canonical video IDs, never user-provided URLs. */
+export function youtubeCoverEmbedUrl(videoId: string): string | null {
+  if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) return null;
+  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
+}
