@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
 import { renderLyricsV2Column } from "@/modules/songs/domain/lyrics.compatibility";
 import { buildLyricsV2FromAlignedText } from "@/modules/songs/application/lyrics-v2.builder";
-import { createSongAction, generateSongAiContentAction, searchSongArtistsAction, updateSongAction } from "./song-actions";
+import { createSongAction, generateSongAiContentAction, getSongGenerationJobAction, searchSongArtistsAction, updateSongAction } from "./song-actions";
 import { songTextFields } from "./song-form.data";
 import { requiresGenerationOverwriteConfirmation } from "./song-generation-overwrite";
 import SpotifyTrackImport from "../spotify-track-import";
@@ -283,7 +283,83 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
   const [refinements, setRefinements] = useState<RomanizationRefinement[]>([]);
   const [lastGeneratedRomanized, setLastGeneratedRomanized] = useState("");
   const [confirmAiOverwrite, setConfirmAiOverwrite] = useState(false);
-  const [aiPending, startAiTransition] = useTransition();
+  const [startingAi, startAiTransition] = useTransition();
+  const [generationId, setGenerationId] = useState<string | null>(null);
+  const [generationRunning, setGenerationRunning] = useState(false);
+  const [recoveredJob, setRecoveredJob] = useState<Awaited<ReturnType<typeof getSongGenerationJobAction>>>(null);
+  const applyWhenReady = useRef(false);
+  const recoveryKey = `romanizedmm:song-generation:${song?.mmid ?? "new"}`;
+  const aiPending = startingAi || generationRunning;
+
+  const applyGeneration = (job: NonNullable<typeof recoveredJob>) => {
+    if (!job.generated) return;
+    setSourceLyrics(job.input.burmeseLyrics);
+    setLyricsEntries(job.generated.lyricsV2.entries);
+    setRefinements(job.generated.refinements);
+    setLastGeneratedRomanized(job.generated.romanized);
+    setValues(previous => ({
+      ...previous,
+      songName: previous.songName || job.input.songName || "",
+      about: job.generated!.about,
+      whenToListen: job.generated!.whenToListen,
+    }));
+    setArtists(previous => previous.some(artist => artist.name.trim()) ? previous
+      : job.input.artistNames?.map(name => ({ name, slug: "" })) ?? previous);
+    setRecoveredJob(null);
+    setAiMessage("Generated Romanization, Meaning, metadata, and Lyrics V2. Review and edit before saving.");
+  };
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(recoveryKey);
+      if (saved && /^[0-9a-f-]{36}$/i.test(saved)) {
+        setGenerationId(saved);
+        setGenerationRunning(true);
+      }
+    } catch { /* Polling still works when browser storage is unavailable. */ }
+  }, [recoveryKey]);
+
+  useEffect(() => {
+    if (!generationId) return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout>;
+    let missingChecks = 0;
+    const poll = async () => {
+      try {
+        const job = await getSongGenerationJobAction(generationId);
+        if (!active) return;
+        if (job?.status === "completed" && job.generated) {
+          setGenerationRunning(false);
+          if (applyWhenReady.current) {
+            applyWhenReady.current = false;
+            applyGeneration(job);
+          } else {
+            setRecoveredJob(job);
+            setAiMessage("A saved generation is ready to recover.");
+          }
+          return;
+        }
+        if (!job && missingChecks++ < 10) {
+          timer = setTimeout(poll, 3000);
+          return;
+        }
+        if (job?.status === "failed" || !job) {
+          setGenerationRunning(false);
+          setAiMessage(`${job?.message ?? "Generation could not be found. Try again."} Reference: ${generationId}`);
+          return;
+        }
+        setAiMessage("Generating… You can return to this page to recover the result.");
+      } catch {
+        if (!active) return;
+        setAiMessage(`Reconnecting to your generation… Reference: ${generationId}`);
+      }
+      if (active) timer = setTimeout(poll, 3000);
+    };
+    void poll();
+    return () => { active = false; clearTimeout(timer); };
+    // Polling is scoped to the job. Form edits must not restart it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [generationId]);
   const change = (field: string, value: string) => setValues(previous => ({ ...previous, [field]: value }));
 
   const autoGenerate = () => {
@@ -302,33 +378,37 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
     startAiTransition(async () => {
       const requestId = crypto.randomUUID();
       try {
+        localStorage.setItem(recoveryKey, requestId);
+      } catch { /* Generation remains usable without local storage. */ }
+      applyWhenReady.current = true;
+      setRecoveredJob(null);
+      try {
         const result = await generateSongAiContentAction({
           requestId,
           burmeseLyrics: sourceLyrics,
           songName: values.songName?.trim() || undefined,
           artistNames: artists.map(artist => artist.name.trim()).filter(Boolean),
         });
-
         if (!result.ok) {
           setAiMessage(`${result.message} Reference: ${requestId}`);
           return;
         }
-
-        setLyricsEntries(result.generated.lyricsV2.entries);
-        setRefinements(result.generated.refinements);
-        setLastGeneratedRomanized(result.generated.romanized);
-        change("about", result.generated.about);
-        change("whenToListen", result.generated.whenToListen);
-        setAiMessage("Generated Romanization, Meaning, metadata, and Lyrics V2. Review and edit before saving.");
       } catch {
-        setAiMessage(`Could not complete song generation. Your lyrics are still in the form. Try again. Reference: ${requestId}`);
+        // A lost start response can still leave a valid saved job. Check it before retrying.
+        setAiMessage(`Checking generation progress… Reference: ${requestId}`);
       }
+      setGenerationRunning(true);
+      setGenerationId(requestId);
     });
   };
   const errors = (field: string) => state.errors?.[field]?.map((message, index) => <p key={index} className="mt-1 text-sm text-red-300">{message}</p>);
 
   return (
     <form action={formAction} className="mt-6 space-y-6">
+      {recoveredJob?.generated && <button type="button" className="rounded border border-indigo-500 px-4 py-2" onClick={() => {
+        if (requiresGenerationOverwriteConfirmation(lyricsEntries) && !window.confirm("Replace current lyrics with the saved generation?")) return;
+        applyGeneration(recoveredJob);
+      }}>Load saved generation</button>}
       {state.message && <div role="alert" className="rounded border border-red-400 bg-red-950/30 p-4">{state.message}</div>}
       <fieldset disabled={pending} className="space-y-6">
         <SpotifyTrackImport onApply={track => {

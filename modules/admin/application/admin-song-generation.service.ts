@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { ContentGenerationService } from "@/modules/content-generation/application/content-generation.service";
 import { buildLyricsV2FromAlignedText } from "@/modules/songs/application/lyrics-v2.builder";
 
-const InputSchema = z.object({
+export const AdminSongGenerationInputSchema = z.object({
   burmeseLyrics: z.string().max(200000).refine(value => value.trim().length > 0, "Burmese lyrics are required."),
   songName: z.string().trim().max(500).optional(),
   artistNames: z.array(z.string().trim().min(1).max(500)).max(30).optional(),
@@ -26,7 +26,7 @@ export class AdminSongGenerationService {
   ) {}
 
   async generate(input: unknown) {
-    const parsed = InputSchema.parse(input);
+    const parsed = AdminSongGenerationInputSchema.parse(input);
     const sourceInput = { lines: lines(parsed.burmeseLyrics) };
 
     const [romanized, meaning] = await Promise.all([
