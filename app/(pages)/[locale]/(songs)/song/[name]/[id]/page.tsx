@@ -15,7 +15,8 @@ import {SongPageArtist} from "@/app/lib/types";
 import MoreSongs from "@/app/components/music-box/MoreSongs";
 import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
-import {songService} from "@/modules/songs";
+import {songService, songCoverService} from "@/modules/songs";
+import SongCoversCarousel from "@/app/components/music-box/SongCoversCarousel";
 import {SongIdSchema, lyricTimingService, moodometerService} from "@/modules/songs";
 import { extractYouTubeVideoId } from "@/modules/songs/application/lyric-timing.service";
 import {NotFoundError} from "@/shared/errors/not-found.error";
@@ -128,6 +129,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         catch { return null; }
     }));
     const publishedMood = await moodometerService.publicResult(song.mmid).catch(error => { logger.error("Failed to load published Moodometer", error); return null; });
+    const covers = await songCoverService.approved(song.mmid).catch(error => { logger.error("Failed to load approved song covers", error); return []; });
     const timing = song.lyricsV2 && timingTracks.some(Boolean)
         ? { lyricsV2: song.lyricsV2, videoIds, tracks: Object.fromEntries(timingTracks.flatMap((track, i) => track ? [[videoIds[i], track]] : [])) }
         : undefined;
@@ -186,6 +188,11 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
             )}
 
             <MoreSongs artists={cleanedArtistNames} currentSongId={parsed.data} locale={locale}/>
+
+            {covers.length > 0 && <SongCoversCarousel covers={covers.map(cover => ({
+                id: cover.id, youtubeVideoId: cover.youtubeVideoId,
+                title: cover.title, description: cover.description,
+            }))} locale={locale} />}
 
             <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-theme-border pt-8">
                 <div className="flex flex-wrap items-center justify-center gap-4">

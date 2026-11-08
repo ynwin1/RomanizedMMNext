@@ -1,0 +1,42 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import SongCoversCarousel from "@/app/components/music-box/SongCoversCarousel";
+import { nextCoverScrollPosition } from "@/app/components/music-box/song-covers.types";
+
+const covers = [
+  { id: "a", youtubeVideoId: "PFkeRVvPPQ4", title: "Acoustic cover", description: "Guitar arrangement" },
+  { id: "b", youtubeVideoId: "dQw4w9WgXcQ", title: "Piano instrumental" },
+];
+
+test("no empty carousel when a song has no approved videos", () => {
+  assert.equal(renderToStaticMarkup(React.createElement(SongCoversCarousel, {covers: [], locale: "en"})), "");
+});
+
+test("carousel renders safe YouTube links, titles and optional descriptions", () => {
+  const html = renderToStaticMarkup(React.createElement(SongCoversCarousel, {covers, locale:"en"}));
+  assert.match(html, /Covers &amp; Interpretations/);
+  assert.match(html, /Acoustic cover/);
+  assert.match(html, /Guitar arrangement/);
+  assert.match(html, /Piano instrumental/);
+  assert.match(html, /https:\/\/www\.youtube\.com\/watch\?v=PFkeRVvPPQ4/);
+  assert.match(html, /overflow-x-auto/);
+  assert.match(html, /snap-mandatory/);
+  assert.match(html, /Previous covers/);
+  assert.match(html, /Next covers/);
+  assert.doesNotMatch(html, /iframe|autoplay/i);
+});
+
+test("single cover does not show navigation arrows and Burmese locale is supported", () => {
+  const html = renderToStaticMarkup(React.createElement(SongCoversCarousel, {covers:covers.slice(0,1),locale:"my"}));
+  assert.match(html, /ပြန်လည်သီဆိုမှုများ/);
+  assert.doesNotMatch(html, /aria-label="ရှေ့သို့"/);
+});
+
+test("scroll navigation clamps to beginning and end, including invalid dimensions", () => {
+  assert.equal(nextCoverScrollPosition(120, 1, 320, 900), 440);
+  assert.equal(nextCoverScrollPosition(120, -1, 320, 900), 0);
+  assert.equal(nextCoverScrollPosition(820, 1, 320, 900), 900);
+  assert.equal(nextCoverScrollPosition(100, 1, 0, 900), 0);
+});
