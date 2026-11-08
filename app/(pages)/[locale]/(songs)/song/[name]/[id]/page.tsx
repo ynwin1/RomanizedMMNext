@@ -147,7 +147,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-6 sm:px-6 lg:pt-10">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
 
-            <div className="mx-auto w-full max-w-2xl space-y-3" aria-label="Search and song actions">
+            <div className="mx-auto w-full max-w-2xl space-y-6" aria-label="Search and song actions">
                 <SearchBar showLabel={false} />
                 <div className="flex flex-wrap items-center justify-center gap-3" aria-label="Quick song actions">
                     <RandomSongButton locale={locale}/>
