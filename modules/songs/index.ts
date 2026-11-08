@@ -1,4 +1,5 @@
 import { SongCoverService } from "./application/song-cover.service";
+export { enforceCoverSubmissionRate } from "./infrastructure/song-cover.rate-limit";
 import { fetchYouTubeCoverMetadata } from "./application/song-cover.metadata";
 import { MongoSongCoverRepository } from "./infrastructure/song-cover.repository";
 import {buildMoodReviewQueue} from "./application/moodometer.review-queue";
