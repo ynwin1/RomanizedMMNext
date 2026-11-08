@@ -4,16 +4,17 @@ import {readFileSync} from "node:fs";
 
 const read = (path: string) => readFileSync(path, "utf8");
 
-test("song request page clearly preserves the paused state while showing queued and added songs", () => {
+test("song request page accepts submissions while showing queued and added songs", () => {
   const page = read("app/(pages)/[locale]/(songs)/song-request/page.tsx");
-  assert.match(page, /translator\("paused"\)/);
-  assert.match(page, /translator\("stopMessage"\)/);
+  assert.match(page, /translator\("open"\)/);
+  assert.match(page, /translator\("openMessage"\)/);
   assert.match(page, /songRequestService\.getQueue\(\)/);
   assert.match(page, /songService\.getLatestSongs\(5\)/);
   assert.match(page, /songRequests\.length \?/);
   assert.match(page, /lastAddedSongs\.length \?/);
   assert.match(page, /href={`\/\$\{locale\}\/song\/\$\{buildSongNameForURL/);
-  assert.doesNotMatch(page, /<SongRequestForm|\*\*\{translator/);
+  assert.match(page, /<SongRequestForm\s*\/>/);
+  assert.doesNotMatch(page, /translator\("paused"\)|translator\("stopMessage"\)/);
   assert.doesNotMatch(page, /w-\[\d+vw\]/);
 });
 

@@ -17,7 +17,7 @@
     "submit": "Submit",
     "sync": "Open YouTube player for synced lyrics"
   },
-  "Menu" : {
+  "Menu": {
     "home": "Home",
     "about": "About",
     "catalogue": "Songs",
@@ -26,7 +26,7 @@
     "artistCatalogue": "Artists",
     "playlists": "Playlists"
   },
-  "GuessTheLyrics" : {
+  "GuessTheLyrics": {
     "romanized": "Romanized",
     "burmese": "Burmese",
     "start": "Start",
@@ -37,7 +37,7 @@
     "score": "Score",
     "date": "Date"
   },
-  "SongCatalogue" : {
+  "SongCatalogue": {
     "title": "Song Catalogue",
     "description": "Discover the list of songs available in our catalogue",
     "requestSong": "Request Song",
@@ -45,12 +45,12 @@
     "artist": "Artist(s)",
     "link": "Link"
   },
-  "AboutPage" : {
+  "AboutPage": {
     "title": "About RomanizedMM"
   },
   "SongRequestPage": {
     "title": "Song Request",
-    "overview": "See the current request queue and songs recently added to the catalogue.",
+    "overview": "Suggest a song, see the outstanding request queue, and explore recently added songs.",
     "status": "Request status",
     "paused": "Temporarily paused",
     "emptyQueue": "There are no songs waiting in the queue.",
@@ -74,7 +74,10 @@
     "songsInQueue": "Songs in Queue",
     "submit": "Submit",
     "lastCreatedSongs": "Songs Recently Added",
-    "stopMessage": "Song requests are temporarily suspended while I clear the backlog from the past months. Thank you for your patience!"
+    "stopMessage": "Song requests are temporarily suspended while I clear the backlog from the past months. Thank you for your patience!",
+    "open": "Accepting requests",
+    "openMessage": "Song requests are open again! Suggest a song below. We review requests before adding songs to RomanizedMM.",
+    "requestSong": "Request a song"
   },
   "SearchBar": {
     "search": "Type a song title..."

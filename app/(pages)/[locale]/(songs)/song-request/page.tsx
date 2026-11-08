@@ -1,6 +1,7 @@
 import {Metadata} from "next";
 import {getTranslations} from "next-intl/server";
 import Link from "next/link";
+import SongRequestForm from "@/app/components/forms/SongRequestForm";
 import {extractSongName, formatSongNameForURL} from "@/app/lib/utils";
 import {songRequestService} from "@/modules/requests";
 import {songService} from "@/modules/songs";
@@ -42,10 +43,16 @@ const Page = async ({params} : SongRequestPageProps) => {
                 <div className="flex flex-wrap items-center gap-3">
                     <h2 id="request-status" className="text-lg font-semibold">{translator("status")}</h2>
                     <span className="inline-flex items-center gap-2 rounded-full border border-theme-border bg-surface-raised px-3 py-1 text-sm font-medium text-foreground">
-                        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />{translator("paused")}
+                        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-500" />{translator("open")}
                     </span>
                 </div>
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">{translator("stopMessage")}</p>
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted sm:text-base">{translator("openMessage")}</p>
+            </section>
+
+            <section aria-labelledby="request-form-title" className="mb-8 rounded-xl border border-theme-border bg-surface p-5 sm:p-6">
+                <h2 id="request-form-title" className="mb-2 text-xl font-semibold">{translator("requestSong")}</h2>
+                <p className="mb-5 text-sm text-muted">{translator("description")}</p>
+                <SongRequestForm />
             </section>
 
             <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
