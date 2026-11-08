@@ -52,6 +52,7 @@ export default function SongCoversCarousel({ covers, locale }: Props) {
     // Fonts, viewport changes and responsive card widths can change overflow.
     const resize = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateControls) : null;
     resize?.observe(track);
+    for (const card of track.children) resize?.observe(card);
     window.addEventListener("resize", updateControls);
     return () => {
       resize?.disconnect();
@@ -95,9 +96,9 @@ export default function SongCoversCarousel({ covers, locale }: Props) {
     </div>
     <ul ref={trackRef} onScroll={updateControls}
       tabIndex={0} aria-label={strings.heading}
-      className="flex w-full min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-4 scroll-smooth [scrollbar-width:thin]">
+      className="flex w-full min-w-0 max-w-full snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-4 scroll-smooth focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent [scrollbar-width:thin]">
       {covers.map(cover => <li key={cover.id}
-        className="w-full min-w-0 shrink-0 snap-start sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
+        className="w-full min-w-0 max-w-full shrink-0 snap-start sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
         <article className="h-full overflow-hidden rounded-xl border border-theme-border bg-surface">
           <div className="relative aspect-video w-full overflow-hidden bg-background">
             {activeId === cover.id && youtubeCoverEmbedUrl(cover.youtubeVideoId) && embedFailedId !== cover.id ? (
