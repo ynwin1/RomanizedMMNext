@@ -1,3 +1,5 @@
+import { SongCoverService } from "./application/song-cover.service";
+import { MongoSongCoverRepository } from "./infrastructure/song-cover.repository";
 import {buildMoodReviewQueue} from "./application/moodometer.review-queue";
 import type {QueueRecord} from "./application/moodometer.review-queue";
 import {selectMissingMoodCandidates} from "./application/moodometer.backfill";
@@ -21,6 +23,10 @@ import { MongoRomanizationReferenceSource } from "./infrastructure/mongo-romaniz
 const songRepository = new MongoSongRepository();
 
 export const songService = new SongService(songRepository);
+export const songCoverService = new SongCoverService(
+  new MongoSongCoverRepository(),
+  async mmid => (await songRepository.findByMmid(mmid)) !== null,
+);
 export const lyricTimingService = new LyricTimingService(new MongoLyricTimingRepository(), mmid => songService.getByMmid(mmid));
 export const romanizationReferenceSource = new MongoRomanizationReferenceSource();
 
