@@ -6,11 +6,26 @@ import { AdminSongGenerationService, AdminSongGenerationInputSchema } from "@/mo
 import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
 
 export type GenerationInput = z.infer<typeof AdminSongGenerationInputSchema>;
+type StoredGenerationInput = Omit<GenerationInput, "songName" | "artistNames"> & {
+  songName?: string | null;
+  artistNames?: string[] | null;
+};
+
+// BSON can turn explicit undefined fields into null. Omit absent optional fields
+// before writing, and accept either representation when reading existing jobs.
+export function normalizeGenerationJobInput(input: StoredGenerationInput): GenerationInput {
+  return AdminSongGenerationInputSchema.parse({
+    burmeseLyrics: input.burmeseLyrics,
+    ...(input.songName != null ? { songName: input.songName } : {}),
+    ...(input.artistNames != null ? { artistNames: input.artistNames } : {}),
+  });
+}
+
 export type GenerationResult = Awaited<ReturnType<AdminSongGenerationService["generate"]>>;
 export interface GenerationJob {
   _id: string;
   owner: string;
-  input: GenerationInput;
+  input: StoredGenerationInput;
   status: "queued" | "running" | "completed" | "failed";
   generated?: GenerationResult;
   message?: string;
@@ -46,7 +61,7 @@ export async function executeGenerationJob(
   if (!job) return;
   const startedAt = Date.now();
   try {
-    const generated = await generate(job.input);
+    const generated = await generate(normalizeGenerationJobInput(job.input));
     await store.complete(id, owner, generated);
     logger.info("Admin direct song AI generation completed", { requestId: id, elapsedMs: Date.now() - startedAt });
   } catch (error) {
@@ -59,7 +74,7 @@ export async function createGenerationJob(id: string, owner: string, input: Gene
   await connectDB();
   // $setOnInsert makes a repeated start with the same ID safe after a lost response.
   await Job.updateOne({ _id: id, owner }, {
-    $setOnInsert: { owner, input, status: "queued" },
+    $setOnInsert: { owner, input: normalizeGenerationJobInput(input), status: "queued" },
   }, { upsert: true });
 }
 
@@ -76,7 +91,7 @@ export async function readGenerationJob(id: string, owner: string) {
   return {
     id: job._id,
     status: job.status,
-    input: job.input,
+    input: normalizeGenerationJobInput(job.input),
     generated: job.generated,
     message: job.message,
   };
