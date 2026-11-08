@@ -7,6 +7,8 @@ type Props = { mmid: number; locale: string };
 const labels = {
   en: {
     trigger: "Suggest a cover",
+    invitationTitle: "Know a great cover of this song?",
+    invitationDetail: "Found a version worth sharing? Send us the YouTube link.",
     intro: "Found a cover, dub, or instrumental version? Send us its YouTube link for review.",
     url: "YouTube link",
     description: "Description (optional)",
@@ -21,6 +23,8 @@ const labels = {
   },
   my: {
     trigger: "ပြန်လည်သီဆိုထားသော ဗီဒီယို အကြံပြုရန်",
+    invitationTitle: "ဒီသီချင်းကို ပြန်လည်သီဆိုထားတဲ့ ဗီဒီယိုကောင်းလေး သိလား?",
+    invitationDetail: "တခြားသူတွေလည်း နားဆင်နိုင်အောင် YouTube လင့်ခ်လေး မျှဝေပေးပါ။",
     intro: "ပြန်လည်သီဆိုထားတာ၊ dub နဲ့ တီးခတ်ထားတဲ့ YouTube ဗီဒီယိုတွေကို အကြံပြုနိုင်ပါတယ်။",
     url: "YouTube လင့်ခ်",
     description: "ဖော်ပြချက် (မဖြည့်လည်းရသည်)",
@@ -83,11 +87,17 @@ export default function SuggestSongCover({ mmid, locale }: Props) {
   }
 
   return <section className="w-full min-w-0" aria-label={copy.trigger}>
-    {success && <p role="status" className="mb-3 text-sm text-accent">{copy.success}</p>}
-    {!open ? <button type="button" onClick={() => { setOpen(true); setError(""); setSuccess(false); }}
-      className="min-h-11 rounded-lg border border-theme-border px-4 py-2 text-sm font-medium text-foreground hover:border-accent hover:text-accent">
-      + {copy.trigger}
-    </button> : <form onSubmit={submit} className="max-w-xl space-y-4 rounded-xl border border-theme-border bg-surface p-4">
+    {success && <p role="status" className="mb-3 text-center text-sm text-accent">{copy.success}</p>}
+    {!open ? <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-3 rounded-xl border border-theme-border bg-surface px-5 py-5 text-center sm:py-6">
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold text-foreground">{copy.invitationTitle}</h2>
+        <p className="text-sm leading-relaxed text-muted">{copy.invitationDetail}</p>
+      </div>
+      <button type="button" onClick={() => { setOpen(true); setError(""); setSuccess(false); }}
+        className="min-h-11 rounded-lg border border-theme-border bg-surface-raised px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+        + {copy.trigger}
+      </button>
+    </div> : <form onSubmit={submit} className="mx-auto max-w-xl space-y-4 rounded-xl border border-theme-border bg-surface p-4">
       <h2 className="text-lg font-semibold text-foreground">{copy.trigger}</h2>
       <p className="text-sm text-muted">{copy.intro}</p>
       <label className="block space-y-1 text-sm text-foreground">
