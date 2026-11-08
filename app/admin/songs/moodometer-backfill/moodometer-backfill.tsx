@@ -1,7 +1,7 @@
 "use client";
 import {useState} from "react";
 import Link from "next/link";
-import {generateMissingMoodometerDraftAction,listMissingMoodometerAction} from "../moodometer-batch-actions";
+import {generateMissingMoodometerAndPublishAction,listMissingMoodometerAction} from "../moodometer-batch-actions";
 
 type Candidate={mmid:number;songName:string;artistName:string};
 export default function MoodometerBackfill({initialSongs}:{initialSongs:Candidate[]}) {
@@ -11,22 +11,23 @@ export default function MoodometerBackfill({initialSongs}:{initialSongs:Candidat
  const [progress,setProgress]=useState("");
  const [errors,setErrors]=useState<string[]>([]);
  const generate=async()=>{
-  if(!selected.length || !window.confirm(`Generate AI drafts for ${selected.length} songs? No drafts will be published.`))return;
+  if(!selected.length || !window.confirm(`Generate and publish Moodometer analyses for ${selected.length} songs? Results will appear publicly immediately; you can edit them later.`))return;
   setWorking(true);setErrors([]);
   const failures:string[]=[];
+  let published=0;
   for(let i=0;i<selected.length;i++){
-   const id=selected[i];setProgress(`Generating ${i+1} of ${selected.length} (song #${id})…`);
-   try {await generateMissingMoodometerDraftAction(id)}
+   const id=selected[i];setProgress(`Generating and publishing ${i+1} of ${selected.length} (song #${id})…`);
+   try {await generateMissingMoodometerAndPublishAction(id)}
    catch(error){failures.push(`#${id}: ${error instanceof Error?error.message:"Could not generate"}`)}
   }
   setErrors(failures);setSelected([]);
   try {setSongs(await listMissingMoodometerAction())}catch{failures.push("Unable to refresh song list");setErrors([...failures])}
-  setProgress(`Completed. ${selected.length-failures.length} drafts saved; ${failures.length} failed.`);
+  setProgress(`Completed. ${published} published; ${failures.length} failed.`);
   setWorking(false);
  };
  return <div className="space-y-4">
-  <p className="text-sm text-zinc-300">Showing up to 20 songs without any existing Moodometer analysis. Select at most 5 per batch.</p>
-  <button type="button" disabled={working||!selected.length} onClick={generate} className="rounded bg-indigo-600 px-4 py-3 font-semibold disabled:opacity-50">Generate {selected.length} draft{selected.length===1?"":"s"}</button>
+  <p className="text-sm text-zinc-300">Showing up to 20 songs without any existing Moodometer analysis. Select at most 5 per batch. Successful results are published immediately and can be edited later.</p>
+  <button type="button" disabled={working||!selected.length} onClick={generate} className="rounded bg-indigo-600 px-4 py-3 font-semibold disabled:opacity-50">Generate & publish {selected.length} song{selected.length===1?"":"s"}</button>
   {progress&&<p role="status" className="text-sm text-indigo-200">{progress}</p>}
   {errors.map(error=><p key={error} role="alert" className="text-sm text-amber-300">{error}</p>)}
   {songs.length===0?<p>No eligible songs in the current batch.</p>:<div className="divide-y divide-zinc-700 rounded border border-zinc-700">
