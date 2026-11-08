@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { songService, generateSongMoodPreview, moodometerService } from "@/modules/songs";
 import { artistService } from "@/modules/artists";
-import { AdminSongGenerationService } from "@/modules/admin";
-import { createCatalogueContentGenerationService } from "@/integrations/ai/create-catalogue-content-generation.service";
+import { AdminSongGenerationInputSchema } from "@/modules/admin/application/admin-song-generation.service";
+import { after } from "next/server";
+import { z } from "zod";
+import { createGenerationJob, readGenerationJob, runGenerationJob } from "@/infrastructure/jobs/song-generation";
 import { logger } from "@/infrastructure/logging/logger";
 import { directSongGenerationFailureMessage } from "./song-generation-error";
 import { createSongActionHandler } from "./song-action-handler";
@@ -40,38 +42,30 @@ export async function generateSongAiContentAction(input: {
   songName?: string;
   artistNames?: string[];
 }) {
-  const requestId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.requestId)
-    ? input.requestId
-    : crypto.randomUUID();
-  const startedAt = Date.now();
-  logger.info("Admin direct song AI generation requested", { requestId });
-
-  await requireAdmin();
-  logger.info("Admin direct song AI generation authorized", { requestId });
+  const principal = await requireAdmin();
+  const requestId = z.string().uuid().parse(input.requestId);
   try {
-    const service = new AdminSongGenerationService(
-      createCatalogueContentGenerationService(),
-    );
-    const generated = await service.generate({
+    const parsed = AdminSongGenerationInputSchema.parse({
       burmeseLyrics: input.burmeseLyrics,
       songName: input.songName,
       artistNames: input.artistNames,
     });
-    logger.info("Admin direct song AI generation completed", {
-      requestId,
-      elapsedMs: Date.now() - startedAt,
-    });
-    return { ok: true as const, generated };
+    await createGenerationJob(requestId, principal.userId, parsed);
+    after(() => runGenerationJob(requestId, principal.userId));
+    logger.info("Admin song generation queued", { requestId });
+    return { ok: true as const, requestId };
   } catch (error) {
-    logger.error("Admin direct song AI generation failed", error, {
-      requestId,
-      elapsedMs: Date.now() - startedAt,
-    });
-    return {
-      ok: false as const,
-      message: directSongGenerationFailureMessage(error),
-    };
+    logger.error("Admin song generation could not start", error, { requestId });
+    return { ok: false as const, message: directSongGenerationFailureMessage(error) };
   }
+}
+
+export async function getSongGenerationJobAction(requestId: string) {
+  const principal = await requireAdmin();
+  const id = z.string().uuid().parse(requestId);
+  const job = await readGenerationJob(id, principal.userId);
+  if (job?.status === "queued") after(() => runGenerationJob(id, principal.userId));
+  return job;
 }
 
 export async function searchSongArtistsAction(query: string) {
