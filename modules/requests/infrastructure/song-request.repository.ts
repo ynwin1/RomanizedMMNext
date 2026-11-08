@@ -62,7 +62,9 @@ export class MongoSongRequestRepository implements ISongRequestRepository {
 
   async listQueue(): Promise<SongRequestQueueItem[]> {
     await connectDB();
-    return SongRequest.find().select("songName artist -_id").lean();
+    return SongRequest.find(requestAdminFilter("", "pending"))
+      .sort({createdAt: -1, _id: -1})
+      .select("songName artist -_id").lean();
   }
 
   async findAdminDetail(id: string): Promise<AdminSongRequestDetail | null> {
