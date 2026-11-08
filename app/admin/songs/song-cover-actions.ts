@@ -3,6 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { songCoverService } from "@/modules/songs";
+import { fetchYouTubeCoverMetadata } from "@/modules/songs/application/song-cover.metadata";
+import { CreateAdminCoverSchema } from "@/modules/songs/application/song-cover.validation";
+
+/** Preview is an admin-only request to a fixed YouTube oEmbed endpoint. */
+export async function previewSongCoverAdminAction(url: string) {
+  await requireAdmin();
+  const { youtubeUrl } = CreateAdminCoverSchema.pick({ youtubeUrl: true }).parse({ youtubeUrl: url });
+  return fetchYouTubeCoverMetadata(youtubeUrl);
+}
+
 
 function refreshSongCovers() {
   revalidatePath("/[locale]/song/[name]/[id]", "page");

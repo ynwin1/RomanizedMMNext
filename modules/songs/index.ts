@@ -1,4 +1,5 @@
 import { SongCoverService } from "./application/song-cover.service";
+import { fetchYouTubeCoverMetadata } from "./application/song-cover.metadata";
 import { MongoSongCoverRepository } from "./infrastructure/song-cover.repository";
 import {buildMoodReviewQueue} from "./application/moodometer.review-queue";
 import type {QueueRecord} from "./application/moodometer.review-queue";
@@ -26,6 +27,7 @@ export const songService = new SongService(songRepository);
 export const songCoverService = new SongCoverService(
   new MongoSongCoverRepository(),
   async mmid => (await songRepository.findByMmid(mmid)) !== null,
+  fetchYouTubeCoverMetadata,
 );
 export const lyricTimingService = new LyricTimingService(new MongoLyricTimingRepository(), mmid => songService.getByMmid(mmid));
 export const romanizationReferenceSource = new MongoRomanizationReferenceSource();

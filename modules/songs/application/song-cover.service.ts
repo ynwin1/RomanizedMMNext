@@ -9,6 +9,7 @@ import {
   ReorderCoverSchema,
 } from "./song-cover.validation";
 import { parseYouTubeVideoId } from "./song-cover.youtube";
+import type { YouTubeCoverMetadata } from "./song-cover.metadata";
 
 export class CoverNotFoundError extends Error {}
 export class CoverConflictError extends Error {}
@@ -17,6 +18,7 @@ export class SongCoverService {
   constructor(
     private readonly repository: SongCoverRepository,
     private readonly songExists: (mmid: number) => Promise<boolean>,
+    private readonly lookupMetadata: (url: string) => Promise<YouTubeCoverMetadata | null> = async () => null,
   ) {}
 
   private async ensureSong(mmid: number): Promise<void> {
@@ -44,13 +46,15 @@ export class SongCoverService {
     if (existing.some(item => item.youtubeVideoId === youtubeVideoId)) {
       throw new CoverConflictError("This video is already linked to this song");
     }
+    const metadata = await this.lookupMetadata(data.youtubeUrl).catch(() => null);
     const record: SongCoverVideo = {
       mmid,
       youtubeVideoId,
       source: "admin",
       status: "approved",
       sortOrder: existing.reduce((max, item) => Math.max(max, item.sortOrder), -1) + 1,
-      title: data.title,
+      title: data.title || metadata?.title,
+      thumbnailUrl: metadata?.thumbnailUrl,
       description: data.description,
       contributorName: data.contributorName,
       reviewedBy: actor,

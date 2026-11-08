@@ -89,3 +89,26 @@ test("reordering requires exactly all IDs without duplicates", async () => {
   await service.adminReorder(205,[second.id,first.id]);
   assert.deepEqual((await service.approved(205)).map(v=>v.id),[second.id,first.id]);
 });
+
+test("admin additions retain fetched metadata and respect an explicit title override", async () => {
+  const { repository } = fixture();
+  const metadata = async (url: string) => ({
+    videoId: videoId,
+    title: "Fetched title",
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+  });
+  const service = new SongCoverService(repository, async () => true, metadata);
+  const first = await service.adminAdd(205, {youtubeUrl:`https://youtu.be/${videoId}`}, "admin");
+  assert.equal(first.title, "Fetched title");
+  assert.equal(first.thumbnailUrl, `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`);
+  const second = await service.adminAdd(205, {youtubeUrl:`https://youtu.be/${otherVideoId}`,title:"My title"}, "admin");
+  assert.equal(second.title,"My title");
+});
+
+test("metadata failures do not prevent manual admin additions", async () => {
+  const { repository } = fixture();
+  const service = new SongCoverService(repository, async () => true, async () => { throw new Error("offline"); });
+  const result = await service.adminAdd(205, {youtubeUrl:`https://youtu.be/${videoId}`}, "admin");
+  assert.equal(result.youtubeVideoId, videoId);
+  assert.equal(result.title, undefined);
+});
