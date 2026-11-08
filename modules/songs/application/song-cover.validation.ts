@@ -15,6 +15,12 @@ export const CreateAdminCoverSchema = z.object({
   description: optionalText(500),
   contributorName: optionalText(100),
 }).strict();
+export const SuggestCoverSchema = z.object({
+  youtubeUrl,
+  description: optionalText(500),
+  contributorName: optionalText(100),
+}).strict();
+
 export const EditCoverSchema = z.object({
   title: optionalText(200),
   description: optionalText(500),
