@@ -1,14 +1,20 @@
 import Link from "next/link";
+import BulkRejectOpenRequests from "./bulk-reject-open-requests";
+import { songRequestService } from "@/modules/requests";
+import { requireAdmin } from "@/infrastructure/auth";
 import { adminReads } from "../admin.data";
 import { parseAdminSearchParams, type AdminSearchParams } from "../admin-query";
 import { AdminListView, EmptyAdminRow, adminDate } from "../admin-list-view";
 
 export default async function RequestsPage({ searchParams }: { searchParams: Promise<AdminSearchParams> }) {
+  await requireAdmin();
   const parsed = parseAdminSearchParams(await searchParams);
   const query = { ...parsed, status: parsed.status ?? "pending" };
-  const page = await adminReads.listRequests(query);
+  const [page, openCount] = await Promise.all([adminReads.listRequests(query), songRequestService.getAdminCount("pending")]);
 
-  return <AdminListView title="Requests" base="/admin/requests" query={query} page={page} requestStatus
+  return <div className="space-y-6">
+    <BulkRejectOpenRequests count={openCount} cutoff={new Date().toISOString()}/>
+    <AdminListView title="Requests" base="/admin/requests" query={query} page={page} requestStatus
     headers={["Song", "Artist", "Status", "Requested (UTC)", "Actions"]}
     rows={page.items.length ? page.items.map(request => <tr key={request.id}>
       <td className="p-4">{request.songName}</td>
@@ -20,5 +26,6 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
           Review<span className="sr-only"> {request.songName}</span>
         </Link>
       </td>
-    </tr>) : <EmptyAdminRow columns={5} />} />;
+    </tr>) : <EmptyAdminRow columns={5} />} />
+  </div>;
 }

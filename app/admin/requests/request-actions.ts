@@ -47,3 +47,24 @@ export async function updateRequestStatusAction(
 ) {
   return actions.update(id, revision, previous, form);
 }
+
+/** Explicitly confirmed bulk reset of pending/reviewing requests only. */
+export async function bulkRejectOpenRequestsAction(cutoffInput: string, confirmation: string) {
+  const principal = await requireAdmin();
+  if (confirmation !== "REJECT OPEN REQUESTS") {
+    return {ok: false as const, message: "Confirmation does not match."};
+  }
+  const cutoff = new Date(cutoffInput);
+  if (!Number.isFinite(cutoff.getTime())) {
+    return {ok: false as const, message: "Invalid reset cutoff. Reload and try again."};
+  }
+  try {
+    const modified = await songRequestService.rejectOpenBefore(cutoff, principal.userId);
+    revalidatePath("/admin/requests");
+    revalidatePath("/admin", "layout");
+    return {ok: true as const, modified};
+  } catch (error) {
+    logger.error("Bulk rejection of open song requests failed", error);
+    return {ok: false as const, message: "Unable to reset requests. Please try again."};
+  }
+}
