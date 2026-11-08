@@ -1,7 +1,7 @@
 import connectDB from "@/infrastructure/database/mongodb";
 import { SongCoverModel } from "./song-cover.model";
 import type { SongCoverVideo, SongCoverStatus } from "../domain/song-cover.types";
-import type { StoredSongCover, SongCoverRepository } from "../application/song-cover.repository";
+import type { StoredSongCover, SongCoverRepository, CoverReviewQuery, CoverReviewPage } from "../application/song-cover.repository";
 
 function toCover(record: SongCoverVideo & { _id: unknown }): StoredSongCover {
   return {
@@ -23,6 +23,18 @@ function toCover(record: SongCoverVideo & { _id: unknown }): StoredSongCover {
 }
 
 export class MongoSongCoverRepository implements SongCoverRepository {
+  async listCommunity({status, page, limit, mmids}: CoverReviewQuery): Promise<CoverReviewPage> {
+    if (mmids?.length === 0) return {items: [], total: 0, page, limit, totalPages: 0};
+    await connectDB();
+    const filter = {source: "community", status, ...(mmids ? {mmid: {$in: mmids}} : {})};
+    const [rows, total] = await Promise.all([
+      SongCoverModel.find(filter).sort({createdAt: -1, _id: -1})
+        .skip((page - 1) * limit).limit(limit).lean(),
+      SongCoverModel.countDocuments(filter),
+    ]);
+    return {items: rows.map(row => toCover(row)), total, page, limit, totalPages: Math.ceil(total / limit)};
+  }
+
   async list(mmid: number, status?: SongCoverStatus): Promise<StoredSongCover[]> {
     await connectDB();
     const rows = await SongCoverModel.find({ mmid, ...(status ? { status } : {}) })

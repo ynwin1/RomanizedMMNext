@@ -43,10 +43,11 @@ export async function removeSongCoverAdminAction(mmid: number, id: string) {
   refreshSongCovers();
 }
 
-export async function reviewSongCoverAdminAction(mmid: number, id: string, decision: "approved" | "rejected") {
+export async function reviewSongCoverAdminAction(mmid: number, id: string, decision: "approved" | "rejected", changes?: unknown) {
   const principal = await requireAdmin();
-  const result = await songCoverService.adminReview(mmid, id, decision, principal.userId);
+  const result = await songCoverService.adminReview(mmid, id, decision, principal.userId, changes);
   refreshSongCovers();
+  revalidatePath("/admin/cover-submissions");
   return result;
 }
 
