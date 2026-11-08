@@ -62,3 +62,7 @@ test("Surprise and Report appear once, centered directly beneath the search bar"
   assert.match(source.slice(share), /<SocialShare url={seo.canonical}/);
   assert.doesNotMatch(source.slice(share), /<RandomSongButton|<SongReportButton/);
 });
+
+test("song search and centered action buttons have comfortable vertical separation", () => {
+  assert.match(source, /className="mx-auto w-full max-w-2xl space-y-6" aria-label="Search and song actions"/);
+});
