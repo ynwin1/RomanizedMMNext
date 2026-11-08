@@ -4,6 +4,7 @@ import {
   CoverSongIdSchema,
   CoverRecordIdSchema,
   CreateAdminCoverSchema,
+  SuggestCoverSchema,
   EditCoverSchema,
   ReviewCoverSchema,
   ReorderCoverSchema,
@@ -34,6 +35,29 @@ export class SongCoverService {
     const mmid = CoverSongIdSchema.parse(mmidInput);
     await this.ensureSong(mmid);
     return this.repository.list(mmid);
+  }
+
+  /** Public submissions are always pending and never set reviewer or approval fields. */
+  async suggest(mmidInput: unknown, input: unknown): Promise<void> {
+    const mmid = CoverSongIdSchema.parse(mmidInput);
+    const data = SuggestCoverSchema.parse(input);
+    await this.ensureSong(mmid);
+    const youtubeVideoId = parseYouTubeVideoId(data.youtubeUrl);
+    if (!youtubeVideoId) throw new Error("Invalid YouTube video URL");
+    const existing = await this.repository.list(mmid);
+    if (existing.some(item => item.youtubeVideoId === youtubeVideoId)) {
+      throw new CoverConflictError("This video has already been suggested for this song");
+    }
+    try {
+      await this.repository.insert({
+        mmid, youtubeVideoId, source: "community", status: "pending",
+        sortOrder: existing.reduce((max, cover) => Math.max(max, cover.sortOrder), -1) + 1,
+        description: data.description, contributorName: data.contributorName,
+      });
+    } catch (error) {
+      if (isDuplicateKey(error)) throw new CoverConflictError("This video has already been suggested for this song");
+      throw error;
+    }
   }
 
   async adminAdd(mmidInput: unknown, input: unknown, actor: string): Promise<StoredSongCover> {

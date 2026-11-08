@@ -17,6 +17,7 @@ import RandomSongButton from "@/app/components/buttons/RandomSongButton";
 import {RequestedByBox} from "@/app/components/music-box/RequestedByBox";
 import {songService, songCoverService} from "@/modules/songs";
 import SongCoversCarousel from "@/app/components/music-box/SongCoversCarousel";
+import SuggestSongCover from "@/app/components/music-box/SuggestSongCover";
 import {SongIdSchema, lyricTimingService, moodometerService} from "@/modules/songs";
 import { extractYouTubeVideoId } from "@/modules/songs/application/lyric-timing.service";
 import {NotFoundError} from "@/shared/errors/not-found.error";
@@ -193,6 +194,8 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
                 id: cover.id, youtubeVideoId: cover.youtubeVideoId,
                 title: cover.title, description: cover.description,
             }))} locale={locale} />}
+
+            <SuggestSongCover mmid={song.mmid} locale={locale} />
 
             <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-theme-border pt-8">
                 <div className="flex flex-wrap items-center justify-center gap-4">

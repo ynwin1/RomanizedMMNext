@@ -112,3 +112,29 @@ test("metadata failures do not prevent manual admin additions", async () => {
   assert.equal(result.youtubeVideoId, videoId);
   assert.equal(result.title, undefined);
 });
+
+test("community suggestions always remain pending and never appear on the public carousel", async () => {
+  const { service, repository } = fixture();
+  await service.suggest(205, {
+    youtubeUrl: `https://youtu.be/${videoId}`,
+    description: "  Acoustic rendition  ",
+    contributorName: "  Listener  ",
+  });
+  const [stored] = await repository.list(205);
+  assert.equal(stored.source, "community");
+  assert.equal(stored.status, "pending");
+  assert.equal(stored.description, "Acoustic rendition");
+  assert.equal(stored.contributorName, "Listener");
+  assert.equal(stored.reviewedBy, undefined);
+  assert.equal(stored.reviewedAt, undefined);
+  assert.equal((await service.approved(205)).length, 0);
+});
+
+test("community suggestion rejects duplicate formats, unknown song IDs and privileged fields", async () => {
+  const { service } = fixture();
+  await assert.rejects(service.suggest(999, {youtubeUrl:`https://youtu.be/${videoId}`}), CoverNotFoundError);
+  await assert.rejects(service.suggest(205, {youtubeUrl:`https://youtu.be/${videoId}`,status:"approved"}));
+  await assert.rejects(service.suggest(205, {youtubeUrl:"https://fake.example/video"}));
+  await service.suggest(205, {youtubeUrl:`https://youtu.be/${videoId}`});
+  await assert.rejects(service.suggest(205, {youtubeUrl:`https://youtube.com/watch?v=${videoId}`}), CoverConflictError);
+});
