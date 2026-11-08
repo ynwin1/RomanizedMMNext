@@ -8,12 +8,19 @@ import { SuggestCoverSchema } from "@/modules/songs/application/song-cover.valid
 test("suggestion invitation appears even with no approved videos", () => {
   const html = renderToStaticMarkup(React.createElement(SuggestSongCover, {mmid:205,locale:"en"}));
   assert.match(html,/Suggest a cover/);
+  assert.match(html,/Know a great cover of this song\?/);
+  assert.match(html,/Found a version worth sharing\?/);
+  assert.match(html,/flex-col items-center/);
+  assert.match(html,/text-center/);
+  assert.match(html,/max-w-xl/);
   assert.doesNotMatch(html,/<form/);
 });
 
 test("Burmese invitation is translated", () => {
   const html = renderToStaticMarkup(React.createElement(SuggestSongCover, {mmid:205,locale:"my"}));
   assert.match(html,/ပြန်လည်သီဆိုထားသော/);
+  assert.match(html,/ဗီဒီယိုကောင်းလေး သိလား/);
+  assert.match(html,/YouTube လင့်ခ်လေး/);
 });
 
 test("visitor schema cannot set approved status, moderation fields or song IDs", () => {
