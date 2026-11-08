@@ -1,5 +1,5 @@
 import type { SongCoverVideo } from "../domain/song-cover.types";
-import type { SongCoverRepository, StoredSongCover } from "./song-cover.repository";
+import type { SongCoverRepository, StoredSongCover, CoverReviewPage } from "./song-cover.repository";
 import {
   CoverSongIdSchema,
   CoverRecordIdSchema,
@@ -11,6 +11,7 @@ import {
 } from "./song-cover.validation";
 import { parseYouTubeVideoId } from "./song-cover.youtube";
 import type { YouTubeCoverMetadata } from "./song-cover.metadata";
+import { z } from "zod";
 
 export class CoverNotFoundError extends Error {}
 export class CoverConflictError extends Error {}
@@ -29,6 +30,16 @@ export class SongCoverService {
   async approved(mmidInput: unknown): Promise<StoredSongCover[]> {
     const mmid = CoverSongIdSchema.parse(mmidInput);
     return this.repository.list(mmid, "approved");
+  }
+
+  async adminQueue(input: unknown): Promise<CoverReviewPage> {
+    const query = z.object({
+      status: z.enum(["pending", "approved", "rejected"]).default("pending"),
+      page: z.coerce.number().int().min(1).max(100000).default(1),
+      limit: z.coerce.number().int().min(1).max(50).default(20),
+      mmids: z.array(z.number().int().positive()).max(10000).optional(),
+    }).strict().parse(input);
+    return this.repository.listCommunity(query);
   }
 
   async adminList(mmidInput: unknown): Promise<StoredSongCover[]> {
@@ -107,11 +118,21 @@ export class SongCoverService {
     if (!(await this.repository.remove(mmid, id))) throw new CoverNotFoundError("Cover not found");
   }
 
-  async adminReview(mmidInput: unknown, idInput: unknown, decision: unknown, actor: string): Promise<StoredSongCover> {
+  async adminReview(mmidInput: unknown, idInput: unknown, decision: unknown, actor: string, editInput?: unknown): Promise<StoredSongCover> {
     const mmid = CoverSongIdSchema.parse(mmidInput);
     const id = CoverRecordIdSchema.parse(idInput);
     const status = ReviewCoverSchema.parse(decision);
+    const edits = editInput === undefined ? {} : EditCoverSchema.parse(editInput);
+    const current = await this.repository.get(mmid, id);
+    if (!current || current.status !== "pending" || current.source !== "community") {
+      throw new CoverConflictError("Cover not found or already reviewed");
+    }
+    const metadata = status === "approved" && !current.title
+      ? await this.lookupMetadata(`https://www.youtube.com/watch?v=${current.youtubeVideoId}`).catch(() => null)
+      : null;
     const record = await this.repository.edit(mmid, id, {
+      ...edits,
+      ...(metadata && !("title" in edits) ? {title: metadata.title, thumbnailUrl: metadata.thumbnailUrl} : {}),
       status, reviewedAt: new Date(), reviewedBy: actor,
     }, "pending");
     if (!record) throw new CoverConflictError("Cover not found or already reviewed");

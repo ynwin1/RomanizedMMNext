@@ -13,6 +13,10 @@ function fixture() {
   let records: StoredSongCover[] = [];
   let counter = 0;
   const repository: SongCoverRepository = {
+    async listCommunity({status, page, limit, mmids}) {
+      const matches = records.filter(r => r.source === "community" && r.status === status && (!mmids || mmids.includes(r.mmid)));
+      return {items: matches.slice((page-1)*limit, page*limit),total:matches.length,page,limit,totalPages:Math.ceil(matches.length/limit)};
+    },
     async list(mmid, status) { return records.filter(r => r.mmid === mmid && (!status || r.status === status)).sort((a,b) => a.sortOrder-b.sortOrder); },
     async get(mmid, id) { return records.find(r => r.mmid === mmid && r.id === id) ?? null; },
     async insert(input: SongCoverVideo) {
@@ -137,4 +141,31 @@ test("community suggestion rejects duplicate formats, unknown song IDs and privi
   await assert.rejects(service.suggest(205, {youtubeUrl:"https://fake.example/video"}));
   await service.suggest(205, {youtubeUrl:`https://youtu.be/${videoId}`});
   await assert.rejects(service.suggest(205, {youtubeUrl:`https://youtube.com/watch?v=${videoId}`}), CoverConflictError);
+});
+
+test("admin queue filters and paginates community submissions across songs", async () => {
+  const {service,repository} = fixture();
+  await repository.insert({mmid:205,youtubeVideoId:videoId,status:"pending",source:"community",sortOrder:0});
+  await repository.insert({mmid:206,youtubeVideoId:otherVideoId,status:"pending",source:"community",sortOrder:0});
+  await repository.insert({mmid:205,youtubeVideoId:"abcdefghijk",status:"approved",source:"admin",sortOrder:0});
+  assert.equal((await service.adminQueue({page:1,limit:1})).totalPages,2);
+  const filtered=await service.adminQueue({mmids:[205]});
+  assert.equal(filtered.total,1);
+  assert.equal(filtered.items[0].mmid,205);
+  assert.equal((await service.adminQueue({mmids:[]})).total,0);
+  assert.equal((await service.adminQueue({status:"approved"})).total,0);
+  await assert.rejects(service.adminQueue({limit:200}));
+});
+
+test("approval saves edited description with moderation decision and metadata", async () => {
+  const {repository} = fixture();
+  const service = new SongCoverService(repository, async () => true, async () => ({
+    videoId, title:"Recorded cover", thumbnailUrl:`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+  }));
+  const pending=await repository.insert({mmid:205,youtubeVideoId:videoId,status:"pending",source:"community",sortOrder:0});
+  const result=await service.adminReview(205,pending.id,"approved","moderator",{description:"  Acoustic guitar  "});
+  assert.equal(result.status,"approved");
+  assert.equal(result.title,"Recorded cover");
+  assert.equal(result.description,"Acoustic guitar");
+  await assert.rejects(service.adminReview(205,pending.id,"approved","moderator"),CoverConflictError);
 });
