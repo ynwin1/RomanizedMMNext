@@ -4,9 +4,13 @@ import { useState, useTransition } from "react";
 import {
   addSongCoverAdminAction,
   previewSongCoverAdminAction,
+  editSongCoverAdminAction,
+  removeSongCoverAdminAction,
+  reorderSongCoversAdminAction,
 } from "./song-cover-actions";
 import { parseYouTubeVideoId } from "@/modules/songs/application/song-cover.youtube";
 import type { StoredSongCover } from "@/modules/songs/application/song-cover.repository";
+import { moveCover, orderedCoverIds } from "./song-cover-order";
 
 const control = "w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-400 focus:outline-none";
 
@@ -21,6 +25,11 @@ export default function SongCoverEditor({ mmid, initialCovers }: {
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const [previewPending, startPreviewTransition] = useTransition();
+  const [managing, startManageTransition] = useTransition();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ videoId: string; title: string; authorName?: string; thumbnailUrl: string } | null>(null);
   const [previewMessage, setPreviewMessage] = useState("");
   const parsedId = parseYouTubeVideoId(youtubeUrl);
@@ -70,6 +79,66 @@ export default function SongCoverEditor({ mmid, initialCovers }: {
     });
   }
 
+  function beginEdit(cover: StoredSongCover) {
+    setEditingId(cover.id);
+    setDeletingId(null);
+    setEditTitle(cover.title ?? "");
+    setEditDescription(cover.description ?? "");
+    setError("");
+    setMessage("");
+  }
+
+  function saveEdit(cover: StoredSongCover) {
+    setError("");
+    setMessage("");
+    startManageTransition(async () => {
+      try {
+        const updated = await editSongCoverAdminAction(mmid, cover.id, {
+          title: editTitle.trim(),
+          description: editDescription.trim(),
+        });
+        setCovers(previous => previous.map(item => item.id === updated.id ? updated : item));
+        setEditingId(null);
+        setMessage("Cover details saved.");
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Unable to save cover details.");
+      }
+    });
+  }
+
+  function deleteCover(id: string) {
+    setError("");
+    setMessage("");
+    startManageTransition(async () => {
+      try {
+        await removeSongCoverAdminAction(mmid, id);
+        setCovers(previous => previous.filter(item => item.id !== id));
+        setDeletingId(null);
+        setEditingId(null);
+        setMessage("Cover removed.");
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Unable to remove cover.");
+      }
+    });
+  }
+
+  function move(id: string, direction: -1 | 1) {
+    const next = moveCover(covers, id, direction);
+    if (next === covers) return;
+    setError("");
+    setMessage("");
+    startManageTransition(async () => {
+      try {
+        await reorderSongCoversAdminAction(mmid, orderedCoverIds(next));
+        setCovers(next.map((item, sortOrder) => ({ ...item, sortOrder })));
+        setMessage("Cover order updated.");
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Unable to reorder covers.");
+      }
+    });
+  }
+
+  const busy = managing || pending;
   return <div className="space-y-6">
     <form onSubmit={addCover} className="space-y-4 rounded-xl border border-zinc-700 bg-zinc-900/30 p-4">
       <h3 className="text-lg font-semibold">Add a YouTube cover</h3>
@@ -118,7 +187,7 @@ export default function SongCoverEditor({ mmid, initialCovers }: {
           className={control}
         />
       </label>
-      <button type="submit" disabled={pending || !parsedId} className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+      <button type="submit" disabled={busy || !parsedId} className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
         {pending ? "Adding cover…" : "Add cover"}
       </button>
       {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
@@ -130,7 +199,7 @@ export default function SongCoverEditor({ mmid, initialCovers }: {
       {covers.length === 0 ? <p className="rounded-lg border border-dashed border-zinc-700 p-4 text-sm text-zinc-400">
         No covers for this song yet. Add a YouTube video above to start the collection.
       </p> : <ul className="space-y-3">
-        {covers.map(cover => <li key={cover.id} className="flex min-w-0 flex-col gap-3 rounded-lg border border-zinc-700 p-3 sm:flex-row sm:items-center">
+        {covers.map((cover, index) => <li key={cover.id} className="flex min-w-0 flex-col gap-3 rounded-lg border border-zinc-700 p-3 sm:flex-row sm:items-center">
           <a
             href={`https://www.youtube.com/watch?v=${cover.youtubeVideoId}`}
             target="_blank"
@@ -155,9 +224,42 @@ export default function SongCoverEditor({ mmid, initialCovers }: {
             {cover.description && <p className="break-words text-sm text-zinc-300">{cover.description}</p>}
             <p className="text-xs text-zinc-400">{cover.source === "admin" ? "Added by admin" : "Community suggestion"} · {cover.status}</p>
           </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col" aria-label={`Manage ${cover.title || cover.youtubeVideoId}`}>
+            <button type="button" onClick={() => move(cover.id, -1)} disabled={busy || index === 0}
+              aria-label={`Move ${cover.title || cover.youtubeVideoId} up`}
+              className="rounded border border-zinc-600 px-3 py-2 text-xs hover:bg-zinc-800 disabled:opacity-40">↑ Up</button>
+            <button type="button" onClick={() => move(cover.id, 1)} disabled={busy || index === covers.length - 1}
+              aria-label={`Move ${cover.title || cover.youtubeVideoId} down`}
+              className="rounded border border-zinc-600 px-3 py-2 text-xs hover:bg-zinc-800 disabled:opacity-40">↓ Down</button>
+            <button type="button" disabled={busy} onClick={() => beginEdit(cover)}
+              className="rounded border border-zinc-600 px-3 py-2 text-xs hover:bg-zinc-800 disabled:opacity-40">Edit</button>
+            <button type="button" disabled={busy} onClick={() => {setEditingId(null);setDeletingId(cover.id);setError("");}}
+              className="rounded border border-rose-700 px-3 py-2 text-xs text-rose-200 hover:bg-rose-950 disabled:opacity-40">Remove</button>
+          </div>
+          {editingId === cover.id && <div className="w-full space-y-3 border-t border-zinc-700 pt-3">
+            <label className="block space-y-1 text-sm">Video title
+              <input className={control} maxLength={200} value={editTitle} onChange={event => setEditTitle(event.target.value)} />
+            </label>
+            <label className="block space-y-1 text-sm">Description (optional)
+              <textarea className={control} maxLength={500} rows={2} value={editDescription} onChange={event => setEditDescription(event.target.value)} />
+            </label>
+            <div className="flex gap-2">
+              <button type="button" disabled={busy} onClick={() => saveEdit(cover)} className="rounded bg-indigo-600 px-3 py-2 text-sm text-white disabled:opacity-40">Save changes</button>
+              <button type="button" disabled={busy} onClick={() => setEditingId(null)} className="rounded border border-zinc-600 px-3 py-2 text-sm">Cancel</button>
+            </div>
+          </div>}
+          {deletingId === cover.id && <div className="w-full space-y-2 border-t border-rose-900 pt-3">
+            <p className="text-sm text-rose-200">Remove this cover from the song? This cannot be undone.</p>
+            <div className="flex gap-2">
+              <button type="button" disabled={busy} onClick={() => deleteCover(cover.id)} className="rounded bg-rose-800 px-3 py-2 text-sm text-white disabled:opacity-40">Confirm removal</button>
+              <button type="button" disabled={busy} onClick={() => setDeletingId(null)} className="rounded border border-zinc-600 px-3 py-2 text-sm">Cancel</button>
+            </div>
+          </div>}
         </li>)}
       </ul>}
-      <p className="text-xs text-zinc-500">Editing, removal, and reordering controls will be added in P2.3. Public carousel display arrives in P3.</p>
+      <p className="text-xs text-zinc-500">Use Up and Down to control carousel order. The public carousel arrives in P3.</p>
+      {error && <p role="alert" className="text-sm text-rose-300">{error}</p>}
+      {message && <p role="status" className="text-sm text-emerald-300">{message}</p>}
     </div>
   </div>;
 }
