@@ -17,6 +17,7 @@ const labels = {
     success: "Thanks! Your suggestion was submitted for review.",
     invalid: "Please enter a valid YouTube video URL.",
     error: "Unable to submit your suggestion. Please try again.",
+    limited: "Too many suggestions for now. Please try again later.",
   },
   my: {
     trigger: "ပြန်လည်သီဆိုထားသော ဗီဒီယို အကြံပြုရန်",
@@ -30,6 +31,7 @@ const labels = {
     success: "ကျေးဇူးတင်ပါတယ်။ သင့်အကြံပြုချက်ကို စစ်ဆေးရန် လက်ခံရရှိပါပြီ။",
     invalid: "မှန်ကန်သော YouTube ဗီဒီယိုလင့်ခ် ထည့်ပါ။",
     error: "အကြံပြုချက် ပေးပို့၍ မရပါ။ ထပ်ကြိုးစားပါ။",
+    limited: "အကြံပြုချက်များလွန်းနေပါသည်။ နောက်မှ ပြန်ကြိုးစားပါ။",
   },
 };
 const fieldClass = "w-full min-w-0 rounded-lg border border-theme-border bg-background p-3 text-foreground focus:border-accent focus:outline-none";
@@ -65,7 +67,7 @@ export default function SuggestSongCover({ mmid, locale }: Props) {
       });
       if (!response.ok) {
         const result = await response.json().catch(() => null) as { error?: string } | null;
-        setError(response.status === 409 ? (result?.error || copy.error) : copy.error);
+        setError(response.status === 429 ? copy.limited : response.status === 409 ? (result?.error || copy.error) : copy.error);
         return;
       }
       setSuccess(true);

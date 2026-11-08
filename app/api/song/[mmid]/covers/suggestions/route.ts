@@ -1,7 +1,8 @@
-import { songCoverService } from "@/modules/songs";
+import { songCoverService, enforceCoverSubmissionRate } from "@/modules/songs";
 import { CoverConflictError, CoverNotFoundError } from "@/modules/songs/application/song-cover.service";
 import { CoverSongIdSchema, SuggestCoverSchema } from "@/modules/songs/application/song-cover.validation";
 import { logger } from "@/infrastructure/logging/logger";
+import { readCoverSubmissionBody } from "@/modules/songs/application/song-cover.body";
 
 export async function POST(request: Request, context: { params: Promise<{ mmid: string }> }) {
   const { mmid: rawId } = await context.params;
@@ -13,8 +14,8 @@ export async function POST(request: Request, context: { params: Promise<{ mmid: 
   if (Number(request.headers.get("content-length")) > 4096) {
     return Response.json({ error: "Submission is too large" }, { status: 413 });
   }
-  const body = await request.text();
-  if (body.length > 4096) return Response.json({ error: "Submission is too large" }, { status: 413 });
+  const body = await readCoverSubmissionBody(request);
+  if (body === null) return Response.json({ error: "Submission is too large" }, { status: 413 });
   let input: unknown;
   try { input = JSON.parse(body); }
   catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
@@ -22,6 +23,13 @@ export async function POST(request: Request, context: { params: Promise<{ mmid: 
   if (!parsed.success) return Response.json({ error: "Invalid cover submission" }, { status: 400 });
 
   try {
+    const quota = await enforceCoverSubmissionRate(request);
+    if (!quota.allowed) {
+      return Response.json(
+        {error: "Too many cover suggestions. Please try again later."},
+        {status: 429, headers: {"Retry-After": String(quota.retryAfterSeconds), "Cache-Control": "no-store"}},
+      );
+    }
     await songCoverService.suggest(parsedId.data, parsed.data);
     return Response.json({ message: "Suggestion submitted for review" }, { status: 201 });
   } catch (error) {
