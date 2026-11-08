@@ -5,6 +5,8 @@ import { songService, SongIdSchema } from "@/modules/songs";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import SongForm from "../../song-form";
 import MoodometerEditor from "../../moodometer-editor";
+import SongCoverEditor from "../../song-cover-editor";
+import { songCoverService } from "@/modules/songs";
 import { AdminAuditMeta } from "../../../admin-audit-meta";
 
 export default async function EditSongPage({ params, searchParams }: {
@@ -18,6 +20,7 @@ export default async function EditSongPage({ params, searchParams }: {
     if (error instanceof NotFoundError) notFound();
     throw error;
   });
+  const covers = await songCoverService.adminList(song.mmid);
   const { saved, mood } = await searchParams;
   return <section>
     <h1 className="text-3xl font-bold">Edit song</h1>
@@ -28,6 +31,11 @@ export default async function EditSongPage({ params, searchParams }: {
     {mood === "failed" && <p role="alert" className="mt-3 text-amber-300">Song saved, but Moodometer generation failed. You can try again below.</p>}
     <AdminAuditMeta createdAt={song.createdAt} updatedAt={song.updatedAt} updatedBy={song.updatedBy} />
     <SongForm key={song.mmid + ":" + song.revision} song={song} />
+    <section id="covers" className="mt-10 border-t border-zinc-700 pt-8">
+      <h2 className="mb-2 text-2xl font-semibold">Covers &amp; Interpretations</h2>
+      <p className="mb-4 text-sm text-zinc-400">Add YouTube covers and instrumental interpretations of this song. These videos are separate from the original recording used for lyric synchronization.</p>
+      <SongCoverEditor mmid={song.mmid} initialCovers={covers} />
+    </section>
     {Boolean(song.lyricsV2) && <section id="moodometer" className="mt-10 border-t border-zinc-700 pt-8">
       <h2 className="mb-4 text-2xl font-semibold">Moodometer</h2>
       <MoodometerEditor mmid={song.mmid}/>
