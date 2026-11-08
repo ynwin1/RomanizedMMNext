@@ -2,6 +2,7 @@ import { adminPage, type AdminPage } from "@/shared/admin-list";
 import type { AdminSongRequestDetail, AdminSongRequestRecord, SongRequestQueueItem } from "../application/song-request.dto";
 import type { AdminRequestQuery } from "../application/song-request.admin-query";
 import { requestAdminFilter } from "./song-request.admin-filter";
+import { openRequestResetFilter } from "./song-request.bulk-reject";
 import connectDB from "@/infrastructure/database/mongodb";
 import type { CreateSongRequestInput, SongRequestEntity, SongRequestStatus, StoredSongRequestStatus } from "../domain/song-request.types";
 import SongRequest, { type ISongRequest } from "./song-request.model";
@@ -32,6 +33,15 @@ function toEntity(request: SongRequestPersistenceRecord): SongRequestEntity {
 }
 
 export class MongoSongRequestRepository implements ISongRequestRepository {
+  async rejectOpenBefore(cutoff: Date, updatedBy: string): Promise<number> {
+    await connectDB();
+    const result = await SongRequest.updateMany(openRequestResetFilter(cutoff), {
+      $set: { status: "rejected", updatedBy },
+      $inc: {__v: 1},
+    }, {runValidators: true});
+    return result.modifiedCount;
+  }
+
   async countAdmin(status?: SongRequestStatus): Promise<number> {
     await connectDB();
     return SongRequest.countDocuments(requestAdminFilter("", status));

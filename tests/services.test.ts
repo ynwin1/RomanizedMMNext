@@ -201,6 +201,7 @@ test("request submission smoke: SongRequestService delegates creation", async ()
   let received: unknown;
 
   const repository: ISongRequestRepository = {
+    rejectOpenBefore: async () => 0,
     create: async (value) => {
       received = value;
       return created;
@@ -346,7 +347,7 @@ test("admin module services validate queries before repository access", async ()
   const services = [
     new SongService(songRepository({ listAdmin })),
     new ArtistService(artistRepository({ listAdmin })),
-    new SongRequestService({ create: async input => ({ id: "r", ...input }), listQueue: async () => [], listAdmin, countAdmin: async () => 0, findAdminDetail: async () => null, updateStatus: async () => null, findById: async () => null }),
+    new SongRequestService({ rejectOpenBefore: async () => 0, create: async input => ({ id: "r", ...input }), listQueue: async () => [], listAdmin, countAdmin: async () => 0, findAdminDetail: async () => null, updateStatus: async () => null, findById: async () => null }),
   ];
   for (const service of services) await assert.rejects(() => service.getAdminList({ page: -1 }));
   assert.equal(calls, 0);
@@ -357,6 +358,7 @@ test("admin module services validate queries before repository access", async ()
 test("request service rejects unsupported admin statuses before querying", async () => {
   let calls = 0;
   const service = new SongRequestService({
+    rejectOpenBefore: async () => 0,
     create: async input => ({ id: "r", ...input }), listQueue: async () => [],
     listAdmin: async () => { calls += 1; return { items: [], total: 0, page: 1, limit: 20, totalPages: 0 }; },
     countAdmin: async () => { calls += 1; return 0; },

@@ -24,6 +24,16 @@ export class SongRequestService {
     return this.requests.countAdmin(status);
   }
 
+  /** Archive only outstanding requests; completed and accepted workflows stay intact. */
+  async rejectOpenBefore(cutoff: Date, updatedBy: string): Promise<number> {
+    if (!(cutoff instanceof Date) || !Number.isFinite(cutoff.getTime()) ||
+        cutoff.getTime() > Date.now() + 60_000) {
+      throw new Error("Invalid bulk rejection cutoff");
+    }
+    if (!updatedBy.trim()) throw new Error("Admin identity is required");
+    return this.requests.rejectOpenBefore(cutoff, updatedBy);
+  }
+
   async create(input: unknown): Promise<SongRequestEntity> {
     return this.requests.create(SongRequestInputSchema.parse(input));
   }

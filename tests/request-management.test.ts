@@ -11,6 +11,7 @@ const entity = { id, songName: "Song", artist: "Artist", status: "pending" as co
 
 function repository(overrides: Partial<ISongRequestRepository> = {}): ISongRequestRepository {
   return {
+    rejectOpenBefore: async () => 0,
     create: async input => ({ id, ...input, status: "pending" }),
     listQueue: async () => [],
     listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),

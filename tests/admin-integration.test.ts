@@ -122,6 +122,7 @@ class MemoryArtists implements IArtistRepository {
 }
 
 class MemoryRequests implements ISongRequestRepository {
+  async rejectOpenBefore() { return 0; }
   private record: (SongRequestEntity & { revision: number }) | null = null;
 
   async create(input: Parameters<ISongRequestRepository["create"]>[0]) {

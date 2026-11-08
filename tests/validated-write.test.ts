@@ -65,6 +65,7 @@ test("shared Zod error shaping groups nested issues by top-level field", () => {
 test("SongRequestService validates create input before repository access", async () => {
   let creates = 0;
   const repository: ISongRequestRepository = {
+    rejectOpenBefore: async () => 0,
     create: async input => { creates += 1; return { id: "r1", ...input, status: "pending" }; },
     listQueue: async () => [],
     listAdmin: async () => ({ items: [], total: 0, page: 1, limit: 20, totalPages: 0 }),

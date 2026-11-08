@@ -4,6 +4,7 @@ import type { AdminSongRequestDetail, AdminSongRequestRecord, SongRequestQueueIt
 import type { CreateSongRequestInput, SongRequestEntity, SongRequestStatus } from "../domain/song-request.types";
 
 export interface ISongRequestRepository {
+  rejectOpenBefore(cutoff: Date, updatedBy: string): Promise<number>;
   listAdmin(query: AdminRequestQuery): Promise<AdminPage<AdminSongRequestRecord>>;
   countAdmin(status?: SongRequestStatus): Promise<number>;
   create(input: CreateSongRequestInput): Promise<SongRequestEntity>;
