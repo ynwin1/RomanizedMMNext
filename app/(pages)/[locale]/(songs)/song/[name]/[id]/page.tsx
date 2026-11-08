@@ -147,8 +147,12 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
         <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-6 sm:px-6 lg:pt-10">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScriptValue(seo.recording) }} />
 
-            <div className="mx-auto w-full max-w-2xl" aria-label="Search for another song">
+            <div className="mx-auto w-full max-w-2xl space-y-3" aria-label="Search and song actions">
                 <SearchBar showLabel={false} />
+                <div className="flex flex-wrap items-center justify-center gap-3" aria-label="Quick song actions">
+                    <RandomSongButton locale={locale}/>
+                    <SongReportButton songName={song.songName} artist={artistNames} />
+                </div>
             </div>
 
             {/* Song identity and details are visible without extra clicks. */}
@@ -195,11 +199,7 @@ const Page = async ({ params, searchParams }: SongPageProps) => {
 
             <SuggestSongCover mmid={song.mmid} locale={locale} />
 
-            <aside aria-label="Explore and share" className="flex flex-col items-center gap-6 border-t border-theme-border pt-8">
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                    <RandomSongButton locale={locale}/>
-                    <SongReportButton songName={song.songName} artist={artistNames} />
-                </div>
+            <aside aria-label="Share this song" className="flex flex-col items-center border-t border-theme-border pt-8">
                 <SocialShare url={seo.canonical} title={song.songName} />
             </aside>
         </main>

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const source = readFileSync("app/(pages)/[locale]/(songs)/song/[name]/[id]/page.tsx", "utf8");
 
-test("song search precedes details and lyrics without moving bottom actions", () => {
+test("song search and quick actions precede details and lyrics", () => {
   const header = source.indexOf('<header className=');
   const player = source.indexOf('<SyncedLyricsPlayer extLinks=');
   const search = source.indexOf("<SearchBar showLabel={false} />");
@@ -45,4 +45,20 @@ test("search label can be visually hidden without losing accessibility", () => {
   assert.match(search, /htmlFor="song-search"/);
   assert.match(source, /<RandomSongButton locale={locale}\s*\/>/);
   assert.match(source, /<SongReportButton songName={song.songName} artist={artistNames} \/>/);
+});
+
+test("Surprise and Report appear once, centered directly beneath the search bar", () => {
+  const search = source.indexOf("<SearchBar showLabel={false} />");
+  const quickActions = source.indexOf('aria-label="Quick song actions"');
+  const surprise = source.indexOf("<RandomSongButton locale={locale}/>");
+  const report = source.indexOf("<SongReportButton songName={song.songName} artist={artistNames} />");
+  const header = source.indexOf("<header className=");
+  const share = source.indexOf('<aside aria-label="Share this song"');
+  assert.ok(search >= 0 && search < quickActions && quickActions < surprise &&
+    surprise < report && report < header && header < share);
+  assert.match(source, /className="flex flex-wrap items-center justify-center gap-3" aria-label="Quick song actions"/);
+  assert.equal((source.match(/<RandomSongButton /g) ?? []).length, 1);
+  assert.equal((source.match(/<SongReportButton /g) ?? []).length, 1);
+  assert.match(source.slice(share), /<SocialShare url={seo.canonical}/);
+  assert.doesNotMatch(source.slice(share), /<RandomSongButton|<SongReportButton/);
 });
