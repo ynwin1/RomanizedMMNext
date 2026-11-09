@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Local song lyric exports and audit reports (never commit these)
 /.romanization-work/
+
+# Local-only authorized audio and alignment workspace
+/.auto-sync-work/
