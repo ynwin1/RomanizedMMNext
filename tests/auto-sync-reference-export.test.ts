@@ -38,7 +38,7 @@ test("server action is admin guarded and UI only offers export for unchanged pub
  const editor=readFileSync("app/admin/songs/timing-editor.tsx","utf8");
  assert.match(action,/await requireAdmin\(\)/);
  assert.match(action,/lyricTimingService\.load\(id,videoId,true\)/);
- assert.match(editor,/exportAutoSyncReferenceAction\(mmid,videoId\)/);
+ assert.match(editor,/exportAutoSyncReferenceAction\(mmid,\s*videoId\)/);
  assert.match(editor,/disabled=\{busy \|\| !published \|\| dirty\}/);
  assert.match(editor,/window\.confirm\(/);
 });
