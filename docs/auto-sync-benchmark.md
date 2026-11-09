@@ -17,3 +17,11 @@ Proposed success gates for a later feasibility decision: >=90% start accuracy wi
 
 ## Next
 P18.1.2 will create reference-data collection/export for a small set of songs, then an offline prototype can align authorized recordings and write suggestions in this format. No audio should be fetched from arbitrary YouTube links or permanently stored as part of this phase.
+
+## P18.1.2 — Collecting reviewed reference timings
+
+In **Admin → Songs → Lyrics Sync**, select the correct recording and ensure its timing track is published and unchanged. Play the recording and manually verify all line boundaries first. Choose **Export benchmark reference**, confirm that you reviewed the exact recording, then save the generated JSON.
+
+The admin-only server action independently reloads current LyricsV2 and a published timing track, rejects missing/draft/stale/incomplete tracks, and produces `{version, mmid, lyrics, reference}`. The reference includes the video ID, lyrics SHA-256 fingerprint, and timestamp entries. Breaks are not timed and repeated text is identified by entry index. No MongoDB writes are made; no audio is downloaded. Keep downloaded exports private and handle song lyrics and rights accordingly.
+
+Exporting is a *candidate* reference, not proof of accuracy. Editorial review is required because a previously published track may still have errors. For the initial evaluation, collect five manually checked songs with varying vocal density, style, repeated choruses, and instrumental gaps. The separate audio acquisition and alignment experiments follow in P18.2.

@@ -6,6 +6,7 @@ import type ReactPlayer from "react-player";
 import type { LyricsV2 } from "@/modules/songs/domain/lyrics-v2.types";
 import type { LyricTimingLine, LyricTimingTrack } from "@/modules/songs/domain/lyric-timing.types";
 import { getLyricTimingAction, saveLyricTimingAction, recoverStoredLyricTimingAction } from "./lyric-timing-actions";
+import { exportAutoSyncReferenceAction } from "./auto-sync-reference-actions";
 import { draftTimingLines, secondsToMilliseconds, nudgeTime, activeTimingIndex, validateDraftTimes } from "./timing-editor-data";
 
 const VideoPlayer = dynamic(() => import("react-player"), {ssr: false});
@@ -102,6 +103,26 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     } finally { setBusy(false); }
   }
 
+  async function exportReference() {
+    if (dirty || !published || busy) return;
+    if (!window.confirm("Export this published track as a benchmark reference? Confirm you have manually checked its timings against this exact recording.")) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      const bundle = await exportAutoSyncReferenceAction(mmid, videoId);
+      const file = new Blob([JSON.stringify(bundle, null, 2)], {type: "application/json"});
+      const url = URL.createObjectURL(file);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `romanizedmm-sync-reference-${mmid}-${videoId}.json`;
+      document.body.appendChild(anchor);
+      try { anchor.click(); } finally { anchor.remove(); URL.revokeObjectURL(url); }
+      setMessage("Benchmark reference exported. Keep the JSON file private until reviewed.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not export reference.");
+    } finally { setBusy(false); }
+  }
+
   async function recoverStored() {
     setBusy(true);
     try {
@@ -187,6 +208,9 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
       <button type="button" disabled={busy || validationErrors.length > 0 || completedLines.length !== rows.length}
         onClick={() => save("published")}
         className="rounded border border-emerald-500 px-5 py-3 font-medium text-emerald-200 disabled:opacity-40">Publish timings</button>
+      <button type="button" disabled={busy || !published || dirty} onClick={exportReference}
+        className="rounded border border-sky-600 px-4 py-3 text-sm text-sky-200 disabled:opacity-40"
+        title="Export only a published track with no unsaved edits">Export benchmark reference</button>
       <button type="button" disabled={busy} onClick={recoverStored}
         className="rounded border border-amber-600 px-4 py-3 text-sm text-amber-200 disabled:opacity-40">Recover saved track</button>
       {recovered && <span className="text-sm text-amber-300">Recovered timestamps are not published until revalidated.</span>}
