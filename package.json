@@ -14,7 +14,8 @@
     "prepare:auto-sync-audio": "node scripts/prepare-auto-sync-audio.mjs",
     "separate:auto-sync-vocals": "node scripts/separate-auto-sync-vocals.mjs",
     "transcribe:auto-sync": "node scripts/transcribe-auto-sync.mjs",
-    "match:auto-sync": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/match-auto-sync.mjs"
+    "match:auto-sync": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/match-auto-sync.mjs",
+    "benchmark:auto-sync": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/benchmark-auto-sync.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.10",
