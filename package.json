@@ -10,12 +10,13 @@
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "evaluate:moodometer": "tsc -p tsconfig.test.json && node scripts/evaluate-moodometer.mjs",
     "evaluate:romanization": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/evaluate-romanization.mjs",
-    "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node -r ./test-register.cjs --test --test-concurrency=1 .test-dist/tests/*.test.js && node --test tests/romanization-reference-audit.test.mjs && node --test tests/auto-sync-audio.test.mjs && node --test tests/auto-sync-vocals.test.mjs && node --test tests/auto-sync-transcription.test.mjs",
+    "test": "rm -rf .test-dist && tsc -p tsconfig.test.json && node -r ./test-register.cjs --test --test-concurrency=1 .test-dist/tests/*.test.js && node --test tests/romanization-reference-audit.test.mjs && node --test tests/auto-sync-audio.test.mjs && node --test tests/auto-sync-vocals.test.mjs && node --test tests/auto-sync-transcription.test.mjs && node -r ./test-register.cjs --test tests/auto-sync-evaluation-runner.test.mjs",
     "prepare:auto-sync-audio": "node scripts/prepare-auto-sync-audio.mjs",
     "separate:auto-sync-vocals": "node scripts/separate-auto-sync-vocals.mjs",
     "transcribe:auto-sync": "node scripts/transcribe-auto-sync.mjs",
     "match:auto-sync": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/match-auto-sync.mjs",
-    "benchmark:auto-sync": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/benchmark-auto-sync.mjs"
+    "benchmark:auto-sync": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/benchmark-auto-sync.mjs",
+    "evaluate:auto-sync-batch": "tsc -p tsconfig.test.json && node -r ./test-register.cjs scripts/evaluate-auto-sync-batch.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.10",
