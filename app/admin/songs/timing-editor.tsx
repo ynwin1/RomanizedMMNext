@@ -8,6 +8,8 @@ import type { LyricTimingLine, LyricTimingTrack } from "@/modules/songs/domain/l
 import { getLyricTimingAction, saveLyricTimingAction, recoverStoredLyricTimingAction } from "./lyric-timing-actions";
 import { exportAutoSyncReferenceAction } from "./auto-sync-reference-actions";
 import { draftTimingLines, secondsToMilliseconds, nudgeTime, activeTimingIndex, validateDraftTimes } from "./timing-editor-data";
+import type { AutoSyncReviewPreview } from "@/modules/songs/application/auto-sync.review";
+import { previewAutoSyncSuggestionsAction } from "./auto-sync-review-actions";
 
 const VideoPlayer = dynamic(() => import("react-player"), {ssr: false});
 type Recording = {videoId: string; url: string};
@@ -26,6 +28,9 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   const [published, setPublished] = useState(false);
   const [recovered, setRecovered] = useState(false);
   const [localLoaded, setLocalLoaded] = useState(false);
+  const [pendingSuggestion, setPendingSuggestion] = useState<AutoSyncReviewPreview | null>(null);
+  const [suggestionMessage, setSuggestionMessage] = useState("");
+  const [readingSuggestion, setReadingSuggestion] = useState(false);
   const player = useRef<ReactPlayer>(null);
   const rows: Row[] = useMemo(() => lyrics.entries.flatMap((entry, index) =>
     entry.kind === "line" ? [{entryIndex: index, burmese: entry.burmese, romanized: entry.romanized}] : []), [lyrics]);
@@ -39,6 +44,8 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     setBusy(true);
     setMessage("");
     setTimes({});
+    setPendingSuggestion(null);
+    setSuggestionMessage("");
     setDirty(false);
     getLyricTimingAction(mmid, videoId).then(track => {
       if (!active) return;
@@ -67,6 +74,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
   }, [mmid, videoId]);
 
   function change(index: number, field: "startMs" | "endMs", value: number | undefined) {
+    setPendingSuggestion(null);
     setTimes(previous => ({...previous, [index]: {...previous[index], [field]: value}}));
     setDirty(true);
     setPublished(false);
@@ -84,6 +92,7 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     player.current?.getInternalPlayer()?.playVideo?.();
   }
   async function save(status: "draft" | "published" = "draft") {
+    setPendingSuggestion(null);
     setBusy(true);
     setMessage("");
     try {
@@ -123,7 +132,45 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
     } finally { setBusy(false); }
   }
 
+  async function readSuggestions(file: File | undefined) {
+    setPendingSuggestion(null);
+    setSuggestionMessage("");
+    if (!file) return;
+    if (file.size > 1024 * 1024) {
+      setSuggestionMessage("Suggestion JSON must be under 1 MiB.");
+      return;
+    }
+    setReadingSuggestion(true);
+    try {
+      const data: unknown = JSON.parse(await file.text());
+      const preview = await previewAutoSyncSuggestionsAction(mmid, videoId, data, times);
+      setPendingSuggestion(preview);
+      setSuggestionMessage(`Found ${preview.candidateCount} candidates; ${preview.addedCount} empty rows can be filled, ${preview.keptCount} existing rows kept. Timings are approximate and require review.`);
+    } catch (error) {
+      setSuggestionMessage(error instanceof Error ? error.message : "Could not validate suggestions.");
+    } finally {
+      setReadingSuggestion(false);
+    }
+  }
+  function applySuggestions() {
+    if (!pendingSuggestion || busy || readingSuggestion) return;
+    // Confirm again at apply time; never overwrite saved or unsaved manual work.
+    const preview = pendingSuggestion;
+    if (preview.addedCount === 0) {
+      setSuggestionMessage("No empty rows to fill. Existing timings were preserved.");
+      setPendingSuggestion(null);
+      return;
+    }
+    if (!window.confirm(`Fill ${preview.addedCount} empty rows with approximate AI timestamps? Review each line before saving or publishing.`)) return;
+    setTimes(preview.nextTimes);
+    setDirty(true);
+    setPublished(false);
+    setPendingSuggestion(null);
+    setSuggestionMessage(`Applied ${preview.addedCount} tentative timings locally. Review them, then save as a draft.`);
+  }
+
   async function recoverStored() {
+    setPendingSuggestion(null);
     setBusy(true);
     try {
       const track = await recoverStoredLyricTimingAction(mmid, videoId);
@@ -163,6 +210,26 @@ export default function TimingEditor({mmid, fingerprint, lyrics, recordings}: {
       </div>
       <p className="text-sm text-zinc-400">Current playback: <strong className="text-zinc-100">{seconds.toFixed(2)}s</strong>. Play the video, then capture the start and end of each line.</p>
     </div>
+    <section className="max-w-3xl space-y-3 rounded border border-sky-800 bg-sky-950/20 p-4" aria-label="AI timing suggestions">
+      <h2 className="text-lg font-semibold">Import AI timing suggestions (experimental)</h2>
+      <p className="text-sm text-zinc-300">Select a local JSON file generated by the offline Auto-Sync pilot. This does not run AI or upload audio. Existing manual timings will not be replaced.</p>
+      <label className="block text-sm">Suggestion JSON
+        <input type="file" accept=".json,application/json" disabled={busy || !localLoaded || readingSuggestion}
+          className="mt-2 block w-full text-sm" onChange={event => {
+            const selected = event.currentTarget.files?.[0];
+            event.currentTarget.value = "";
+            void readSuggestions(selected);
+          }}/>
+      </label>
+      {suggestionMessage && <p className="text-sm text-sky-200" role="status">{suggestionMessage}</p>}
+      {pendingSuggestion && <div className="space-y-2">
+        <p className="text-xs text-zinc-400">Source: {pendingSuggestion.modelVersion}. Candidate timestamps are not calibrated acoustic timings.</p>
+        <button type="button" disabled={busy || readingSuggestion || pendingSuggestion.addedCount === 0}
+          onClick={applySuggestions} className="rounded border border-sky-500 px-4 py-2 text-sm text-sky-100 disabled:opacity-40">
+          Apply {pendingSuggestion.addedCount} suggestions to empty rows
+        </button>
+      </div>}
+    </section>
     <div className="space-y-3">
       {rows.map((row, n) => {
         const timing = times[row.entryIndex] ?? {};
