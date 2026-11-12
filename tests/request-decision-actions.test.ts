@@ -11,7 +11,6 @@ function handler(overrides: Partial<Parameters<typeof createRequestActionHandler
     requests: {
       updateStatus: async () => ({ id: requestId, songName: "Song", artist: "Artist" } as any),
     },
-    acceptRequest: async () => ({ ingestion: { id: ingestionId } }),
     saved: id => { throw new Error("saved:" + id); },
     accepted: id => { throw new Error("accepted:" + id); },
     rejected: () => { throw new Error("rejected"); },
@@ -20,16 +19,17 @@ function handler(overrides: Partial<Parameters<typeof createRequestActionHandler
   });
 }
 
-test("request accept is one action that starts ingestion and redirects to source workflow", async () => {
+test("request accept redirects to new-song form with linked request", async () => {
   const calls: string[] = [];
   const actions = handler({
-    acceptRequest: async (id, revision, actor) => {
+    requests: {updateStatus: async (id, revision, status, actor) => {
       assert.equal(id, requestId);
       assert.equal(revision, 3);
       assert.equal(actor, "admin-1");
+      assert.equal(status,"accepted");
       calls.push("accept");
-      return { ingestion: { id: ingestionId } };
-    },
+      return {} as any;
+    }},
     accepted: id => {
       calls.push("redirect:" + id);
       throw new Error("accepted redirect");
@@ -39,7 +39,7 @@ test("request accept is one action that starts ingestion and redirects to source
   const form = new FormData();
   form.set("decision", "accept");
   await assert.rejects(() => actions.decide(requestId, 3, {}, form), /accepted redirect/);
-  assert.deepEqual(calls, ["accept", "redirect:" + ingestionId]);
+  assert.deepEqual(calls, ["accept", "redirect:" + requestId]);
 });
 
 test("request reject updates status directly and exits the queue", async () => {
@@ -65,7 +65,6 @@ test("request decision authorizes before accept or reject work", async () => {
   const denied = new Error("auth redirect");
   const actions = handler({
     authorize: async () => { throw denied; },
-    acceptRequest: async () => { calls++; return { ingestion: { id: ingestionId } }; },
     requests: { updateStatus: async () => { calls++; return {} as any; } },
   });
 

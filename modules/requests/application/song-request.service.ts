@@ -38,6 +38,18 @@ export class SongRequestService {
     return this.requests.create(SongRequestInputSchema.parse(input));
   }
 
+  async listAcceptedForFulfillment():Promise<AdminSongRequestDetail[]> {
+    return this.requests.listAccepted();
+  }
+
+  async fulfillWithSong(id:unknown,mmid:number,updatedBy:string):Promise<void> {
+    const requestId=SongRequestIdSchema.parse(id);
+    if(!Number.isSafeInteger(mmid)||mmid<=0)throw new Error("Invalid fulfilled song");
+    if(!updatedBy.trim())throw new Error("Admin identity is required");
+    if(!await this.requests.fulfillAccepted(requestId,mmid,updatedBy))
+      throw new SongRequestConflictError();
+  }
+
   async getQueue(): Promise<SongRequestQueueItem[]> {
     return this.requests.listQueue();
   }

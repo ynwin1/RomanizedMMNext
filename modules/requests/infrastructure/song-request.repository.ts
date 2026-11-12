@@ -29,10 +29,26 @@ function toEntity(request: SongRequestPersistenceRecord): SongRequestEntity {
     updatedAt: request.updatedAt,
     updatedBy: request.updatedBy,
     status: request.status,
+    fulfilledSongMmid: request.fulfilledSongMmid,
   };
 }
 
 export class MongoSongRequestRepository implements ISongRequestRepository {
+  async listAccepted():Promise<AdminSongRequestDetail[]> {
+    await connectDB();
+    const results=await SongRequest.find({status:"accepted",fulfilledSongMmid:{$exists:false}})
+      .sort({createdAt:-1,_id:-1}).limit(100).lean();
+    return results.map(request=>({...toEntity(request),status:"accepted" as const,revision:request.__v??0}));
+  }
+  async fulfillAccepted(id:string,songMmid:number,updatedBy:string):Promise<boolean> {
+    await connectDB();
+    const result=await SongRequest.updateOne(
+      {_id:id,status:"accepted",fulfilledSongMmid:{$exists:false}},
+      {$set:{status:"completed",fulfilledSongMmid:songMmid,updatedBy},$inc:{__v:1}},
+      {runValidators:true});
+    return result.modifiedCount===1;
+  }
+
   async rejectOpenBefore(cutoff: Date, updatedBy: string): Promise<number> {
     await connectDB();
     const result = await SongRequest.updateMany(openRequestResetFilter(cutoff), {

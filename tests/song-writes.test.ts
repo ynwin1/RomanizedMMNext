@@ -382,3 +382,65 @@ test("all normal song write paths reject legacy-only payloads before repository 
   await assert.rejects(() => service.updateSong(17, 0, content), /Lyrics V2 is required/);
   assert.equal(writes, 0);
 });
+
+test("accepted request is fulfilled only after a successful canonical song create",async()=>{
+ const calls:string[]=[];const selected="507f1f77bcf86cd799439011";
+ const handler=createSongActionHandler({
+  authorize:async()=>({userId:"admin-1"}),
+  songs:{
+   createSong:async input=>{calls.push("create");assert.equal((input as any).isRequested,true);return song;},
+   updateSong:async()=>song,
+  },
+  verifyRequest:async id=>{assert.equal(id,selected);calls.push("verify");},
+  fulfillRequest:async(id,mmid,actor)=>{assert.equal(id,selected);assert.equal(mmid,17);assert.equal(actor,"admin-1");calls.push("fulfill");},
+  saved:()=>{calls.push("redirect");throw new Error("redirect");},
+  logFailure:()=>{},
+ });
+ const value=form();value.set("isRequested","on");value.set("fulfillRequestId",selected);
+ await assert.rejects(handler.create({},value),/redirect/);
+ assert.deepEqual(calls,["verify","create","fulfill","redirect"]);
+});
+test("request is not fulfilled when canonical song creation fails",async()=>{
+ let fulfilled=false;
+ const handler=createSongActionHandler({
+  authorize:async()=>({userId:"admin-1"}),
+  songs:{createSong:async()=>{throw new DuplicateSongError();},updateSong:async()=>song},
+  verifyRequest:async()=>{},
+  fulfillRequest:async()=>{fulfilled=true;},
+  saved:()=>{throw Error("unexpected");},logFailure:()=>{},
+ });
+ const value=form();value.set("isRequested","on");value.set("fulfillRequestId","507f1f77bcf86cd799439011");
+ const result=await handler.create({},value);
+ assert.equal(fulfilled,false);assert.match(result.message??" ",/already exists|duplicate|exists/i);
+});
+test("invalid, unaccepted, or unchecked request cannot create song",async()=>{
+ let created=false;
+ const handler=createSongActionHandler({
+  authorize:async()=>({userId:"admin-1"}),
+  songs:{createSong:async()=>{created=true;return song;},updateSong:async()=>song},
+  verifyRequest:async()=>{throw Error("Not accepted");},
+  fulfillRequest:async()=>{},
+  saved:()=>{throw Error("unexpected");},logFailure:()=>{},
+ });
+ const value=form();value.set("isRequested","on");value.set("fulfillRequestId","507f1f77bcf86cd799439011");
+ const result=await handler.create({},value);assert.match(result.message??"",/no longer available/);
+ value.delete("isRequested");const unchecked=await handler.create({},value);
+ assert.match(unchecked.message??"",/valid accepted request/);
+ value.set("isRequested","on");value.set("fulfillRequestId","wrong");
+ const malformed=await handler.create({},value);assert.match(malformed.message??"",/valid accepted request/);
+ assert.equal(created,false);
+});
+test("partial fulfillment failure redirects to existing song with warning rather than retrying create",async()=>{
+ const calls:string[]=[];
+ const handler=createSongActionHandler({
+  authorize:async()=>({userId:"admin-1"}),
+  songs:{createSong:async()=>{calls.push("create");return song;},updateSong:async()=>song},
+  verifyRequest:async()=>{},
+  fulfillRequest:async()=>{throw Error("request DB transient failure");},
+  saved:(_id,_mood,failed)=>{assert.equal(failed,true);calls.push("warning");throw Error("redirect");},
+  logFailure:()=>{},
+ });
+ const value=form();value.set("isRequested","on");value.set("fulfillRequestId","507f1f77bcf86cd799439011");
+ await assert.rejects(handler.create({},value),/redirect/);
+ assert.deepEqual(calls,["create","warning"]);
+});

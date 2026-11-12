@@ -4,6 +4,7 @@ import { CanonicalLyricsRequiredError, DuplicateSongError, SongConflictError } f
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import { prepareValidatedWrite, type AdminWritePrincipal } from "@/shared/write/validated-write";
 import { songFormInput, type SongFormState } from "./song-form.data";
+import {SongRequestIdSchema} from "@/modules/requests/application/song-request.validation";
 
 export async function runOptionalMoodDraft(
   requested: boolean,
@@ -24,8 +25,10 @@ export async function runOptionalMoodDraft(
 export function createSongActionHandler(dependencies: {
   authorize: () => Promise<AdminWritePrincipal>;
   songs: Pick<SongService, "createSong" | "updateSong">;
-  saved: (id: number, moodStatus?: "ready" | "failed") => never;
+  saved: (id: number, moodStatus?: "ready" | "failed", fulfillmentFailed?:boolean) => never;
   afterCreate?: (id: number) => Promise<void>;
+  verifyRequest?: (requestId:string)=>Promise<void>;
+  fulfillRequest?: (requestId:string,mmid:number,actor:string)=>Promise<void>;
   logFailure: (error: unknown) => void;
 }) {
   function failure(error: unknown): SongFormState {
@@ -48,14 +51,30 @@ export function createSongActionHandler(dependencies: {
       });
       if (!prepared.ok) return { message: "Please correct the highlighted fields.", errors: prepared.errors };
 
+      const selected=form.get("fulfillRequestId");
+      const requestId=selected==null||selected===""?null:SongRequestIdSchema.safeParse(selected).data;
+      if(selected&&(!requestId||form.get("isRequested")!=="on"))
+        return {message:"Select a valid accepted request.",errors:{fulfillRequestId:["Invalid request selection."]}};
+      if(requestId){
+        if(!dependencies.verifyRequest||!dependencies.fulfillRequest)
+          return {message:"Request fulfillment is not configured."};
+        try { await dependencies.verifyRequest(requestId); }
+        catch {return {message:"This request is no longer available. Reload and choose another.",errors:{fulfillRequestId:["Request unavailable."]}};}
+      }
       let id: number;
       try {
         id = (await dependencies.songs.createSong(prepared.value, prepared.principal.userId)).mmid;
       } catch (error) {
         return failure(error);
       }
+      // The song now exists. Do not retry creation if request fulfillment fails.
+      let fulfillmentFailed=false;
+      if(requestId){
+        try {await dependencies.fulfillRequest!(requestId,id,prepared.principal.userId);}
+        catch(error){dependencies.logFailure(error);fulfillmentFailed=true;}
+      }
       const moodStatus = await runOptionalMoodDraft(form.get("generateMoodDraft") === "on", id, dependencies.afterCreate, dependencies.logFailure);
-      return dependencies.saved(id, moodStatus);
+      return dependencies.saved(id,moodStatus,fulfillmentFailed);
     },
 
     async update(id: number, revision: number, _previous: SongFormState, form: FormData): Promise<SongFormState> {

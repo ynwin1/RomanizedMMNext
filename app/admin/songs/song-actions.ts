@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { songService, generateSongMoodPreview, moodometerService } from "@/modules/songs";
 import { artistService } from "@/modules/artists";
+import {songRequestService} from "@/modules/requests";
 import { AdminSongGenerationInputSchema } from "@/modules/admin/application/admin-song-generation.service";
 import { after } from "next/server";
 import { z } from "zod";
@@ -17,13 +18,18 @@ import type { SongFormState } from "./song-form.data";
 const actions = createSongActionHandler({
   authorize: requireAdmin,
   songs: songService,
+  async verifyRequest(requestId){
+    const request=await songRequestService.getAdminDetail(requestId);
+    if(request.status!=="accepted"||request.fulfilledSongMmid)throw new Error("Request unavailable");
+  },
+  fulfillRequest:(requestId,mmid,actor)=>songRequestService.fulfillWithSong(requestId,mmid,actor),
   async afterCreate(id) {
     const draft = await generateSongMoodPreview(id);
     await moodometerService.saveDraft(id, draft);
   },
-  saved(id, moodStatus) {
+  saved(id, moodStatus, fulfillmentFailed) {
     revalidatePath("/", "layout");
-    redirect("/admin/songs/" + id + "/edit?saved=1" + (moodStatus ? "&mood=" + moodStatus : ""));
+    redirect("/admin/songs/" + id + "/edit?saved=1" + (moodStatus ? "&mood=" + moodStatus : "") + (fulfillmentFailed ? "&requestLinkFailed=1" : ""));
   },
   logFailure(error) { logger.error("Admin song save failed", error); },
 });
