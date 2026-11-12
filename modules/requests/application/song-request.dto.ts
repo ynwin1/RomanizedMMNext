@@ -27,4 +27,5 @@ export interface AdminSongRequestDetail {
   updatedBy?: string;
   status: SongRequestStatus;
   revision: number;
+  fulfilledSongMmid?: number;
 }

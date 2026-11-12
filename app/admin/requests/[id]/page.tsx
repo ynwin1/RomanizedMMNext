@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdmin } from "@/infrastructure/auth";
-import { ingestionService } from "@/modules/ingestions";
 import { songRequestService, SongRequestIdSchema } from "@/modules/requests";
 import { NotFoundError } from "@/shared/errors/not-found.error";
 import RequestDecisionForm from "../request-decision-form";
-import StartIngestionForm from "../start-ingestion-form";
 
 export default async function RequestPage({ params }: {
   params: Promise<{ id: string }>;
@@ -18,7 +16,6 @@ export default async function RequestPage({ params }: {
     if (error instanceof NotFoundError) notFound();
     throw error;
   });
-  const ingestion = await ingestionService.findByRequestId(id);
 
   const rows = [
     ["Song", request.songName],
@@ -46,19 +43,10 @@ export default async function RequestPage({ params }: {
 
     {reviewable && <RequestDecisionForm request={request} />}
 
-    {request.status === "accepted" && ingestion &&
+    {request.status === "accepted" &&
       <div className="mt-6 rounded-xl border border-zinc-800 p-4">
-        <Link href={"/admin/ingestions/" + ingestion.id} className="underline">
-          Continue song workflow
-        </Link>
-      </div>}
-
-    {request.status === "accepted" && !ingestion &&
-      <div className="mt-6 rounded-xl border border-zinc-800 p-4">
-        <p className="text-sm text-zinc-400">
-          This request was accepted but its workflow did not finish starting. Resume it here.
-        </p>
-        <StartIngestionForm requestId={request.id} />
+        <Link href={"/admin/songs/new?requestId=" + request.id} className="underline">Create requested song</Link>
+        <p className="mt-2 text-sm text-zinc-400">Completes when the new song is successfully created and linked.</p>
       </div>}
 
     {request.status === "rejected" &&

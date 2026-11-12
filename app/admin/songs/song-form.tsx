@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import type { LyricsV2Entry, SongEditRecord } from "@/modules/songs";
+import type { AdminSongRequestDetail } from "@/modules/requests";
 import { renderLyricsV2Column } from "@/modules/songs/domain/lyrics.compatibility";
 import { buildLyricsV2FromAlignedText } from "@/modules/songs/application/lyrics-v2.builder";
 import { createSongAction, generateSongAiContentAction, getSongGenerationJobAction, searchSongArtistsAction, updateSongAction } from "./song-actions";
@@ -268,14 +269,19 @@ function LyricsV2Editor({
   );
 }
 
-export default function SongForm({ song }: { song?: SongEditRecord }) {
+export default function SongForm({ song, acceptedRequests = [], initialRequestId }: { song?: SongEditRecord; acceptedRequests?: AdminSongRequestDetail[]; initialRequestId?: string }) {
   const action = song ? updateSongAction.bind(null, song.mmid, song.revision) : createSongAction;
   const [state, formAction, pending] = useActionState(action, {});
-  const [artists, setArtists] = useState(song?.artistName.length ? song.artistName.map(artist => ({ name: artist.name, slug: artist.slug ?? "" })) : [{ name: "", slug: "" }]);
-  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(songTextFields.map(field => [field, song?.[field] ?? ""])));
+  const startingRequest=acceptedRequests.find(item=>item.id===initialRequestId);
+  const [artists, setArtists] = useState(song?.artistName.length ? song.artistName.map(artist => ({ name: artist.name, slug: artist.slug ?? "" })) :
+    [{name:startingRequest?.artist??"",slug:""}]);
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(songTextFields.map(field =>
+    [field, song?.[field] ?? (field==="songName"?startingRequest?.songName:
+      field==="requestedBy"?startingRequest?.requestedBy:undefined) ?? ""])));
   const [mmid, setMmid] = useState("");
-  const [youtube, setYoutube] = useState(song?.youtubeLink?.join("\n") ?? "");
-  const [requested, setRequested] = useState(song?.isRequested ?? false);
+  const [youtube, setYoutube] = useState(song?.youtubeLink?.join("\n") ?? (startingRequest?.youtubeLink??""));
+  const [requested, setRequested] = useState(song?.isRequested ?? Boolean(startingRequest));
+  const [linkedRequestId,setLinkedRequestId]=useState(startingRequest?.id??"");
   const [lyricsEntries, setLyricsEntries] = useState<LyricsV2Entry[]>(song?.lyricsV2?.entries ?? []);
   const [blobChangesPending, setBlobChangesPending] = useState(false);
   const [sourceLyrics, setSourceLyrics] = useState("");
@@ -487,7 +493,31 @@ export default function SongForm({ song }: { song?: SongEditRecord }) {
         <label className="block">YouTube URLs <span className="text-sm text-zinc-400">(one per line)</span>
           <textarea name="youtubeLink" rows={3} value={youtube} onChange={event => setYoutube(event.target.value)} className={inputClass} aria-invalid={!!state.errors?.youtubeLink} />{errors("youtubeLink")}
         </label>
-        <label className="flex items-center gap-3"><input type="checkbox" name="isRequested" checked={requested} onChange={event => setRequested(event.target.checked)} />This song came from a listener request</label>
+        <div className="rounded-lg border border-zinc-700 p-4 space-y-3">
+          <label className="flex items-center gap-3"><input type="checkbox" name="isRequested" checked={requested} onChange={event => {
+            setRequested(event.target.checked);
+            if(!event.target.checked)setLinkedRequestId("");
+          }} />This song came from a listener request</label>
+          {!song && requested && <>
+            <label className="block text-sm">Link to an accepted song request
+              <select name="fulfillRequestId" value={linkedRequestId} className={inputClass}
+                onChange={event => {
+                  const id=event.target.value;setLinkedRequestId(id);
+                  const choice=acceptedRequests.find(item=>item.id===id);
+                  if(choice){
+                    setValues(previous=>({...previous,songName:choice.songName,requestedBy:choice.requestedBy??""}));
+                    setArtists([{name:choice.artist,slug:""}]);
+                    setYoutube(choice.youtubeLink??"");
+                  }
+                }}>
+                <option value="">No linked request</option>
+                {acceptedRequests.map(item=><option key={item.id} value={item.id}>{item.songName} — {item.artist}</option>)}
+              </select>
+            </label>
+            {linkedRequestId && <p className="text-xs text-emerald-300">The chosen request will be completed after the song is created successfully.</p>}
+            {state.errors?.fulfillRequestId?.map((error,index)=><p key={index} role="alert" className="text-sm text-red-300">{error}</p>)}
+          </>}
+        </div>
         {!song && <label className="flex items-center gap-3 rounded-lg border border-zinc-700 p-3 text-sm">
           <input type="checkbox" name="generateMoodDraft" defaultChecked />
           Generate a Moodometer draft after creating this song (uses AI tokens; review before publishing)

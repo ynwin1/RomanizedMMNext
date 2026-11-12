@@ -12,4 +12,6 @@ export interface ISongRequestRepository {
   findAdminDetail(id: string): Promise<AdminSongRequestDetail | null>;
   updateStatus(id: string, revision: number, status: SongRequestStatus, updatedBy?: string): Promise<SongRequestEntity | null>;
   findById(id: string): Promise<SongRequestEntity | null>;
+  listAccepted(): Promise<AdminSongRequestDetail[]>;
+  fulfillAccepted(id:string,songMmid:number,updatedBy:string):Promise<boolean>;
 }

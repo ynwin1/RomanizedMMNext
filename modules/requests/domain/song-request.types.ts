@@ -14,6 +14,7 @@ export interface SongRequestEntity {
   updatedAt?: Date;
   updatedBy?: string;
   status?: StoredSongRequestStatus;
+  fulfilledSongMmid?: number;
 }
 
 export type CreateSongRequestInput = Omit<

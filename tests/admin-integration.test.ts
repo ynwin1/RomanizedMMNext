@@ -160,6 +160,8 @@ class MemoryRequests implements ISongRequestRepository {
   }
 
   async findById(id: string) { return this.record?.id === id ? this.record : null; }
+  async listAccepted():Promise<AdminSongRequestDetail[]> { const value=this.record;return value?.status==="accepted"?[{...value,status:"accepted",revision:value.revision}]:[]; }
+  async fulfillAccepted(id:string,mmid:number,actor:string) {if(this.record?.id!==id||this.record.status!=="accepted")return false;this.record={...this.record,status:"completed",fulfilledSongMmid:mmid,updatedBy:actor,revision:this.record.revision+1};return true;}
 }
 
 function songForm(songName: string) {
@@ -242,7 +244,6 @@ test("admin integration flow covers protected reads, song/artist create+edit, an
   const requestActions = createRequestActionHandler({
     authorize,
     requests,
-    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: id => { throw new Error("saved-request:" + id); },
     accepted: () => { throw new Error("unexpected accepted redirect"); },
     rejected: () => { throw new Error("unexpected rejected redirect"); },

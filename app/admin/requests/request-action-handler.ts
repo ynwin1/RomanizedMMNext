@@ -23,9 +23,8 @@ const ReviewDecisionSchema = z.object({
 export function createRequestActionHandler(dependencies: {
   authorize: () => Promise<AdminWritePrincipal>;
   requests: Pick<SongRequestService, "updateStatus">;
-  acceptRequest: (id: string, revision: number, updatedBy: string) => Promise<{ ingestion: { id: string } }>;
   saved: (id: string) => never;
-  accepted: (ingestionId: string) => never;
+  accepted: (requestId: string) => never;
   rejected: () => never;
   logFailure: (error: unknown) => void;
 }) {
@@ -51,21 +50,15 @@ export function createRequestActionHandler(dependencies: {
       if (!prepared.ok) return { message: "Choose Accept or Reject.", errors: prepared.errors };
 
       if (prepared.value.decision === "accept") {
-        let ingestionId: string;
         try {
-          const result = await dependencies.acceptRequest(
-            prepared.value.id,
-            prepared.value.revision,
-            prepared.principal.userId,
-          );
-          ingestionId = result.ingestion.id;
+          await dependencies.requests.updateStatus(prepared.value.id,prepared.value.revision,"accepted",prepared.principal.userId);
         } catch (error) {
           const known = knownFailure(error);
           if (known) return known;
           dependencies.logFailure(error);
           return { message: "Unable to review the request. Please try again." };
         }
-        return dependencies.accepted(ingestionId);
+        return dependencies.accepted(prepared.value.id);
       }
 
       try {

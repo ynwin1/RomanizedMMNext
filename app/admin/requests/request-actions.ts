@@ -4,22 +4,19 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/infrastructure/auth";
 import { logger } from "@/infrastructure/logging/logger";
-import { ingestionWorkflowService } from "@/modules/ingestions";
 import { songRequestService } from "@/modules/requests";
 import { createRequestActionHandler, type RequestActionState } from "./request-action-handler";
 
 const actions = createRequestActionHandler({
   authorize: requireAdmin,
   requests: songRequestService,
-  acceptRequest: (id, revision, updatedBy) =>
-    ingestionWorkflowService.acceptRequest(id, revision, updatedBy),
   saved(id) {
     revalidatePath("/admin", "layout");
     redirect("/admin/requests/" + id + "?saved=1");
   },
-  accepted(ingestionId) {
+  accepted(requestId) {
     revalidatePath("/admin", "layout");
-    redirect("/admin/ingestions/" + ingestionId);
+    redirect("/admin/songs/new?requestId=" + encodeURIComponent(requestId));
   },
   rejected() {
     revalidatePath("/admin", "layout");

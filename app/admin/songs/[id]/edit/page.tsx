@@ -10,7 +10,7 @@ import { songCoverService } from "@/modules/songs";
 import { AdminAuditMeta } from "../../../admin-audit-meta";
 
 export default async function EditSongPage({ params, searchParams }: {
-  params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; mood?: string }>;
+  params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; mood?: string; requestLinkFailed?: string }>;
 }) {
   await requireAdmin();
   const { id } = await params;
@@ -21,10 +21,11 @@ export default async function EditSongPage({ params, searchParams }: {
     throw error;
   });
   const covers = await songCoverService.adminList(song.mmid);
-  const { saved, mood } = await searchParams;
+  const { saved, mood, requestLinkFailed } = await searchParams;
   return <section>
     <h1 className="text-3xl font-bold">Edit song</h1>
     {saved === "1" && <p role="status" className="mt-4 text-emerald-300">Song saved successfully.</p>}
+    {requestLinkFailed === "1" && <p role="alert" className="mt-3 text-amber-300">Song created but request fulfillment failed. Do not create the song again; review the request separately.</p>}
     {Boolean(song.youtubeLink?.length && song.lyricsV2) && <p className="my-4"><Link href={`/admin/songs/${song.mmid}/sync`} className="inline-block rounded border border-indigo-500 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-950">Synchronize YouTube lyrics</Link></p>}
     {Boolean(song.lyricsV2) && <p className="my-4"><Link href={`/admin/songs/${song.mmid}/moodometer`} className="inline-block rounded border border-indigo-500 px-4 py-2 text-sm text-indigo-200 hover:bg-indigo-950">Moodometer — Analyze Mood</Link></p>}
     {mood === "ready" && <p role="status" className="mt-3 text-emerald-300">Moodometer draft generated. Review and publish it below when ready.</p>}

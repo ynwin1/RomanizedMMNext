@@ -73,6 +73,7 @@ test("SongRequestService validates create input before repository access", async
     findAdminDetail: async () => null,
     updateStatus: async () => null,
     findById: async () => null,
+    listAccepted:async()=>[],fulfillAccepted:async()=>true,
   };
   const service = new SongRequestService(repository);
 

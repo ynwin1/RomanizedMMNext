@@ -19,6 +19,8 @@ function repository(overrides: Partial<ISongRequestRepository> = {}): ISongReque
     findAdminDetail: async () => ({ ...entity, revision: 0 }),
     updateStatus: async (_id, _revision, status) => ({ ...entity, status }),
     findById: async () => entity,
+    listAccepted: async()=>[],
+    fulfillAccepted: async()=>true,
     ...overrides,
   };
 }
@@ -59,7 +61,6 @@ test("request action authorizes before write and handles status errors", async (
   const handler = createRequestActionHandler({
     authorize: async () => { throw denied; },
     requests: { updateStatus: async () => { writes++; return entity; } },
-    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: () => { throw new Error("unexpected redirect"); },
     accepted: () => { throw new Error("unexpected accepted redirect"); },
     rejected: () => { throw new Error("unexpected rejected redirect"); },
@@ -72,7 +73,6 @@ test("request action authorizes before write and handles status errors", async (
   const validating = createRequestActionHandler({
     authorize: async () => ({ userId: "admin-1" }),
     requests: new SongRequestService(repository()),
-    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: () => { throw new Error("unexpected redirect"); },
     accepted: () => { throw new Error("unexpected accepted redirect"); },
     rejected: () => { throw new Error("unexpected rejected redirect"); },
@@ -88,7 +88,6 @@ test("request action redirects only after successful persistence and hides inter
   const handler = createRequestActionHandler({
     authorize: async () => { calls.push("auth"); return { userId: "admin-1" }; },
     requests: { updateStatus: async (_id, _revision, _status, updatedBy) => { assert.equal(updatedBy, "admin-1"); calls.push("write"); return entity; } },
-    acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
     saved: savedId => { calls.push("saved:" + savedId); throw new Error("success redirect"); },
     accepted: () => { throw new Error("unexpected accepted redirect"); },
     rejected: () => { throw new Error("unexpected rejected redirect"); },
@@ -101,8 +100,7 @@ test("request action redirects only after successful persistence and hides inter
     const failing = createRequestActionHandler({
       authorize: async () => ({ userId: "admin-1" }),
       requests: { updateStatus: async () => { throw error; } },
-      acceptRequest: async () => ({ ingestion: { id: "507f191e810c19729de860ea" } }),
-      saved: () => { throw new Error("unexpected"); },
+        saved: () => { throw new Error("unexpected"); },
       accepted: () => { throw new Error("unexpected accepted redirect"); },
       rejected: () => { throw new Error("unexpected rejected redirect"); },
       logFailure: () => {},
@@ -110,4 +108,20 @@ test("request action redirects only after successful persistence and hides inter
     const result = await failing.update(id, 0, {}, form);
     assert.doesNotMatch(result.message ?? "", /secret/);
   }
+});
+
+test("fulfillWithSong validates request id and song identity before persistence",async()=>{
+ const calls:string[]=[];
+ const service=new SongRequestService(repository({fulfillAccepted:async(id,mmid,actor)=>{
+  calls.push(id+":"+mmid+":"+actor);return true;
+ }}));
+ await assert.rejects(service.fulfillWithSong("bad",17,"admin"));
+ await assert.rejects(service.fulfillWithSong(id,0,"admin"));
+ await assert.rejects(service.fulfillWithSong(id,17,""));
+ await service.fulfillWithSong(id,17,"admin");
+ assert.deepEqual(calls,[id+":17:admin"]);
+});
+test("fulfillWithSong rejects missing or previously completed requests",async()=>{
+ const service=new SongRequestService(repository({fulfillAccepted:async()=>false}));
+ await assert.rejects(service.fulfillWithSong(id,17,"admin"),SongRequestConflictError);
 });
